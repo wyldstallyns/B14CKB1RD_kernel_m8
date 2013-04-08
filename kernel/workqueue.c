@@ -42,6 +42,7 @@
 #include <linux/lockdep.h>
 #include <linux/idr.h>
 #include <linux/bug.h>
+#include <linux/moduleparam.h>
 
 #include "workqueue_sched.h"
 
@@ -261,6 +262,15 @@ struct workqueue_struct {
 #endif
 	char			name[];		/* I: workqueue name */
 };
+
+/* see the comment above the definition of WQ_POWER_EFFICIENT */
+#ifdef CONFIG_WQ_POWER_EFFICIENT_DEFAULT
+static bool wq_power_efficient = true;
+#else
+static bool wq_power_efficient;
+#endif
+
+module_param_named(power_efficient, wq_power_efficient, bool, 0444);
 
 struct workqueue_struct *system_wq __read_mostly;
 struct workqueue_struct *system_long_wq __read_mostly;
@@ -2964,7 +2974,15 @@ struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
 	unsigned int cpu;
 	size_t namelen;
 
+<<<<<<< HEAD
 	/* determine namelen, allocate wq and format name */
+=======
+	/* see the comment above the definition of WQ_POWER_EFFICIENT */
+	if ((flags & WQ_POWER_EFFICIENT) && wq_power_efficient)
+		flags |= WQ_UNBOUND;
+
+	
+>>>>>>> cc1d713... [LINARO] workqueues: Introduce new flag WQ_POWER_EFFICIENT for power oriented workqueues
 	va_start(args, lock_name);
 	va_copy(args1, args);
 	namelen = vsnprintf(NULL, 0, fmt, args) + 1;
