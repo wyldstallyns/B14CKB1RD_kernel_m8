@@ -1541,9 +1541,14 @@ static void ul_timeout(struct work_struct *work)
 	if (in_global_reset)
 		return;
 	ret = write_trylock_irqsave(&ul_wakeup_lock, flags);
+<<<<<<< HEAD
 	if (!ret) { 
 		schedule_delayed_work(&ul_timeout_work,
-				msecs_to_jiffies(ul_timeout_delay));
+=======
+	if (!ret) { /* failed to grab lock, reschedule and bail */
+		queue_delayed_work(system_power_efficient_wq, &ul_timeout_work,
+>>>>>>> 78054e2... msm: bam_dmux: Use power efficient workqueues for
+				msecs_to_jiffies(UL_TIMEOUT_DELAY));
 		return;
 	}
 	if (bam_is_connected) {
@@ -1566,9 +1571,13 @@ static void ul_timeout(struct work_struct *work)
 			BAM_DMUX_LOG("%s: pkt written %d\n",
 				__func__, ul_packet_written);
 			ul_packet_written = 0;
-			schedule_delayed_work(&ul_timeout_work,
-					msecs_to_jiffies(ul_timeout_delay));
-		} else {
+			queue_delayed_work(system_power_efficient_wq, &ul_timeout_work,
+					msecs_to_jiffies(UL_TIMEOUT_DELAY));
+                } else if(polling_mode) {
+                        DMUX_LOG_KERR("%s: BAM is in polling mode, delay UL power down", __func__);
+                        queue_delayed_work(system_power_efficient_wq, &ul_timeout_work,
+                                       msecs_to_jiffies(UL_TIMEOUT_DELAY));
+                } else {
 			ul_powerdown();
 		}
 	}
@@ -1647,8 +1656,8 @@ static void ul_wakeup(void)
 		}
 		if (likely(do_vote_dfab))
 			vote_dfab();
-		schedule_delayed_work(&ul_timeout_work,
-				msecs_to_jiffies(ul_timeout_delay));
+		queue_delayed_work(system_power_efficient_wq, &ul_timeout_work,
+				msecs_to_jiffies(UL_TIMEOUT_DELAY));
 		bam_is_connected = 1;
 		mutex_unlock(&wakeup_lock);
 		return;
@@ -1687,8 +1696,8 @@ static void ul_wakeup(void)
 
 	bam_is_connected = 1;
 	BAM_DMUX_LOG("%s complete\n", __func__);
-	schedule_delayed_work(&ul_timeout_work,
-				msecs_to_jiffies(ul_timeout_delay));
+	queue_delayed_work(system_power_efficient_wq, &ul_timeout_work,
+				msecs_to_jiffies(UL_TIMEOUT_DELAY));
 	mutex_unlock(&wakeup_lock);
 }
 
