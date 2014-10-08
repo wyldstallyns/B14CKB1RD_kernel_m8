@@ -82,7 +82,7 @@ struct cpufreq_policy {
 	unsigned int		min;    
 	unsigned int		max;    
 	unsigned int		cur;    
-	unsigned int		util
+	unsigned int		util;
 	unsigned int		policy; 
 	struct cpufreq_governor	*governor; 
 
