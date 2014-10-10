@@ -35,6 +35,7 @@
 #include <sys/mount.h>
 #include <sys/statfs.h>
 #include "../../include/linux/magic.h"
+#include "../../include/linux/kernel-page-flags.h"
 
 
 #ifndef MAX_PATH

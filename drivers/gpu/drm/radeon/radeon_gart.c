@@ -580,8 +580,8 @@ int radeon_vm_bo_rmv(struct radeon_device *rdev,
 	if (bo_va == NULL)
 		return 0;
 
-	mutex_lock(&vm->mutex);
 	radeon_mutex_lock(&rdev->cs_mutex);
+	mutex_lock(&vm->mutex);
 	radeon_vm_bo_update_pte(rdev, vm, bo, NULL);
 	radeon_mutex_unlock(&rdev->cs_mutex);
 	list_del(&bo_va->vm_list);
@@ -623,9 +623,8 @@ void radeon_vm_fini(struct radeon_device *rdev, struct radeon_vm *vm)
 	struct radeon_bo_va *bo_va, *tmp;
 	int r;
 
-	mutex_lock(&vm->mutex);
-
 	radeon_mutex_lock(&rdev->cs_mutex);
+	mutex_lock(&vm->mutex);
 	radeon_vm_unbind_locked(rdev, vm);
 	radeon_mutex_unlock(&rdev->cs_mutex);
 

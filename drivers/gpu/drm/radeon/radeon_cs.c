@@ -158,6 +158,7 @@ static int radeon_cs_sync_rings(struct radeon_cs_parser *p)
 	return 0;
 }
 
+/* XXX: note that this is called from the legacy UMS CS ioctl as well */
 int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 {
 	struct drm_radeon_cs *cs = data;

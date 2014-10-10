@@ -200,6 +200,7 @@ void r600_audio_set_clock(struct drm_encoder *encoder, int clock)
 	struct radeon_device *rdev = dev->dev_private;
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 	struct radeon_encoder_atom_dig *dig = radeon_encoder->enc_priv;
+	struct radeon_crtc *radeon_crtc = to_radeon_crtc(encoder->crtc);
 	int base_rate = 48000;
 
 	switch (radeon_encoder->encoder_id) {
