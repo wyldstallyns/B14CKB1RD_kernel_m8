@@ -159,8 +159,8 @@ int module_frob_arch_sections(Elf32_Ehdr *hdr,
 
 static inline int entry_matches(struct ppc_plt_entry *entry, Elf32_Addr val)
 {
-	if (entry->jump[0] == 0x3d600000 + ((val + 0x8000) >> 16)
-	    && entry->jump[1] == 0x396b0000 + (val & 0xffff))
+	if (entry->jump[0] == 0x3d800000 + ((val + 0x8000) >> 16)
+	    && entry->jump[1] == 0x398c0000 + (val & 0xffff))
 		return 1;
 	return 0;
 }
