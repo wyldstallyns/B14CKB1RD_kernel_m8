@@ -66,7 +66,7 @@ void dql_completed(struct dql *dql, unsigned int count)
 	dql->prev_ovlimit = ovlimit;
 	dql->prev_last_obj_cnt = dql->last_obj_cnt;
 	dql->num_completed = completed;
-	dql->prev_num_queued = dql->num_queued;
+	dql->prev_num_queued = num_queued;
 }
 EXPORT_SYMBOL(dql_completed);
 

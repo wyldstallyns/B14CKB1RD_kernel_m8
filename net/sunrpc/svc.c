@@ -402,15 +402,8 @@ __svc_create(struct svc_program *prog, unsigned int bufsize, int npools,
 		spin_lock_init(&pool->sp_lock);
 	}
 
-	if (svc_uses_rpcbind(serv)) {
-		if (svc_rpcb_setup(serv, current->nsproxy->net_ns) < 0) {
-			kfree(serv->sv_pools);
-			kfree(serv);
-			return NULL;
-		}
-		if (!serv->sv_shutdown)
-			serv->sv_shutdown = svc_rpcb_cleanup;
-	}
+	if (svc_uses_rpcbind(serv) && (!serv->sv_shutdown))
+		serv->sv_shutdown = svc_rpcb_cleanup;
 
 	return serv;
 }
@@ -454,8 +447,6 @@ EXPORT_SYMBOL_GPL(svc_shutdown_net);
 void
 svc_destroy(struct svc_serv *serv)
 {
-	struct net *net = current->nsproxy->net_ns;
-
 	dprintk("svc: svc_destroy(%s, %d)\n",
 				serv->sv_program->pg_name,
 				serv->sv_nrthreads);

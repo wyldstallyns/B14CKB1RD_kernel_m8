@@ -38,6 +38,8 @@
 #include <linux/types.h>
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
+#include <linux/kref.h>
+#include <linux/mutex.h>
 
 #define VIRTIO_RPMSG_F_NS	0 
 
@@ -79,7 +81,9 @@ typedef void (*rpmsg_rx_cb_t)(struct rpmsg_channel *, void *, int, void *, u32);
 
 struct rpmsg_endpoint {
 	struct rpmsg_channel *rpdev;
+	struct kref refcount;
 	rpmsg_rx_cb_t cb;
+	struct mutex cb_lock;
 	u32 addr;
 	void *priv;
 };

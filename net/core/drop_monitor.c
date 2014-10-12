@@ -40,11 +40,10 @@ static int trace_state = TRACE_OFF;
 static DEFINE_MUTEX(trace_state_mutex);
 
 struct per_cpu_dm_data {
-	struct work_struct dm_alert_work;
-	struct sk_buff __rcu *skb;
-	atomic_t dm_hit_count;
-	struct timer_list send_timer;
-	int cpu;
+	spinlock_t		lock;
+	struct sk_buff		*skb;
+	struct work_struct	dm_alert_work;
+	struct timer_list	send_timer;
 };
 
 struct dm_hw_stat_delta {
@@ -70,13 +69,13 @@ static int dm_delay = 1;
 static unsigned long dm_hw_check_delta = 2*HZ;
 static LIST_HEAD(hw_stats_list);
 
-static void reset_per_cpu_data(struct per_cpu_dm_data *data)
+static struct sk_buff *reset_per_cpu_data(struct per_cpu_dm_data *data)
 {
 	size_t al;
 	struct net_dm_alert_msg *msg;
 	struct nlattr *nla;
 	struct sk_buff *skb;
-	struct sk_buff *oskb = rcu_dereference_protected(data->skb, 1);
+	unsigned long flags;
 
 	al = sizeof(struct net_dm_alert_msg);
 	al += dm_hit_limit * sizeof(struct net_dm_drop_point);
@@ -169,13 +168,11 @@ static void trace_drop_common(struct sk_buff *skb, void *location)
 
 	if (!timer_pending(&data->send_timer)) {
 		data->send_timer.expires = jiffies + dm_delay * HZ;
-		add_timer_on(&data->send_timer, smp_processor_id());
+		add_timer(&data->send_timer);
 	}
 
 out:
-	rcu_read_unlock();
-	put_cpu_var(dm_cpu_data);
-	return;
+	spin_unlock_irqrestore(&data->lock, flags);
 }
 
 static void trace_kfree_skb_hit(void *ignore, struct sk_buff *skb, void *location)
@@ -361,11 +358,11 @@ static int __init init_net_drop_monitor(void)
 
 	for_each_present_cpu(cpu) {
 		data = &per_cpu(dm_cpu_data, cpu);
-		data->cpu = cpu;
 		INIT_WORK(&data->dm_alert_work, send_dm_alert);
 		init_timer(&data->send_timer);
-		data->send_timer.data = cpu;
+		data->send_timer.data = (unsigned long)data;
 		data->send_timer.function = sched_send_work;
+		spin_lock_init(&data->lock);
 		reset_per_cpu_data(data);
 	}
 

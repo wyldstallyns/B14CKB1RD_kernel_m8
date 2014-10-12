@@ -229,7 +229,7 @@ static int pre_map_gar_callback(struct apei_exec_context *ctx,
 	u8 ins = entry->instruction;
 
 	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
-		return acpi_os_map_generic_address(&entry->register_region);
+		return apei_map_generic_address(&entry->register_region);
 
 	return 0;
 }
@@ -258,7 +258,7 @@ static int post_unmap_gar_callback(struct apei_exec_context *ctx,
 	u8 ins = entry->instruction;
 
 	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
-		acpi_os_unmap_generic_address(&entry->register_region);
+		apei_unmap_generic_address(&entry->register_region);
 
 	return 0;
 }

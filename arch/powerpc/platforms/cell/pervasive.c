@@ -68,6 +68,9 @@ static void cbe_power_save(void)
 
 	ctrl &= ~(CTRL_RUNLATCH | CTRL_TE);
 	mtspr(SPRN_CTRLT, ctrl);
+
+	/* Re-enable interrupts in MSR */
+	__hard_irq_enable();
 }
 
 static int cbe_system_reset_exception(struct pt_regs *regs)
