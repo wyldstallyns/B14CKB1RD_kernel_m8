@@ -12,6 +12,7 @@
 
 #include <linux/errno.h>
 #include <asm/cacheflush.h>
+#include <asm/cp15.h>
 #include <mach/common.h>
 
 int platform_cpu_kill(unsigned int cpu)
@@ -21,9 +22,10 @@ int platform_cpu_kill(unsigned int cpu)
 
 void platform_cpu_die(unsigned int cpu)
 {
-	flush_cache_all();
+	cpu_enter_lowpower();
 	imx_enable_cpu(cpu, false);
 	cpu_do_idle();
+	cpu_leave_lowpower();
 
 	
 	panic("cpu %d unexpectedly exit from shutdown\n", cpu);

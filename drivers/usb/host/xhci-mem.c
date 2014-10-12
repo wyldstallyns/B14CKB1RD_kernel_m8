@@ -658,10 +658,9 @@ static void xhci_free_tt_info(struct xhci_hcd *xhci,
 		struct xhci_virt_device *virt_dev,
 		int slot_id)
 {
-	struct list_head *tt;
 	struct list_head *tt_list_head;
-	struct list_head *tt_next;
-	struct xhci_tt_bw_info *tt_info;
+	struct xhci_tt_bw_info *tt_info, *next;
+	bool slot_found = false;
 
 	if (virt_dev->real_port == 0 ||
 			virt_dev->real_port > HCS_MAX_PORTS(xhci->hcs_params1)) {
@@ -1517,17 +1516,9 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 {
 	struct pci_dev	*pdev = to_pci_dev(xhci_to_hcd(xhci)->self.controller);
 	struct dev_info	*dev_info, *next;
-	struct list_head *tt_list_head;
-	struct list_head *tt;
-	struct list_head *endpoints;
-	struct list_head *ep, *q;
-	struct xhci_tt_bw_info *tt_info;
-	struct xhci_interval_bw_table *bwt;
-	struct xhci_virt_ep *virt_ep;
-
 	unsigned long	flags;
 	int size;
-	int i;
+	int i, j, num_ports;
 
 	
 	size = sizeof(struct xhci_erst_entry)*(xhci->erst.num_entries);
@@ -1584,21 +1575,22 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 	}
 	spin_unlock_irqrestore(&xhci->lock, flags);
 
-	bwt = &xhci->rh_bw->bw_table;
-	for (i = 0; i < XHCI_MAX_INTERVAL; i++) {
-		endpoints = &bwt->interval_bw[i].endpoints;
-		list_for_each_safe(ep, q, endpoints) {
-			virt_ep = list_entry(ep, struct xhci_virt_ep, bw_endpoint_list);
-			list_del(&virt_ep->bw_endpoint_list);
-			kfree(virt_ep);
+	num_ports = HCS_MAX_PORTS(xhci->hcs_params1);
+	for (i = 0; i < num_ports; i++) {
+		struct xhci_interval_bw_table *bwt = &xhci->rh_bw[i].bw_table;
+		for (j = 0; j < XHCI_MAX_INTERVAL; j++) {
+			struct list_head *ep = &bwt->interval_bw[j].endpoints;
+			while (!list_empty(ep))
+				list_del_init(ep->next);
 		}
 	}
 
-	tt_list_head = &xhci->rh_bw->tts;
-	list_for_each_safe(tt, q, tt_list_head) {
-		tt_info = list_entry(tt, struct xhci_tt_bw_info, tt_list);
-		list_del(tt);
-		kfree(tt_info);
+	for (i = 0; i < num_ports; i++) {
+		struct xhci_tt_bw_info *tt, *n;
+		list_for_each_entry_safe(tt, n, &xhci->rh_bw[i].tts, tt_list) {
+			list_del(&tt->tt_list);
+			kfree(tt);
+		}
 	}
 
 	xhci->num_usb2_ports = 0;

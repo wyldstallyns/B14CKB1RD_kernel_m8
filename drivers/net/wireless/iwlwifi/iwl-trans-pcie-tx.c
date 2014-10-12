@@ -218,7 +218,7 @@ void iwlagn_txq_free_tfd(struct iwl_trans *trans, struct iwl_tx_queue *txq,
 
 		if (skb) {
 			iwl_op_mode_free_skb(trans->op_mode, skb);
-			txq->skbs[index] = NULL;
+			txq->skbs[idx] = NULL;
 		}
 	}
 }
@@ -965,7 +965,7 @@ int iwl_tx_queue_reclaim(struct iwl_trans *trans, int txq_id, int index,
 
 		iwlagn_txq_inval_byte_cnt_tbl(trans, txq);
 
-		iwlagn_txq_free_tfd(trans, txq, txq->q.read_ptr, DMA_TO_DEVICE);
+		iwlagn_txq_free_tfd(trans, txq, DMA_TO_DEVICE);
 		freed++;
 	}
 	return freed;
