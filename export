@@ -5,15 +5,15 @@
 # the appropriate lines for dtbTool to compile it, if not prebuilt.
 if [ "$1" == "local" ]; then
 	echo "Local Build"
-	build=/home/savoca/dev/output
-	export PATH=/home/savoca/toolchains/android-toolchain-eabi/bin:$PATH
+	build=/home/giro/m8/output
+	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 else
 	echo "Remote Build"
-	build=/home/savoca/downloads/furnace/m8/aosp
-	export PATH=/home/savoca/storage/toolchains/android-toolchain-eabi/bin:$PATH
+	build=/home/giro/m8/patch/
+	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 fi
-kernel="furnace"
-version="1.0.9"
+kernel="B14CKB1RD"
+version="1.0"
 rom="aosp"
 variant="m8"
 ramdisk=ramdisk
