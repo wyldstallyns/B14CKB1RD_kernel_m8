@@ -5,11 +5,11 @@
 # the appropriate lines for dtbTool to compile it, if not prebuilt.
 if [ "$1" == "local" ]; then
 	echo "Local Build"
-	build=/home/giro/m8/output
+	build=/home/giro/m8/output/
 	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 else
 	echo "Remote Build"
-	build=/home/giro/m8/patch/
+	build=/home/giro/m8/remote/
 	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 fi
 kernel="B14CKB1RD"
