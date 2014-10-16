@@ -341,6 +341,18 @@ static int svc_uses_rpcbind(struct svc_serv *serv)
 	return 0;
 }
 
+int svc_bind(struct svc_serv *serv, struct net *net)
+{
+	if (!svc_uses_rpcbind(serv))
+		return 0;
+	return svc_rpcb_setup(serv, net);
+}
+EXPORT_SYMBOL_GPL(svc_bind);
+
+ /*
+  * Create an RPC service
+  */
+
 static struct svc_serv *
 __svc_create(struct svc_program *prog, unsigned int bufsize, int npools,
 	     void (*shutdown)(struct svc_serv *serv, struct net *net))
@@ -461,8 +473,11 @@ svc_destroy(struct svc_serv *serv)
 
 	del_timer_sync(&serv->sv_temptimer);
 
-	svc_shutdown_net(serv, net);
-
+ 	/*
+ 	 * The last user is gone and thus all sockets have to be destroyed to
+ 	 * the point. Check this.
+	 */
+	 
 	BUG_ON(!list_empty(&serv->sv_permsocks));
 	BUG_ON(!list_empty(&serv->sv_tempsocks));
 

@@ -42,7 +42,9 @@ static void cbe_power_save(void)
 {
 	unsigned long ctrl, thread_switch_control;
 
-	hard_irq_disable();
+	/* Ensure our interrupt state is properly tracked */
+	if (!prep_irq_for_idle())
+		return;
 
 	ctrl = mfspr(SPRN_CTRLF);
 

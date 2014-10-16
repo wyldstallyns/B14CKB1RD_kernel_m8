@@ -2125,7 +2125,10 @@ ieee80211_rx_h_action_return(struct ieee80211_rx_data *rx)
 	     sdata->vif.type == NL80211_IFTYPE_AP_VLAN))
 		return RX_DROP_MONITOR;
 
-	
+	if (is_multicast_ether_addr(mgmt->da))
+		return RX_DROP_MONITOR;
+
+ 	/* do not return rejected action frames */	
 	if (mgmt->u.action.category & 0x80)
 		return RX_DROP_UNUSABLE;
 

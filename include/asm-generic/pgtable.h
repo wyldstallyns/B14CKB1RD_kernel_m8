@@ -7,6 +7,13 @@
 #include <linux/mm_types.h>
 #include <linux/bug.h>
 
+
+/*
+* On almost all architectures and configurations, 0 can be used as the
+* upper ceiling to free_pgtables(): on many architectures it has the same
+* effect as using TASK_SIZE. However, there is one configuration which
+* must impose a more careful limit, to avoid freeing kernel pgtables.
+*/
 #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 extern int ptep_set_access_flags(struct vm_area_struct *vma,
 				 unsigned long address, pte_t *ptep,
@@ -48,7 +55,7 @@ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 		set_pmd_at(vma->vm_mm, address, pmdp, pmd_mkold(pmd));
 	return r;
 }
-#else 
+#else  /* CONFIG_TRANSPARENT_HUGEPAGE */
 static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 					    unsigned long address,
 					    pmd_t *pmdp)
@@ -56,7 +63,7 @@ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 	BUG();
 	return 0;
 }
-#endif 
+#endif  /* CONFIG_TRANSPARENT_HUGEPAGE */
 #endif
 
 #ifndef __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
@@ -353,13 +360,62 @@ static inline int pmd_write(pmd_t pmd)
 	BUG();
 	return 0;
 }
-#endif 
-#endif 
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+#ifndef pmd_read_atomic
+static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
+{
+	/*
+	 * Depend on compiler for an atomic pmd read. NOTE: this is
+	 * only going to work, if the pmdval_t isn't larger than
+	 * an unsigned long.
+	 */
+	return *pmdp;
+}
+#endif
+
+ 
+/*
+* This function is meant to be used by sites walking pagetables with
+* the mmap_sem hold in read mode to protect against MADV_DONTNEED and
+* transhuge page faults. MADV_DONTNEED can convert a transhuge pmd
+* into a null pmd and the transhuge page fault can convert a null pmd
+* into an hugepmd or into a regular pmd (if the hugepage allocation
+* fails). While holding the mmap_sem in read mode the pmd becomes
+* stable and stops changing under us only if it's not null and not a
+* transhuge pmd. When those races occurs and this function makes a
+* difference vs the standard pmd_none_or_clear_bad, the result is
+* undefined so behaving like if the pmd was none is safe (because it
+* can return none anyway). The compiler level barrier() is critically
+* important to compute the two checks atomically on the same pmdval.
+*
+* For 32bit kernels with a 64bit large pmd_t this automatically takes
+* care of reading the pmd atomically to avoid SMP race conditions
+* against pmd_populate() when the mmap_sem is hold for reading by the
+* caller (a special atomic read not done by "gcc" as in the generic
+* version above, is also needed when THP is disabled because the page
+* fault can populate the pmd from under us).
+*/
 
 static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
 {
 	
-	pmd_t pmdval = *pmd;
+	pmd_t pmdval = pmd_read_atomic(pmd);
+ 	/*
+ 	 * The barrier will stabilize the pmdval in a register or on
+ 	 * the stack so that it will stop changing under the code.
+	 *
+	 * When CONFIG_TRANSPARENT_HUGEPAGE=y on x86 32bit PAE,
+	 * pmd_read_atomic is allowed to return a not atomic pmdval
+	 * (for example pointing to an hugepage that has never been
+	 * mapped in the pmd). The below checks will only care about
+	 * the low part of the pmd with 32bit PAE x86 anyway, with the
+	 * exception of pmd_none(). So the important thing is that if
+	 * the low part of the pmd is found null, the high part will
+	 * be also null or the pmd_none() check below would be
+	 * confused.
+ 	 */
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 	barrier();
 #endif

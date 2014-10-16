@@ -718,6 +718,9 @@ static netdev_tx_t be_xmit(struct sk_buff *skb,
 
 	copied = make_tx_wrbs(adapter, txq, skb, wrb_cnt, dummy_wrb);
 	if (copied) {
+			int gso_segs = skb_shinfo(skb)->gso_segs;
+
+ 		/* record the sent skb in the sent_skb table */
 		
 		BUG_ON(txo->sent_skb_list[start]);
 		txo->sent_skb_list[start] = skb;

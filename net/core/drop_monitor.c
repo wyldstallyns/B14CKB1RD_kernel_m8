@@ -33,8 +33,6 @@
 #define TRACE_ON 1
 #define TRACE_OFF 0
 
-static void send_dm_alert(struct work_struct *unused);
-
 
 static int trace_state = TRACE_OFF;
 static DEFINE_MUTEX(trace_state_mutex);
@@ -103,30 +101,30 @@ static struct sk_buff *reset_per_cpu_data(struct per_cpu_dm_data *data)
 
 }
 
-static void send_dm_alert(struct work_struct *unused)
+static void send_dm_alert(struct work_struct *work)
 {
 	struct sk_buff *skb;
-	struct per_cpu_dm_data *data = &get_cpu_var(dm_cpu_data);
+	struct per_cpu_dm_data *data;
 
-	WARN_ON_ONCE(data->cpu != smp_processor_id());
+	data = container_of(work, struct per_cpu_dm_data, dm_alert_work);
 
-	skb = rcu_dereference_protected(data->skb, 1);
-
-	reset_per_cpu_data(data);
+	skb = reset_per_cpu_data(data);
 
 	if (skb)
 		genlmsg_multicast(skb, 0, NET_DM_GRP_ALERT, GFP_KERNEL);
 
-	put_cpu_var(dm_cpu_data);
 }
+
+ /*
+  * This is the timer function to delay the sending of an alert
+  * in the event that more drops will arrive during the
+  * hysteresis period.
+  */
 
 static void sched_send_work(unsigned long unused)
 {
-	struct per_cpu_dm_data *data =  &get_cpu_var(dm_cpu_data);
-
-	schedule_work_on(smp_processor_id(), &data->dm_alert_work);
-
-	put_cpu_var(dm_cpu_data);
+	struct per_cpu_dm_data *data = (struct per_cpu_dm_data *)_data;
+	schedule_work(&data->dm_alert_work);
 }
 
 static void trace_drop_common(struct sk_buff *skb, void *location)
@@ -136,18 +134,16 @@ static void trace_drop_common(struct sk_buff *skb, void *location)
 	struct nlattr *nla;
 	int i;
 	struct sk_buff *dskb;
-	struct per_cpu_dm_data *data = &get_cpu_var(dm_cpu_data);
 
-
-	rcu_read_lock();
-	dskb = rcu_dereference(data->skb);
+	struct per_cpu_dm_data *data;
+	unsigned long flags;
+	local_irq_save(flags);
+	data = &__get_cpu_var(dm_cpu_data);
+	spin_lock(&data->lock);
+	dskb = data->skb;
 
 	if (!dskb)
 		goto out;
-
-	if (!atomic_add_unless(&data->dm_hit_count, -1, 0)) {
-		goto out;
-	}
 
 	nlh = (struct nlmsghdr *)dskb->data;
 	nla = genlmsg_data(nlmsg_data(nlh));
@@ -155,12 +151,17 @@ static void trace_drop_common(struct sk_buff *skb, void *location)
 	for (i = 0; i < msg->entries; i++) {
 		if (!memcmp(&location, msg->points[i].pc, sizeof(void *))) {
 			msg->points[i].count++;
-			atomic_inc(&data->dm_hit_count);
 			goto out;
 		}
 	}
 
-	__nla_reserve_nohdr(dskb, sizeof(struct net_dm_drop_point));
+		if (msg->entries == dm_hit_limit)
+		goto out;
+ 	/*
+ 	 * We need to create a new entry
+ 	 */
+
+	 __nla_reserve_nohdr(dskb, sizeof(struct net_dm_drop_point));
 	nla->nla_len += NLA_ALIGN(sizeof(struct net_dm_drop_point));
 	memcpy(msg->points[msg->entries].pc, &location, sizeof(void *));
 	msg->points[msg->entries].count = 1;

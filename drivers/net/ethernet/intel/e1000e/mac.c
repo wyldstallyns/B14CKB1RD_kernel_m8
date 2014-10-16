@@ -465,7 +465,7 @@ s32 e1000e_setup_link_generic(struct e1000_hw *hw)
 {
 	s32 ret_val;
 
-	if (hw->phy.ops.check_reset_block(hw))
+	if (hw->phy.ops.check_reset_block && hw->phy.ops.check_reset_block(hw))
 		return 0;
 
 	if (hw->fc.requested_mode == e1000_fc_default) {

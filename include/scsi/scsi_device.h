@@ -124,9 +124,10 @@ struct scsi_device {
 	unsigned last_sector_bug:1;	
 	unsigned no_read_disc_info:1;	
 	unsigned no_read_capacity_16:1; 
+	unsigned try_rc_10_first:1;	/* Try READ_CAPACACITY_10 first */
 	unsigned is_visible:1;	
 
-	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); 
+	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS);  /* Supported events*/
 	struct list_head event_list;	
 	struct work_struct event_work;
 

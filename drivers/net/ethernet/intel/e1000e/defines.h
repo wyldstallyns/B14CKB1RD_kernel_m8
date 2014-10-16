@@ -93,7 +93,8 @@
 #define E1000_RXD_ERR_SE        0x02    
 #define E1000_RXD_ERR_SEQ       0x04    
 #define E1000_RXD_ERR_CXE       0x10    
-#define E1000_RXD_ERR_TCPE      0x20    
+#define E1000_RXD_ERR_TCPE      0x20   
+#define E1000_RXD_ERR_IPE       0x40    /* IP Checksum Error */ 
 #define E1000_RXD_ERR_RXE       0x80    
 #define E1000_RXD_SPC_VLAN_MASK 0x0FFF  
 

@@ -154,9 +154,10 @@
 #define X86_FEATURE_XSAVEOPT	(7*32+ 4) 
 #define X86_FEATURE_PLN		(7*32+ 5) 
 #define X86_FEATURE_PTS		(7*32+ 6) 
-#define X86_FEATURE_DTS		(7*32+ 7) 
+#define X86_FEATURE_DTHERM	(7*32+ 7) /* Digital Thermal Sensor */
 #define X86_FEATURE_HW_PSTATE	(7*32+ 8) 
 
+/*Virtualization flags: Linux defined, word 8 */
 #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) 
 #define X86_FEATURE_VNMI        (8*32+ 1) 
 #define X86_FEATURE_FLEXPRIORITY (8*32+ 2) 

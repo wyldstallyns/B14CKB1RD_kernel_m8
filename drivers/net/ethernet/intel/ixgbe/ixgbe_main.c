@@ -948,12 +948,12 @@ static inline void ixgbe_rx_hash(struct ixgbe_ring *ring,
 }
 
 #ifdef IXGBE_FCOE
-static inline bool ixgbe_rx_is_fcoe(struct ixgbe_adapter *adapter,
+static inline bool ixgbe_rx_is_fcoe(struct ixgbe_ring *ring,
 				    union ixgbe_adv_rx_desc *rx_desc)
 {
 	__le16 pkt_info = rx_desc->wb.lower.lo_dword.hs_rss.pkt_info;
 
-	return (adapter->flags & IXGBE_FLAG_FCOE_ENABLED) &&
+	return test_bit(__IXGBE_RX_FCOE, &ring->state) &&
 	       ((pkt_info & cpu_to_le16(IXGBE_RXDADV_PKTTYPE_ETQF_MASK)) ==
 		(cpu_to_le16(IXGBE_ETQF_FILTER_FCOE <<
 			     IXGBE_RXDADV_PKTTYPE_ETQF_SHIFT)));
@@ -1327,7 +1327,12 @@ static bool ixgbe_cleanup_headers(struct ixgbe_ring *rx_ring,
 		__skb_frag_unref(frag);
 		skb->truesize -= ixgbe_rx_bufsz(rx_ring);
 	}
+#ifdef IXGBE_FCOE
+	/* do not attempt to pad FCoE Frames as this will disrupt DDP */
+	if (ixgbe_rx_is_fcoe(rx_ring, rx_desc))
+		return false;
 
+#endif
 	
 	if (unlikely(skb->len < 60)) {
 		int pad_len = 60 - skb->len;
@@ -1512,7 +1517,7 @@ static bool ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
 
 #ifdef IXGBE_FCOE
 		
-		if (ixgbe_rx_is_fcoe(adapter, rx_desc)) {
+		if (ixgbe_rx_is_fcoe(rx_ring, rx_desc)) {
 			ddp_bytes = ixgbe_fcoe_ddp(adapter, rx_desc, skb);
 			if (!ddp_bytes) {
 				dev_kfree_skb_any(skb);

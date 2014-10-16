@@ -127,7 +127,28 @@ static int rpmsg_uevent(struct device *dev, struct kobj_uevent_env *env)
 					rpdev->id.name);
 }
 
-static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
+/**
+ * __ept_release() - deallocate an rpmsg endpoint
+ * @kref: the ept's reference count
+ *
+ * This function deallocates an ept, and is invoked when its @kref refcount
+ * drops to zero.
+ *
+ * Never invoke this function directly!
+ */
+static void __ept_release(struct kref *kref)
+{
+	struct rpmsg_endpoint *ept = container_of(kref, struct rpmsg_endpoint,
+						  refcount);
+	/*
+	 * At this point no one holds a reference to ept anymore,
+	 * so we can directly free it
+	 */
+	kfree(ept);
+}
+
+ /* for more info, see below documentation of rpmsg_create_ept() */
+ static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
 		struct rpmsg_channel *rpdev, rpmsg_rx_cb_t cb,
 		void *priv, u32 addr)
 {
@@ -143,6 +164,9 @@ static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
 		dev_err(dev, "failed to kzalloc a new ept\n");
 		return NULL;
 	}
+
+	kref_init(&ept->refcount);
+	mutex_init(&ept->cb_lock);
 
 	kref_init(&ept->refcount);
 	mutex_init(&ept->cb_lock);

@@ -584,7 +584,7 @@ static void __cpuinit get_core_online(unsigned int cpu)
 	struct platform_device *pdev = coretemp_get_pdev(cpu);
 	int err;
 
-	if (!cpu_has(c, X86_FEATURE_DTS))
+	if (!cpu_has(c, X86_FEATURE_DTHERM))
 		return;
 
 	if (!pdev) {

@@ -66,14 +66,20 @@ struct mt_class {
 	__s32 sn_height;	
 	__s32 sn_pressure;	
 	__u8 maxcontacts;
-	bool is_indirect;	
+	bool is_indirect;	/* true for touchpads */
+};
+struct mt_fields {
+	unsigned usages[HID_MAX_FIELDS];
+	unsigned int length;
 };
 
-struct mt_device {
-	struct mt_slot curdata;	
-	struct mt_class mtclass;	
-	unsigned last_field_index;	
-	unsigned last_slot_field;	
+ struct mt_device {
+ 	struct mt_slot curdata;	/* placeholder of incoming data */
+ 	struct mt_class mtclass;	/* our mt device class */
+	struct mt_fields *fields;	/* temporary placeholder for storing the multitouch fields */
+ 	unsigned last_field_index;	/* last field index of the report */
+ 	unsigned last_slot_field;	/* the last field of a slot */
+ 	__s8 inputmode;		/* InputMode HID feature, -1 if non-existent */
 	__s8 inputmode;		
 	__s8 maxcontact_report_id;	
 	__u8 num_received;	
@@ -613,6 +619,16 @@ static void mt_post_parse(struct mt_device *td)
 	}
 }
 
+static void mt_post_parse(struct mt_device *td)
+{
+	struct mt_fields *f = td->fields;
+
+	if (td->touches_by_report > 0) {
+		int field_count_per_touch = f->length / td->touches_by_report;
+		td->last_slot_field = f->usages[field_count_per_touch - 1];
+	}
+}
+
 static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
 {
 	int ret, i;
@@ -648,6 +664,13 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
 		goto fail;
 	}
 
+	td->fields = kzalloc(sizeof(struct mt_fields), GFP_KERNEL);
+	if (!td->fields) {
+		dev_err(&hdev->dev, "cannot allocate multitouch fields data\n");
+		ret = -ENOMEM;
+		goto fail;
+	}
+
 	ret = hid_parse(hdev);
 	if (ret != 0)
 		goto fail;
@@ -655,6 +678,8 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
 	if (ret)
 		goto fail;
+
+	mt_post_parse(td);
 
 	mt_post_parse(td);
 
