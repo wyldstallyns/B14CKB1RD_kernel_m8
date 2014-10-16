@@ -1912,10 +1912,10 @@ void calc_load_enter_idle(void)
 	struct rq *this_rq = this_rq();
 	long delta;
 	
-	+	/*
-+	 * We're going into NOHZ mode, if there's any pending delta, fold it
-+	 * into the pending idle delta.
-+	 */
+	/*
+	 * We're going into NOHZ mode, if there's any pending delta, fold it
+	 * into the pending idle delta.
+	 */
 
 	delta = calc_load_fold_active(this_rq);
 	if (delta) {
@@ -1924,7 +1924,7 @@ void calc_load_enter_idle(void)
 	}
 }
 
-+void calc_load_exit_idle(void)
+void calc_load_exit_idle(void)
 {
 	struct rq *this_rq = this_rq();
 
