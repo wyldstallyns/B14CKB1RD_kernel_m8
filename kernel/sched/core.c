@@ -522,39 +522,6 @@ static inline void init_hrtick(void)
 #define tsk_is_polling(t) test_tsk_thread_flag(t, TIF_POLLING_NRFLAG)
 #endif
 
-/*
- *  * cmpxchg based fetch_or, macro so it works for different integer types
- *   */
-#define fetch_or(ptr, val)						\
-({	typeof(*(ptr)) __old, __val = *(ptr);				\
-	for (;;) {							\
-		__old = cmpxchg((ptr), __val, __val | (val));		\
-		if (__old == __val)					\
-			break;						\
-		__val = __old;						\
-	}								\
-	__old;								\
-})
-
-#ifdef TIF_POLLING_NRFLAG
-/*
- *  * Atomically set TIF_NEED_RESCHED and test for TIF_POLLING_NRFLAG,
- *   * this avoids any races wrt polling state changes and thereby avoids
- *    * spurious IPIs.
- *     */
-static bool set_nr_and_not_polling(struct task_struct *p)
-{
-	struct thread_info *ti = task_thread_info(p);
-	return !(fetch_or(&ti->flags, _TIF_NEED_RESCHED) & _TIF_POLLING_NRFLAG);
-}
-#else
-static bool set_nr_and_not_polling(struct task_struct *p)
-{
-	set_tsk_need_resched(p);
-	return true;
-}
-#endif
-
 void resched_task(struct task_struct *p)
 {
 	int cpu;
@@ -572,7 +539,7 @@ void resched_task(struct task_struct *p)
 
 	/* NEED_RESCHED must be visible before we test polling */
 	smp_mb();
-	if (set_nr_and_not_polling(p))
+	if (!tsk_is_polling(p))
 		smp_send_reschedule(cpu);
 }
 
@@ -750,6 +717,8 @@ int tg_nop(struct task_group *tg, void *data)
 	return 0;
 }
 #endif
+
+void update_cpu_load(struct rq *this_rq);
 
 static void set_load_weight(struct task_struct *p)
 {
@@ -1374,7 +1343,7 @@ out:
 		 * leave kernel.
 		 */
 		if (p->mm && printk_ratelimit()) {
-			printk_deferred("process %d (%s) no longer affine to cpu%d\n",
+			printk_sched("process %d (%s) no longer affine to cpu%d\n",
 					task_pid_nr(p), p->comm, cpu);
 		}
 	}
@@ -1641,7 +1610,6 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 {
 	unsigned long flags;
 	int cpu, src_cpu, success = 0;
-	bool notify = false;
 
 	smp_wmb();
 	raw_spin_lock_irqsave(&p->pi_lock, flags);
@@ -1698,12 +1666,9 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 stat:
 	ttwu_stat(p, cpu, wake_flags);
 out:
-
-	notify = task_notify_on_migrate(p);
-
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
 
-	if (src_cpu != cpu && notify)
+	if (src_cpu != cpu && task_notify_on_migrate(p))
 		atomic_notifier_call_chain(&migration_notifier_head,
 					   cpu, (void *)src_cpu);
 	return success;
@@ -1758,8 +1723,7 @@ out:
  */
 int wake_up_process(struct task_struct *p)
 {
-	WARN_ON(task_is_stopped_or_traced(p));
-	return try_to_wake_up(p, TASK_NORMAL, 0);
+	return try_to_wake_up(p, TASK_ALL, 0);
 }
 EXPORT_SYMBOL(wake_up_process);
 
@@ -2429,7 +2393,7 @@ static atomic_long_t calc_load_idle[2];
 static int calc_load_idx;
 
 static inline int calc_load_write_idx(void)
-{
+ {
 	int idx = calc_load_idx;
 
 	/*
@@ -2462,6 +2426,9 @@ void calc_load_enter_idle(void)
 	 * We're going into NOHZ mode, if there's any pending delta, fold it
 	 * into the pending idle delta.
 	 */
+{
+	long delta;
+
 	delta = calc_load_fold_active(this_rq);
 	if (delta) {
 		int idx = calc_load_write_idx();
@@ -2471,6 +2438,7 @@ void calc_load_enter_idle(void)
 
 void calc_load_exit_idle(void)
 {
+	long delta = 0;
 	struct rq *this_rq = this_rq();
 
 	/*
@@ -2610,6 +2578,7 @@ static void calc_global_nohz(void)
 }
 #else /* !CONFIG_NO_HZ */
 
+
 static inline long calc_load_fold_idle(void) { return 0; }
 static inline void calc_global_nohz(void) { }
 
@@ -2745,12 +2714,22 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
 static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 			      unsigned long pending_updates)
 {
+	unsigned long this_load = this_rq->load.weight;
+	unsigned long curr_jiffies = jiffies;
+	unsigned long pending_updates;
 	int i, scale;
 
 	this_rq->nr_load_updates++;
 
-	/* Update our load: */
-	this_rq->cpu_load[0] = this_load; /* Fasttrack for idx 0 */
+	
+	if (curr_jiffies == this_rq->last_load_update_tick)
+		return;
+
+	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
+	this_rq->last_load_update_tick = curr_jiffies;
+
+	
+	this_rq->cpu_load[0] = this_load; 
 	for (i = 1, scale = 2; i < CPU_LOAD_IDX_MAX; i++, scale += scale) {
 		unsigned long old_load, new_load;
 
@@ -3269,20 +3248,6 @@ void thread_group_times(struct task_struct *p, cputime_t *ut, cputime_t *st)
 # define nsecs_to_cputime(__nsecs)	nsecs_to_jiffies(__nsecs)
 #endif
 
-static cputime_t scale_utime(cputime_t utime, cputime_t rtime, cputime_t total)
-{
-	u64 temp = (__force u64) rtime;
-
-	temp *= (__force u64) utime;
-
-	if (sizeof(cputime_t) == 4)
-		temp = div_u64(temp, (__force u32) total);
-	else
-		temp = div64_u64(temp, (__force u64) total);
-
-	return (__force cputime_t) temp;
-}
-
 void task_times(struct task_struct *p, cputime_t *ut, cputime_t *st)
 {
 	cputime_t rtime, utime = p->utime, total = utime + p->stime;
@@ -3292,9 +3257,13 @@ void task_times(struct task_struct *p, cputime_t *ut, cputime_t *st)
 	 */
 	rtime = nsecs_to_cputime(p->se.sum_exec_runtime);
 
-	if (total)
-		utime = scale_utime(utime, rtime, total);
-	else
+	if (total) {
+		u64 temp = (__force u64) rtime;
+
+		temp *= (__force u64) utime;
+		do_div(temp, (__force u32) total);
+		utime = (__force cputime_t) temp;
+	} else
 		utime = rtime;
 
 	/*
@@ -3321,9 +3290,13 @@ void thread_group_times(struct task_struct *p, cputime_t *ut, cputime_t *st)
 	total = cputime.utime + cputime.stime;
 	rtime = nsecs_to_cputime(cputime.sum_exec_runtime);
 
-	if (total)
-		utime = scale_utime(cputime.utime, rtime, total);
-	else
+	if (total) {
+		u64 temp = (__force u64) rtime;
+
+		temp *= (__force u64) cputime.utime;
+		do_div(temp, (__force u32) total);
+		utime = (__force cputime_t) temp;
+	} else
 		utime = rtime;
 
 	sig->prev_utime = max(sig->prev_utime, utime);
@@ -4244,7 +4217,7 @@ EXPORT_SYMBOL(set_user_nice);
  */
 int can_nice(const struct task_struct *p, const int nice)
 {
-	/* convert nice value [19,-20] to rlimit style value [1,40] */
+	
 	int nice_rlim = 20 - nice;
 
 	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
@@ -4263,8 +4236,6 @@ int can_nice(const struct task_struct *p, const int nice)
 SYSCALL_DEFINE1(nice, int, increment)
 {
 	long nice, retval;
-	if (!ccs_capable(CCS_SYS_NICE))
-		return -EPERM;
 
 	/*
 	 * Setpriority might change our priority at the same moment.
@@ -4653,11 +4624,6 @@ SYSCALL_DEFINE1(sched_getscheduler, pid_t, pid)
 	return retval;
 }
 
-/**
- * sys_sched_getparam - get the RT priority of a thread
- * @pid: the pid in question.
- * @param: structure containing the RT priority.
- */
 SYSCALL_DEFINE2(sched_getparam, pid_t, pid, struct sched_param __user *, param)
 {
 	struct sched_param lp;
@@ -5175,6 +5141,7 @@ void sched_show_task(struct task_struct *p)
 {
 	unsigned long free = 0;
 	unsigned state;
+	struct task_struct *group_leader;
 
 	state = p->state ? __ffs(p->state) + 1 : 0;
 	printk(KERN_INFO "%-15.15s %c", p->comm,
@@ -5195,12 +5162,37 @@ void sched_show_task(struct task_struct *p)
 #endif
 	printk(KERN_CONT "%5lu %5d %6d 0x%08lx\n", free,
 		task_pid_nr(p), task_pid_nr(rcu_dereference(p->real_parent)),
-		(unsigned long)task_thread_info(p)->flags);
+		(unsigned long)task_thread_info(p)->flags, p->on_cpu,
+#if defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT)
+		div64_u64(task_rq(p)->clock - p->sched_info.last_arrival, NSEC_PER_MSEC));
+#else
+		(unsigned long long)0);
+#endif
+
+	group_leader = p->group_leader;
+	printk(KERN_CONT "  tgid: %d, group leader: %s\n",
+			p->tgid, group_leader ? group_leader->comm : "unknown");
+
+#if defined(CONFIG_DEBUG_MUTEXES)
+	if (state == TASK_UNINTERRUPTIBLE) {
+		struct task_struct* blocker = p->blocked_by;
+		if (blocker) {
+			printk(KERN_CONT "  blocked by %.32s (%d:%d) for %u ms\n",
+				blocker->comm, blocker->tgid, blocker->pid,
+				jiffies_to_msecs(jiffies - p->blocked_since));
+		}
+	}
+#endif
 
 	show_stack(p, NULL);
 }
 
 void show_state_filter(unsigned long state_filter)
+{
+	show_thread_group_state_filter(NULL, state_filter);
+}
+
+void show_thread_group_state_filter(const char *tg_comm, unsigned long state_filter)
 {
 	struct task_struct *g, *p;
 
@@ -5225,7 +5217,8 @@ void show_state_filter(unsigned long state_filter)
 	touch_all_softlockup_watchdogs();
 
 #ifdef CONFIG_SYSRQ_SCHED_DEBUG
-	sysrq_sched_debug_show();
+	if (!tg_comm)
+		sysrq_sched_debug_show();
 #endif
 	rcu_read_unlock();
 	/*
@@ -5289,7 +5282,7 @@ void __cpuinit init_idle(struct task_struct *idle, int cpu)
 	idle->sched_class = &idle_sched_class;
 	ftrace_graph_init_idle_task(idle, cpu);
 #if defined(CONFIG_SMP)
-	sprintf(idle->comm, "%s/%d", INIT_TASK_COMM, cpu);
+	snprintf(idle->comm, sizeof(idle->comm) - 1, "%s/%d", INIT_TASK_COMM, cpu);
 #endif
 }
 
@@ -5350,14 +5343,14 @@ int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask)
 
 	do_set_cpus_allowed(p, new_mask);
 
-	/* Can the task run on the task's current CPU? If so, we're done */
+	
 	if (cpumask_test_cpu(task_cpu(p), new_mask))
 		goto out;
 
 	dest_cpu = cpumask_any_and(cpu_active_mask, new_mask);
 	if (p->on_rq) {
 		struct migration_arg arg = { p, dest_cpu };
-		/* Need help from migration thread: drop lock and wait. */
+		
 		task_rq_unlock(rq, p, &flags);
 		stop_one_cpu(cpu_of(rq), migration_cpu_stop, &arg);
 		tlb_migrate_finish(p->mm);
@@ -5385,7 +5378,6 @@ static int __migrate_task(struct task_struct *p, int src_cpu, int dest_cpu)
 {
 	struct rq *rq_dest, *rq_src;
 	bool moved = false;
-	bool notify = false;
 	int ret = 0;
 
 	if (unlikely(!cpu_active(dest_cpu)))
@@ -5418,11 +5410,8 @@ done:
 	ret = 1;
 fail:
 	double_rq_unlock(rq_src, rq_dest);
-
-	notify = task_notify_on_migrate(p);
-
 	raw_spin_unlock(&p->pi_lock);
-	if (moved && notify)
+	if (moved && task_notify_on_migrate(p))
 		atomic_notifier_call_chain(&migration_notifier_head,
 					   dest_cpu, (void *)src_cpu);
 	return ret;
@@ -5464,13 +5453,6 @@ void idle_task_exit(void)
 	mmdrop(mm);
 }
 
-/*
- * While a dead CPU has no uninterruptible tasks queued at this point,
- * it might still have a nonzero ->nr_uninterruptible counter, because
- * for performance reasons the counter is not stricly tracking tasks to
- * their home CPUs. So we just add the counter to another CPU's counter,
- * to keep the global sum constant after CPU-down:
- */
 static void migrate_nr_uninterruptible(struct rq *rq_src)
 {
 	struct rq *rq_dest = cpu_rq(cpumask_any(cpu_active_mask));
@@ -5479,9 +5461,6 @@ static void migrate_nr_uninterruptible(struct rq *rq_src)
 	rq_src->nr_uninterruptible = 0;
 }
 
-/*
- * remove the tasks which were accounted by rq from calc_load_tasks.
- */
 static void calc_global_load_remove(struct rq *rq)
 {
 	atomic_long_sub(rq->calc_load_active, &calc_load_tasks);
@@ -5537,7 +5516,7 @@ static void migrate_tasks(unsigned int dead_cpu)
 	rq->stop = stop;
 }
 
-#endif /* CONFIG_HOTPLUG_CPU */
+#endif 
 
 #if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_SYSCTL)
 
@@ -5617,28 +5596,28 @@ sd_alloc_ctl_domain_table(struct sched_domain *sd)
 		return NULL;
 
 	set_table_entry(&table[0], "min_interval", &sd->min_interval,
-		sizeof(long), 0644, proc_doulongvec_minmax, false);
+		sizeof(long), 0644, proc_doulongvec_minmax);
 	set_table_entry(&table[1], "max_interval", &sd->max_interval,
-		sizeof(long), 0644, proc_doulongvec_minmax, false);
+		sizeof(long), 0644, proc_doulongvec_minmax);
 	set_table_entry(&table[2], "busy_idx", &sd->busy_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[3], "idle_idx", &sd->idle_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[4], "newidle_idx", &sd->newidle_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[5], "wake_idx", &sd->wake_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[6], "forkexec_idx", &sd->forkexec_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[7], "busy_factor", &sd->busy_factor,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[8], "imbalance_pct", &sd->imbalance_pct,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[9], "cache_nice_tries",
 		&sd->cache_nice_tries,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[10], "flags", &sd->flags,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+		sizeof(int), 0644, proc_dointvec_minmax);
 	set_table_entry(&table[11], "name", sd->name,
 		CORENAME_MAX_SIZE, 0444, proc_dostring, false);
 	/* &table[12] is terminator */
@@ -5810,6 +5789,7 @@ static int __cpuinit sched_cpu_active(struct notifier_block *nfb,
 				      unsigned long action, void *hcpu)
 {
 	switch (action & ~CPU_TASKS_FROZEN) {
+	case CPU_STARTING:
 	case CPU_DOWN_FAILED:
 		set_cpu_active((long)hcpu, true);
 		return NOTIFY_OK;
@@ -6008,7 +5988,7 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 	if (!cpumask_equal(sched_domain_span(sd), sched_domain_span(parent)))
 		return 0;
 
-	/* Flags needing groups don't count if only 1 group in parent */
+	
 	if (parent->groups == parent->groups->next) {
 		pflags &= ~(SD_LOAD_BALANCE |
 				SD_BALANCE_NEWIDLE |
@@ -6184,7 +6164,6 @@ static void destroy_sched_domains(struct sched_domain *sd, int cpu)
  * two cpus are in the same cache domain, see cpus_share_cache().
  */
 DEFINE_PER_CPU(struct sched_domain *, sd_llc);
-DEFINE_PER_CPU(int, sd_llc_size);
 DEFINE_PER_CPU(int, sd_llc_id);
 
 static void update_top_cache_domain(int cpu)
@@ -6841,8 +6820,6 @@ static int build_sched_domains(const struct cpumask *cpu_map,
 		sd = NULL;
 		for (tl = sched_domain_topology; tl->init; tl++) {
 			sd = build_sched_domain(tl, &d, cpu_map, attr, sd, i);
-			if (tl == sched_domain_topology)
-				*per_cpu_ptr(d.sd, i) = sd;
 			if (tl->flags & SDTL_OVERLAP || sched_feat(FORCE_SD_OVERLAP))
 				sd->flags |= SD_OVERLAP;
 			if (cpumask_equal(cpu_map, sched_domain_span(sd)))
@@ -7185,53 +7162,26 @@ static int num_cpus_frozen;	/* used to mark begin/end of suspend/resume */
 static int cpuset_cpu_active(struct notifier_block *nfb, unsigned long action,
 			     void *hcpu)
 {
-	switch (action) {
-	case CPU_ONLINE_FROZEN:
-	case CPU_DOWN_FAILED_FROZEN:
-
-		/*
-		 * num_cpus_frozen tracks how many CPUs are involved in suspend
-		 * resume sequence. As long as this is not the last online
-		 * operation in the resume sequence, just build a single sched
-		 * domain, ignoring cpusets.
-		 */
-		num_cpus_frozen--;
-		if (likely(num_cpus_frozen)) {
-			partition_sched_domains(1, NULL, NULL);
-			break;
-		}
-
-		/*
-		 * This is the last CPU online operation. So fall through and
-		 * restore the original sched domains by considering the
-		 * cpuset configurations.
-		 */
-
+	switch (action & ~CPU_TASKS_FROZEN) {
 	case CPU_ONLINE:
 	case CPU_DOWN_FAILED:
 		cpuset_update_active_cpus();
-		break;
+		return NOTIFY_OK;
 	default:
 		return NOTIFY_DONE;
 	}
-	return NOTIFY_OK;
 }
 
 static int cpuset_cpu_inactive(struct notifier_block *nfb, unsigned long action,
 			       void *hcpu)
 {
-	switch (action) {
+	switch (action & ~CPU_TASKS_FROZEN) {
 	case CPU_DOWN_PREPARE:
 		cpuset_update_active_cpus();
-		break;
-	case CPU_DOWN_PREPARE_FROZEN:
-		num_cpus_frozen++;
-		partition_sched_domains(1, NULL, NULL);
-		break;
+		return NOTIFY_OK;
 	default:
 		return NOTIFY_DONE;
 	}
-	return NOTIFY_OK;
 }
 
 void __init sched_init_smp(void)
@@ -7701,7 +7651,6 @@ void sched_destroy_group(struct task_group *tg)
  */
 void sched_move_task(struct task_struct *tsk)
 {
-	struct task_group *tg;
 	int on_rq, running;
 	unsigned long flags;
 	struct rq *rq;
@@ -7715,12 +7664,6 @@ void sched_move_task(struct task_struct *tsk)
 		dequeue_task(rq, tsk, 0);
 	if (unlikely(running))
 		tsk->sched_class->put_prev_task(rq, tsk);
-
-	tg = container_of(task_subsys_state_check(tsk, cpu_cgroup_subsys_id,
-				lockdep_is_held(&tsk->sighand->siglock)),
-			  struct task_group, css);
-	tg = autogroup_task_group(tsk, tg);
-	tsk->sched_task_group = tg;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	if (tsk->sched_class->task_move_group)
