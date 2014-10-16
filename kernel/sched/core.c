@@ -608,7 +608,7 @@ void wake_up_idle_cpu(int cpu)
 	 */
 	if (rq->curr != rq->idle)
 		return;
-
+	set_tsk_need_resched(rq->idle);
 	/*
 	 * We can set TIF_RESCHED on the idle task of the other CPU
 	 * lockless. The worst case is that the other CPU runs the
