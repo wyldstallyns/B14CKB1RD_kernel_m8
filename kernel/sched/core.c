@@ -2708,8 +2708,7 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
  * scheduler tick (TICK_NSEC). With tickless idle this will not be called
  * every tick. We fix it up based on jiffies.
  */
-static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
-			      unsigned long pending_updates)
+static void __update_cpu_load(struct rq *this_rq)
 {
 	unsigned long this_load = this_rq->load.weight;
 	unsigned long curr_jiffies = jiffies;
@@ -2718,15 +2717,15 @@ static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 
 	this_rq->nr_load_updates++;
 
-	
+	/* Avoid repeated calls on same jffy, when moving in and out of idle*/
 	if (curr_jiffies == this_rq->last_load_update_tick)
 		return;
 
 	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
 	this_rq->last_load_update_tick = curr_jiffies;
 
-	
-	this_rq->cpu_load[0] = this_load; 
+	/* Update our load */
+	this_rq->cpu_load[0] = this_load; /* Fasttrack for idx 0 */
 	for (i = 1, scale = 2; i < CPU_LOAD_IDX_MAX; i++, scale += scale) {
 		unsigned long old_load, new_load;
 
