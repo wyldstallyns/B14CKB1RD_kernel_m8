@@ -174,7 +174,13 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
 	if (apic_id == -1)
 		apic_id = map_madt_entry(type, acpi_id);
 	if (apic_id == -1) {
-		if (acpi_id == 0)
+		/*	 
+		 * Ignores apic_id and always returns 0 for the processor
+		 * handle with acpi id 0 if nr_cpu_ids is 1.
+		 * This should be the case if SMP tables are not found.
+ 		 * Return -1 for other CPU's handle.
+ 		 */	
+		if (nr_cpu_ids <= 1 && acpi_id == 0)
 			return acpi_id;
 		else
 			return apic_id;
