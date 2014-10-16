@@ -1795,7 +1795,7 @@ static unsigned hub_is_wusb(struct usb_hub *hub)
 static int hub_port_reset(struct usb_hub *hub, int port1,
 			struct usb_device *udev, unsigned int delay, bool warm);
 
-+/* Is a USB 3.0 port in the Inactive or Complinance Mode state?
+/* Is a USB 3.0 port in the Inactive or Complinance Mode state?
  * Port worm reset is required to recover
  */
 static bool hub_port_warm_reset_required(struct usb_hub *hub, u16 portstatus)
