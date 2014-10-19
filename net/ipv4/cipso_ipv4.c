@@ -1196,7 +1196,7 @@ int cipso_v4_validate(const struct sk_buff *skb, unsigned char **option)
 			}
 			break;
 		case CIPSO_V4_TAG_LOCAL:
-			if (!(skb->dev->flags & IFF_LOOPBACK)) {
+			if (skb == NULL || !(skb->dev->flags & IFF_LOOPBACK)) {
 				err_offset = opt_iter;
 				goto validate_return_locked;
 			}

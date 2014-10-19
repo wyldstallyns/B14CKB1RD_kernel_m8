@@ -263,14 +263,14 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
 	list_add_tail(&tk->nd, to_kill);
 }
 
-static void kill_procs(struct list_head *to_kill, int doit, int trapno,
+static void kill_procs(struct list_head *to_kill, int forcekill, int trapno,
 			  int fail, struct page *page, unsigned long pfn,
 			  int flags)
 {
 	struct to_kill *tk, *next;
 
 	list_for_each_entry_safe (tk, next, to_kill, nd) {
-		if (doit) {
+		if (forcekill) {
 			if (fail || tk->addr_valid == 0) {
 				printk(KERN_ERR
 		"MCE %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
@@ -591,7 +591,7 @@ static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
 	struct address_space *mapping;
 	LIST_HEAD(tokill);
 	int ret;
-	int kill = 1;
+	int kill = 1, forcekill;
 	struct page *hpage = compound_head(p);
 	struct page *ppage;
 
@@ -611,7 +611,7 @@ static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
 	}
 
 	mapping = page_mapping(hpage);
-	if (!PageDirty(hpage) && mapping &&
+	if (!(flags & MF_MUST_KILL) && !PageDirty(hpage) && mapping &&
 	    mapping_cap_writeback_dirty(mapping)) {
 		if (page_mkclean(hpage)) {
 			SetPageDirty(hpage);
@@ -654,7 +654,8 @@ static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
 	if (hpage != ppage)
 		unlock_page(ppage);
 
-	kill_procs(&tokill, !!PageDirty(ppage), trapno,
+	forcekill = PageDirty(ppage) || (flags & MF_MUST_KILL);
+	kill_procs(&tokill, forcekill, trapno,
 		      ret != SWAP_SUCCESS, p, pfn, flags);
 
 	return ret;

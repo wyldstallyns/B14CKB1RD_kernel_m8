@@ -212,10 +212,10 @@ __ftrace_make_nop(struct module *mod,
 
 	pr_devel(" %08x %08x ", jmp[0], jmp[1]);
 
-	
-	if (((jmp[0] & 0xffff0000) != 0x3d600000) ||
-	    ((jmp[1] & 0xffff0000) != 0x396b0000) ||
-	    (jmp[2] != 0x7d6903a6) ||
+	/* verify that this is what we expect it to be */
+	if (((jmp[0] & 0xffff0000) != 0x3d800000) ||
+	    ((jmp[1] & 0xffff0000) != 0x398c0000) ||
+	    (jmp[2] != 0x7d8903a6) ||
 	    (jmp[3] != 0x4e800420)) {
 		printk(KERN_ERR "Not a trampoline\n");
 		return -EINVAL;
