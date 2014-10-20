@@ -1214,8 +1214,8 @@ static s32 e1000_check_for_serdes_link_82571(struct e1000_hw *hw)
 			break;
 
 		case e1000_serdes_link_forced_up:
-			if ((rxcw & E1000_RXCW_C) || !(rxcw & E1000_RXCW_CW))  {
-				
+			if (rxcw & E1000_RXCW_C) {
+ 				/* Enable autoneg, and unforce link up */
 				ew32(TXCW, mac->txcw);
 				ew32(CTRL, (ctrl & ~E1000_CTRL_SLU));
 				mac->serdes_link_state =
