@@ -1075,8 +1075,10 @@ static void jbd2_mark_journal_empty(journal_t *journal)
 	journal->j_flags |= JBD2_FLUSHED;
 	write_unlock(&journal->j_state_lock);
 }
-
-
+  /*
+  * Update a journal's errno.  Write updated superblock to disk waiting for IO
+  * to complete.
+  */
 void jbd2_journal_update_sb_errno(journal_t *journal)
 {
 	journal_superblock_t *sb = journal->j_superblock;
@@ -1342,6 +1344,7 @@ int jbd2_journal_set_features (journal_t *journal, unsigned long compat,
 
 	return 1;
 }
+EXPORT_SYMBOL(jbd2_journal_update_sb_errno);
 
 void jbd2_journal_clear_features(journal_t *journal, unsigned long compat,
 				unsigned long ro, unsigned long incompat)

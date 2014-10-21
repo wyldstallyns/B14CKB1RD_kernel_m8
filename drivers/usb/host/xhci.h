@@ -917,11 +917,12 @@ struct xhci_hcd {
 #define	XHCI_SW_BW_CHECKING	(1 << 8)
 #define XHCI_AMD_0x96_HOST	(1 << 9)
 #define XHCI_TRUST_TX_LENGTH	(1 << 10)
+#define XHCI_SPURIOUS_REBOOT	(1 << 13)
 #define XHCI_PORTSC_DELAY	(1 << 10)
 #define XHCI_RESET_DELAY	(1 << 11)
 	unsigned int		num_active_eps;
 	unsigned int		limit_active_eps;
-	
+	/* There are two roothubs to keep track of bus suspend info for */
 	struct xhci_bus_state   bus_state[2];
 	
 	u8			*port_array;

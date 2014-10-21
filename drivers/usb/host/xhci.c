@@ -131,7 +131,7 @@ int xhci_reset(struct xhci_hcd *xhci)
 		return ret;
 
 	xhci_dbg(xhci, "Wait for controller to be ready for doorbell rings\n");
-	ret = handshake(xhci, &xhci->op_regs->status, STS_CNR, 0, 250 * 1000);
+	ret = handshake(xhci, &xhci->op_regs->status, STS_CNR, 0, 10 * 1000 * 1000);
 
 	for (i = 0; i < 2; ++i) {
 		xhci->bus_state[i].port_c_suspend = 0;
