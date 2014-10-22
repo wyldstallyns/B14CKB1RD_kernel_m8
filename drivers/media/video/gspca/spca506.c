@@ -671,9 +671,10 @@ static const struct sd_desc sd_desc = {
 	.pkt_scan = sd_pkt_scan,
 };
 
-static const struct usb_device_id device_table[] __devinitconst = {
+static const struct usb_device_id device_table[] = {
 	{USB_DEVICE(0x06e1, 0xa190)},
 	{USB_DEVICE(0x0734, 0x043b)},
+	/*fixme: may be IntelPCCameraPro BRIDGE_SPCA505 {USB_DEVICE(0x0733, 0x0430)}, */
 	{USB_DEVICE(0x99fa, 0x8988)},
 	{}
 };

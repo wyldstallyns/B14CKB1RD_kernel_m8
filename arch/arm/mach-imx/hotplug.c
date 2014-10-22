@@ -24,11 +24,12 @@ void platform_cpu_die(unsigned int cpu)
 {
 	cpu_enter_lowpower();
 	imx_enable_cpu(cpu, false);
-	cpu_do_idle();
-	cpu_leave_lowpower();
+
 
 	
-	panic("cpu %d unexpectedly exit from shutdown\n", cpu);
+	/* spin here until hardware takes it down */
+	while (1)
+		;
 }
 
 int platform_cpu_disable(unsigned int cpu)

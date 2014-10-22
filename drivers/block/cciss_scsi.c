@@ -742,15 +742,8 @@ static void complete_scsi_command(CommandList_struct *c, int timeout,
 		switch(ei->CommandStatus)
 		{
 			case CMD_TARGET_STATUS:
-				
-				if( ei->ScsiStatus)
-                		{
-#if 0
-                    			printk(KERN_WARNING "cciss: cmd %p "
-						"has SCSI Status = %x\n",
-						c, ei->ScsiStatus);
-#endif
-					cmd->result |= (ei->ScsiStatus << 1);
+			/* Pass it up to the upper layers... */	
+if (!ei->ScsiStatus) {
                 		}
 				else {  
 					

@@ -2908,4 +2908,6 @@ static struct dentry *nfs4_referral_mount(struct file_system_type *fs_type,
 	return res;
 }
 
+MODULE_ALIAS("nfs4");
+
 #endif 

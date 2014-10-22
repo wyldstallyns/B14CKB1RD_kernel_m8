@@ -1,26 +1,63 @@
 /*
-    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
-    Philip Edelbrock <phil@netroedge.com>, and Mark D. Studebaker
-    <mdsxyz123@yahoo.com>
-    Copyright (C) 2007 - 2012  Jean Delvare <khali@linux-fr.org>
-    Copyright (C) 2010         Intel Corporation,
-                               David Woodhouse <dwmw2@infradead.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Copyright (c) 1998 - 2002 Frodo Looijaard <frodol@dds.nl>,
+Philip Edelbrock <phil@netroedge.com>, and Mark D. Studebaker
+<mdsxyz123@yahoo.com>
+Copyright (C) 2007 - 2012 Jean Delvare <khali@linux-fr.org>
+Copyright (C) 2010 Intel Corporation,
+David Woodhouse <dwmw2@infradead.org>
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
+/*
+Supports the following Intel I/O Controller Hubs (ICH):
+I/O Block I2C
+region SMBus Block proc. block
+Chip name PCI ID size PEC buffer call read
+----------------------------------------------------------------------
+82801AA (ICH) 0x2413 16 no no no no
+82801AB (ICH0) 0x2423 16 no no no no
+82801BA (ICH2) 0x2443 16 no no no no
+82801CA (ICH3) 0x2483 32 soft no no no
+82801DB (ICH4) 0x24c3 32 hard yes no no
+82801E (ICH5) 0x24d3 32 hard yes yes yes
+6300ESB 0x25a4 32 hard yes yes yes
+82801F (ICH6) 0x266a 32 hard yes yes yes
+6310ESB/6320ESB 0x269b 32 hard yes yes yes
+82801G (ICH7) 0x27da 32 hard yes yes yes
+82801H (ICH8) 0x283e 32 hard yes yes yes
+82801I (ICH9) 0x2930 32 hard yes yes yes
+EP80579 (Tolapai) 0x5032 32 hard yes yes yes
+ICH10 0x3a30 32 hard yes yes yes
+ICH10 0x3a60 32 hard yes yes yes
+5/3400 Series (PCH) 0x3b30 32 hard yes yes yes
+6 Series (PCH) 0x1c22 32 hard yes yes yes
+Patsburg (PCH) 0x1d22 32 hard yes yes yes
+Patsburg (PCH) IDF 0x1d70 32 hard yes yes yes
+Patsburg (PCH) IDF 0x1d71 32 hard yes yes yes
+Patsburg (PCH) IDF 0x1d72 32 hard yes yes yes
+DH89xxCC (PCH) 0x2330 32 hard yes yes yes
+Panther Point (PCH) 0x1e22 32 hard yes yes yes
+Lynx Point (PCH) 0x8c22 32 hard yes yes yes
+Lynx Point-LP (PCH) 0x9c22 32 hard yes yes yes
+Avoton (SOC) 0x1f3c 32 hard yes yes yes
+Features supported by this driver:
+Software PEC no
+Hardware PEC yes
+Block buffer yes
+Block process call transaction no
+I2C block read transaction yes (doesn't use the block buffer)
+Slave mode no
+See the file Documentation/i2c/busses/i2c-i801 for details.
+*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -95,6 +132,7 @@
 #define PCI_DEVICE_ID_INTEL_DH89XXCC_SMBUS	0x2330
 #define PCI_DEVICE_ID_INTEL_5_3400_SERIES_SMBUS	0x3b30
 #define PCI_DEVICE_ID_INTEL_LYNXPOINT_SMBUS	0x8c22
+#define PCI_DEVICE_ID_INTEL_LYNXPOINT_LP_SMBUS	0x9c22
 
 struct i801_priv {
 	struct i2c_adapter adapter;
@@ -567,6 +605,7 @@ static DEFINE_PCI_DEVICE_TABLE(i801_ids) = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_DH89XXCC_SMBUS) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_PANTHERPOINT_SMBUS) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_LYNXPOINT_SMBUS) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_LYNXPOINT_LP_SMBUS) },
 	{ 0, }
 };
 

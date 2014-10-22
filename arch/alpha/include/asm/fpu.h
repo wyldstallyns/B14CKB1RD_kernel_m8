@@ -1,7 +1,9 @@
 #ifndef __ASM_ALPHA_FPU_H
 #define __ASM_ALPHA_FPU_H
 
+#ifdef __KERNEL__
 #include <asm/special_insns.h>
+#endif
 
 #define FPCR_DNOD	(1UL<<47)	
 #define FPCR_DNZ	(1UL<<48)	

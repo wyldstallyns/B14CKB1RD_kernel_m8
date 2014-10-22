@@ -306,8 +306,6 @@ static int __devinit pcistub_init_device(struct pci_dev *dev)
 	if (err)
 		goto config_release;
 
-	dev_dbg(&dev->dev, "reseting (FLR, D3, etc) the device\n");
-	__pci_reset_function_locked(dev);
 
 	
 	dev_dbg(&dev->dev, "save state of device\n");
@@ -316,6 +314,10 @@ static int __devinit pcistub_init_device(struct pci_dev *dev)
 	if (!dev_data->pci_saved_state)
 		dev_err(&dev->dev, "Could not store PCI conf saved state!\n");
 
+	else {
+		dev_dbg(&dev->dev, "reseting (FLR, D3, etc) the device\n");
+		__pci_reset_function_locked(dev);
+	}
 	dev_dbg(&dev->dev, "reset device\n");
 	xen_pcibk_reset_device(dev);
 

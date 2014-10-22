@@ -35,7 +35,7 @@ MODULE_FIRMWARE("isl3886usb");
 MODULE_FIRMWARE("isl3887usb");
 
 
-static struct usb_device_id p54u_table[] __devinitdata = {
+static struct usb_device_id p54u_table[] = {
 	
 	{USB_DEVICE(0x0411, 0x0050)},	
 	{USB_DEVICE(0x045e, 0x00c2)},	
