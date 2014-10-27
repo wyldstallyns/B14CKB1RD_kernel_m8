@@ -122,8 +122,9 @@ struct l2tp_tunnel_cfg {
 };
 
 struct l2tp_tunnel {
-	int			magic;		
-	rwlock_t		hlist_lock;	
+	int			magic;		/* Should be L2TP_TUNNEL_MAGIC */
+	struct rcu_head rcu;	
+	rwlock_t		hlist_lock;	/* protect session_hlist */
 	struct hlist_head	session_hlist[L2TP_HASH_SIZE];
 	u32			tunnel_id;
 	u32			peer_tunnel_id;

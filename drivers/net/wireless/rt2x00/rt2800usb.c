@@ -544,6 +544,17 @@ static void rt2800usb_fill_rxdone(struct queue_entry *entry,
 
 	skb_pull(entry->skb, RXINFO_DESC_SIZE);
 
+ 	/*
+	 * Check for rx_pkt_len validity. Return if invalid, leaving
+	 * rxdesc->size zeroed out by the upper level.
+ 	 */
+	if (unlikely(rx_pkt_len == 0 ||
+			rx_pkt_len > entry->queue->data_size)) {
+		ERROR(entry->queue->rt2x00dev,
+			"Bad frame size %d, forcing to 0\n", rx_pkt_len);
+		return;
+	}
+
 	rxd = (__le32 *)(entry->skb->data + rx_pkt_len);
 
 	rt2x00_desc_read(rxd, 0, &word);
@@ -589,6 +600,7 @@ static int rt2800usb_validate_eeprom(struct rt2x00_dev *rt2x00dev)
 static int rt2800usb_probe_hw(struct rt2x00_dev *rt2x00dev)
 {
 	int retval;
+	u32 reg;
 
 	retval = rt2800usb_validate_eeprom(rt2x00dev);
 	if (retval)
@@ -597,7 +609,17 @@ static int rt2800usb_probe_hw(struct rt2x00_dev *rt2x00dev)
 	retval = rt2800_init_eeprom(rt2x00dev);
 	if (retval)
 		return retval;
+ 	/*
+	 * Enable rfkill polling by setting GPIO direction of the
+	 * rfkill switch GPIO pin correctly.
+	 */
+	rt2x00usb_register_read(rt2x00dev, GPIO_CTRL_CFG, &reg);
+	rt2x00_set_field32(&reg, GPIO_CTRL_CFG_GPIOD_BIT2, 1);
+	rt2x00usb_register_write(rt2x00dev, GPIO_CTRL_CFG, reg);
 
+	/*
+ 	 * Initialize hw specifications.
+ 	 */
 	retval = rt2800_probe_hw_mode(rt2x00dev);
 	if (retval)
 		return retval;
@@ -979,9 +1001,13 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x8516, 0x3572) },
 	
 	{ USB_DEVICE(0x1690, 0x0744) },
-	
+	{ USB_DEVICE(0x1690, 0x0761) },
+ 	{ USB_DEVICE(0x1690, 0x0764) },
+	/* ASUS */
+	{ USB_DEVICE(0x0b05, 0x179d) },
+	/* Cisco */
 	{ USB_DEVICE(0x167b, 0x4001) },
-	
+	/* EnGenius */
 	{ USB_DEVICE(0x1740, 0x9801) },
 	
 	{ USB_DEVICE(0x04bb, 0x0944) },
@@ -1035,8 +1061,8 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x0b05, 0x1760) },
 	{ USB_DEVICE(0x0b05, 0x1761) },
 	{ USB_DEVICE(0x0b05, 0x1790) },
-	{ USB_DEVICE(0x0b05, 0x179d) },
-	
+
+	/* AzureWave */
 	{ USB_DEVICE(0x13d3, 0x3262) },
 	{ USB_DEVICE(0x13d3, 0x3284) },
 	{ USB_DEVICE(0x13d3, 0x3322) },

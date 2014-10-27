@@ -441,17 +441,10 @@ DECLARE_PER_CPU(int, sd_llc_id);
 
 static inline struct task_group *task_group(struct task_struct *p)
 {
-	struct task_group *tg;
-	struct cgroup_subsys_state *css;
-
-	css = task_subsys_state_check(p, cpu_cgroup_subsys_id,
-			lockdep_is_held(&p->pi_lock) ||
-			lockdep_is_held(&task_rq(p)->lock));
-	tg = container_of(css, struct task_group, css);
-
-	return autogroup_task_group(p, tg);
+	return p->sched_task_group;
 }
 
+/* Change a task's cfs_rq and parent entity if it moves across CPUs/groups */
 static inline bool task_notify_on_migrate(struct task_struct *p)
 {
 	return task_group(p)->notify_on_migrate;

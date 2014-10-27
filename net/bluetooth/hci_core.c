@@ -616,72 +616,71 @@ done:
 static int hci_dev_do_close(struct hci_dev *hdev, u8 is_process)
 {
 	unsigned long keepflags = 0;
-
 	BT_DBG("%s %p", hdev->name, hdev);
-
 	hci_req_cancel(hdev, ENODEV);
 	hci_req_lock(hdev);
-
-	if (!test_and_clear_bit(HCI_UP, &hdev->flags)) {
-		del_timer_sync(&hdev->cmd_timer);
-		hci_req_unlock(hdev);
-		return 0;
-	}
-
 	
+	if (!test_and_clear_bit(HCI_UP, &hdev->flags)) {
+	del_timer_sync(&hdev->cmd_timer);
+	hci_req_unlock(hdev);
+	return 0;
+}
+	
+	/* Kill RX and TX tasks */
 	tasklet_kill(&hdev->rx_task);
 	tasklet_kill(&hdev->tx_task);
-
 	hci_dev_lock_bh(hdev);
 	inquiry_cache_flush(hdev);
 	hci_conn_hash_flush(hdev, is_process);
 	hci_dev_unlock_bh(hdev);
-
 	hci_notify(hdev, HCI_DEV_DOWN);
-
-	if (hdev->dev_type == HCI_BREDR) {
-		hci_dev_lock_bh(hdev);
-		mgmt_powered(hdev->id, 0);
-		hci_dev_unlock_bh(hdev);
-	}
-
-	if (hdev->flush)
-		hdev->flush(hdev);
-
 	
+	if (hdev->dev_type == HCI_BREDR) {
+	hci_dev_lock_bh(hdev);
+	mgmt_powered(hdev->id, 0);
+	hci_dev_unlock_bh(hdev);
+}
+	if (hdev->flush)
+	hdev->flush(hdev);
+	/* Reset device */
 	skb_queue_purge(&hdev->cmd_q);
 	atomic_set(&hdev->cmd_cnt, 1);
+
 	if (!test_bit(HCI_RAW, &hdev->flags)) {
-		set_bit(HCI_INIT, &hdev->flags);
-		__hci_request(hdev, hci_reset_req, 0,
-					msecs_to_jiffies(250));
-		clear_bit(HCI_INIT, &hdev->flags);
-	}
+	set_bit(HCI_INIT, &hdev->flags);
+	__hci_request(hdev, hci_reset_req, 0,
+	msecs_to_jiffies(250));
+	clear_bit(HCI_INIT, &hdev->flags);
+}
 
-	
+	/* Kill cmd task */
 	tasklet_kill(&hdev->cmd_task);
-
 	
+	/* Drop queues */
 	skb_queue_purge(&hdev->rx_q);
 	skb_queue_purge(&hdev->cmd_q);
 	skb_queue_purge(&hdev->raw_q);
 
-	
+	/* Drop last sent command */
 	if (hdev->sent_cmd) {
-		del_timer_sync(&hdev->cmd_timer);
-		kfree_skb(hdev->sent_cmd);
-		hdev->sent_cmd = NULL;
-	}
+	del_timer_sync(&hdev->cmd_timer);
+	kfree_skb(hdev->sent_cmd);
+	hdev->sent_cmd = NULL;
+}
 
+	/* After this point our queues are empty
+	* and no tasks are scheduled. */
 	hdev->close(hdev);
 
-	
+	/* Clear only non-persistent flags */
 	if (test_bit(HCI_MGMT, &hdev->flags))
-		set_bit(HCI_MGMT, &keepflags);
+	set_bit(HCI_MGMT, &keepflags);
+
 	if (test_bit(HCI_LINK_KEYS, &hdev->flags))
-		set_bit(HCI_LINK_KEYS, &keepflags);
+	set_bit(HCI_LINK_KEYS, &keepflags);
+
 	if (test_bit(HCI_DEBUG_KEYS, &hdev->flags))
-		set_bit(HCI_DEBUG_KEYS, &keepflags);
+	set_bit(HCI_DEBUG_KEYS, &keepflags);
 
 	hdev->flags = keepflags;
 

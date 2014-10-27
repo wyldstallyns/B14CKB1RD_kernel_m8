@@ -59,7 +59,7 @@ struct r10bio {
 
 	struct list_head	retry_list;
 	struct {
-		struct bio	*bio;
+		struct r10dev {
 		union {
 			struct bio	*repl_bio; 
 			struct md_rdev	*rdev;	   

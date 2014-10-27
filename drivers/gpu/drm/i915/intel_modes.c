@@ -54,23 +54,36 @@ bool intel_ddc_probe(struct intel_encoder *intel_encoder, int ddc_bus)
 
 	return i2c_transfer(&dev_priv->gmbus[ddc_bus].adapter, msgs, 2) == 2;
 }
+ /**
+ * intel_connector_update_modes - update connector from edid
+ * @connector: DRM connector device to use
+ * @edid: previously read EDID information
+ */
+int intel_connector_update_modes(struct drm_connector *connector,
+				struct edid *edid)
+{
+	int ret;
+
+	drm_mode_connector_update_edid_property(connector, edid);
+	ret = drm_add_edid_modes(connector, edid);
+	drm_edid_to_eld(connector, edid);
+	connector->display_info.raw_edid = NULL;
+	kfree(edid);
+
+	return ret;
+}
+
 
 int intel_ddc_get_modes(struct drm_connector *connector,
 			struct i2c_adapter *adapter)
 {
 	struct edid *edid;
-	int ret = 0;
 
 	edid = drm_get_edid(connector, adapter);
-	if (edid) {
-		drm_mode_connector_update_edid_property(connector, edid);
-		ret = drm_add_edid_modes(connector, edid);
-		drm_edid_to_eld(connector, edid);
-		connector->display_info.raw_edid = NULL;
-		kfree(edid);
-	}
+	if (!edid)
+		return 0;
 
-	return ret;
+	return intel_connector_update_modes(connector, edid);
 }
 
 static const struct drm_prop_enum_list force_audio_names[] = {

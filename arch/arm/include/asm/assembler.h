@@ -283,4 +283,4 @@
 #endif
 	.endm
 
-#endif 
+#endif  /* __ASM_ASSEMBLER_H__ */
