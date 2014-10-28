@@ -662,7 +662,7 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
 
 	
 	if (dlci->skb == NULL) {
-		dlci->skb = skb_dequeue(&dlci->skb_list);
+		dlci->skb = skb_dequeue_tail(&dlci->skb_list);
 		if (dlci->skb == NULL)
 			return 0;
 		first = 1;
@@ -684,11 +684,17 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
 	size = len + overhead;
 	msg = gsm_data_alloc(gsm, dlci->addr, size, gsm->ftype);
 
-	if (msg == NULL)
+	/* FIXME: need a timer or something to kick this so it can't
+ 	  get stuck with no work outstanding and no buffer free */
+	if (msg == NULL) {
+		skb_queue_tail(&dlci->skb_list, dlci->skb);
+		dlci->skb = NULL;
 		return -ENOMEM;
+	
+	}
 	dp = msg->data;
 
-	if (dlci->adaption == 4) { 
+	if (dlci->adaption == 4) { /* Interruptible framed (Packetised Data ) */
 		
 		*dp++ = last << 7 | first << 6 | 1;	
 		len--;
@@ -736,16 +742,20 @@ static void gsm_dlci_data_sweep(struct gsm_mux *gsm)
 static void gsm_dlci_data_kick(struct gsm_dlci *dlci)
 {
 	unsigned long flags;
+	int sweep;
 
 	spin_lock_irqsave(&dlci->gsm->tx_lock, flags);
+	/* If we have nothing running then we need to fire up */
+	sweep = (dlci->gsm->tx_bytes < TX_THRESH_LO);
 	
 	if (dlci->gsm->tx_bytes == 0) {
 		if (dlci->net)
 			gsm_dlci_data_output_framed(dlci->gsm, dlci);
 		else
 			gsm_dlci_data_output(dlci->gsm, dlci);
-	} else if (dlci->gsm->tx_bytes < TX_THRESH_LO)
-		gsm_dlci_data_sweep(dlci->gsm);
+	}
+	if (sweep)
+ 		gsm_dlci_data_sweep(dlci->gsm);
 	spin_unlock_irqrestore(&dlci->gsm->tx_lock, flags);
 }
 
@@ -898,6 +908,8 @@ static void gsm_control_message(struct gsm_mux *gsm, unsigned int command,
 							u8 *data, int clen)
 {
 	u8 buf[1];
+	unsigned long flags;
+
 	switch (command) {
 	case CMD_CLD: {
 		struct gsm_dlci *dlci = gsm->dlci[0];
@@ -922,11 +934,13 @@ static void gsm_control_message(struct gsm_mux *gsm, unsigned int command,
 		
 		gsm->constipated = 0;
 		gsm_control_reply(gsm, CMD_FCOFF, NULL, 0);
-		
+		/* Kick the link in case it is idling */
+		spin_lock_irqsave(&gsm->tx_lock, flags);
 		gsm_data_kick(gsm);
+		spin_unlock_irqrestore(&gsm->tx_lock, flags);
 		break;
 	case CMD_MSC:
-		
+		/* Out of band modem line change indicator for a DLCI */
 		gsm_control_modem(gsm, data, clen);
 		break;
 	case CMD_RLS:
@@ -1783,12 +1797,12 @@ static void gsmld_write_wakeup(struct tty_struct *tty)
 
 	
 	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+	spin_lock_irqsave(&gsm->tx_lock, flags);
 	gsm_data_kick(gsm);
 	if (gsm->tx_bytes < TX_THRESH_LO) {
-		spin_lock_irqsave(&gsm->tx_lock, flags);
 		gsm_dlci_data_sweep(gsm);
-		spin_unlock_irqrestore(&gsm->tx_lock, flags);
 	}
+	spin_unlock_irqrestore(&gsm->tx_lock, flags);
 }
 
 
@@ -2235,6 +2249,10 @@ static int gsmtty_open(struct tty_struct *tty, struct file *filp)
 	gsm = gsm_mux[mux];
 	if (gsm->dead)
 		return -EL2HLT;
+	/* If DLCI 0 is not yet fully open return an error. This is ok from a locking
+	   perspective as we don't have to worry about this if DLCI0 is lost */
+	if (gsm->dlci[0] && gsm->dlci[0]->state != DLCI_OPEN)
+		return -EL2NSYNC;
 	dlci = gsm->dlci[line];
 	if (dlci == NULL)
 		dlci = gsm_dlci_alloc(gsm, line);

@@ -588,11 +588,21 @@ serial_omap_configure_xonxoff
 	
 	up->efr &= OMAP_UART_SW_CLR;
 
+	 /*
+ 	 * IXON Flag:
+	 * Flow control for OMAP.TX
+	 * OMAP.RX should listen for XON/XOFF
+ 	 */
 	if (termios->c_iflag & IXON)
-		up->efr |= OMAP_UART_SW_TX;
-
-	if (termios->c_iflag & IXOFF)
 		up->efr |= OMAP_UART_SW_RX;
+
+	/*
+ 	 * IXOFF Flag:
+	 * Flow control for OMAP.RX
+	 * OMAP.TX should send XON/XOFF
+ 	 */
+	if (termios->c_iflag & IXOFF)
+		up->efr |= OMAP_UART_SW_TX;
 
 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);

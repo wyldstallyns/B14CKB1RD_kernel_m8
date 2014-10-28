@@ -721,6 +721,16 @@ struct xhci_td {
 
 #define XHCI_CMD_DEFAULT_TIMEOUT	(5 * HZ)
 
+/* xHCI command default timeout value */
+#define XHCI_CMD_DEFAULT_TIMEOUT	(5 * HZ)
+
+/* command descriptor */
+struct xhci_cd {
+	struct list_head	cancel_cmd_list;
+	struct xhci_command	*command;
+	union xhci_trb		*cmd_trb;
+};
+
 struct xhci_dequeue_state {
 	struct xhci_segment *new_deq_seg;
 	union xhci_trb *new_deq_ptr;
@@ -869,6 +879,11 @@ struct xhci_hcd {
 	
 	struct xhci_device_context_array *dcbaa;
 	struct xhci_ring	*cmd_ring;
+	unsigned int            cmd_ring_state;
+#define CMD_RING_STATE_RUNNING         (1 << 0)
+#define CMD_RING_STATE_ABORTED         (1 << 1)
+#define CMD_RING_STATE_STOPPED         (1 << 2)
+	struct list_head        cancel_cmd_list;
 	unsigned int		cmd_ring_reserved_trbs;
 	struct xhci_ring	*event_ring;
 	struct xhci_erst	erst;
@@ -919,6 +934,7 @@ struct xhci_hcd {
 #define XHCI_TRUST_TX_LENGTH	(1 << 10)
 #define XHCI_SPURIOUS_REBOOT	(1 << 13)
 #define XHCI_COMP_MODE_QUIRK	(1 << 14)
+#define XHCI_AVOID_BEI		(1 << 15)
 #define XHCI_PORTSC_DELAY	(1 << 10)
 #define XHCI_RESET_DELAY	(1 << 11)
 	unsigned int		num_active_eps;
@@ -1125,6 +1141,8 @@ static inline void xhci_unregister_plat(void)
 #endif
 
 typedef void (*xhci_get_quirks_t)(struct device *, struct xhci_hcd *);
+int handshake(struct xhci_hcd *xhci, void __iomem *ptr,
+		u32 mask, u32 done, int usec);
 void xhci_quiesce(struct xhci_hcd *xhci);
 int xhci_halt(struct xhci_hcd *xhci);
 int xhci_reset(struct xhci_hcd *xhci);
@@ -1214,6 +1232,8 @@ void xhci_queue_config_ep_quirk(struct xhci_hcd *xhci,
 		unsigned int slot_id, unsigned int ep_index,
 		struct xhci_dequeue_state *deq_state);
 void xhci_stop_endpoint_command_watchdog(unsigned long arg);
+int xhci_cancel_cmd(struct xhci_hcd *xhci, struct xhci_command *command,
+		union xhci_trb *cmd_trb);
 void xhci_ring_ep_doorbell(struct xhci_hcd *xhci, unsigned int slot_id,
 		unsigned int ep_index, unsigned int stream_id);
 

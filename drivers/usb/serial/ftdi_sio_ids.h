@@ -485,6 +485,11 @@
 #define PI_C865_PID	0xe0a0  /* PI C-865 Piezomotor Controller */
 #define PI_C857_PID	0xe0a1  /* PI Encoder Trigger Box */
 
+/*
+ * TIAO product ids (FTDI_VID)
+ * http://www.tiaowiki.com/w/Main_Page
+ */
+#define FTDI_TIAO_UMPA_PID	0x8a98	/* TIAO/DIYGADGET USB Multi-Protocol Adapter */
 
 #define PI_VID              0x1a72
 #define PI_C866_PID	0x1000  /* PI C-866 Piezomotor Controller */
