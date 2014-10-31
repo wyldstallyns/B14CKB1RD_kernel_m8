@@ -22,6 +22,7 @@
 #include <linux/elfcore.h>
 #include <linux/mqueue.h>
 #include <linux/reboot.h>
+#include <linux/rcupdate.h>
 
 
 
@@ -63,6 +64,7 @@ void cpu_idle (void)
 {
 	
 	while (1) {
+		rcu_idle_enter();
 		while (!need_resched()) {
 			void (*idle)(void);
 			idle = pm_idle;
@@ -70,6 +72,7 @@ void cpu_idle (void)
 				idle = default_idle;
 			idle();
 		}
+		rcu_idle_exit();
 		schedule_preempt_disabled();
 	}
 }

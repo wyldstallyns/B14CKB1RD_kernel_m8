@@ -908,6 +908,7 @@ static struct device *new_device(const char *name, u16 type)
 	dev->feature_len = 0;
 	dev->num_vq = 0;
 	dev->running = false;
+	dev->next = NULL;
 
 	if (devices.lastdev)
 		devices.lastdev->next = dev;

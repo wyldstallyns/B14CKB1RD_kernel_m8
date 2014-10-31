@@ -25,6 +25,7 @@
 #include <linux/err.h>
 #include <linux/fs.h>
 #include <linux/slab.h>
+#include <linux/rcupdate.h>
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
 #include <asm/io.h>
@@ -80,6 +81,7 @@ void cpu_idle(void)
 {
 	
 	for (;;) {
+		rcu_idle_enter();
 		while (!need_resched()) {
 			void (*idle)(void);
 
@@ -94,6 +96,7 @@ void cpu_idle(void)
 			}
 			idle();
 		}
+		rcu_idle_exit();
 
 		schedule_preempt_disabled();
 	}

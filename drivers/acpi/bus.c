@@ -880,15 +880,24 @@ static int __init acpi_bus_init(void)
 	status = acpi_ec_ecdt_probe();
 	
 
-	acpi_bus_osc_support();
-
 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
 	if (ACPI_FAILURE(status)) {
 		printk(KERN_ERR PREFIX "Unable to initialize ACPI objects\n");
 		goto error1;
 	}
 
-	acpi_sysfs_init();
+ 	/*
+	 * _OSC method may exist in module level code,
+	 * so it must be run after ACPI_FULL_INITIALIZATION
+	 */
+	acpi_bus_osc_support();
+
+	/*
+ 	 * _PDC control method may load dynamic SSDT tables,
+ 	 * and we need to install the table handler before that.
+ 	 */
+
+	 acpi_sysfs_init();
 
 	acpi_early_processor_set_pdc();
 

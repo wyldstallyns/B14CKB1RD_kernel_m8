@@ -31,6 +31,7 @@
 #include <linux/mqueue.h>
 #include <linux/fs.h>
 #include <linux/slab.h>
+#include <linux/rcupdate.h>
 
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
@@ -107,8 +108,10 @@ void cpu_idle(void)
 
 	
 	while (1) {
+		rcu_idle_enter();
 		while (!need_resched())
 			platform_idle();
+		rcu_idle_exit();
 		schedule_preempt_disabled();
 	}
 }
