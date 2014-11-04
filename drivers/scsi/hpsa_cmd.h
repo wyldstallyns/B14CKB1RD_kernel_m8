@@ -148,8 +148,10 @@ struct SenseSubsystem_info {
 #define BMIC_READ 0x26
 #define BMIC_WRITE 0x27
 #define BMIC_CACHE_FLUSH 0xc2
-#define HPSA_CACHE_FLUSH 0x01	
-
+#define HPSA_CACHE_FLUSH 0x01	/* C2 was already being used by HPSA */
+#define BMIC_FLASH_FIRMWARE 0xF7
+ 
+ /* Command List Structure */
 union SCSI3Addr {
 	struct {
 		u8 Dev;

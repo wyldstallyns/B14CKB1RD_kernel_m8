@@ -20,6 +20,7 @@
 #include <linux/sh_dma.h>
 #include <linux/slab.h>
 #include <linux/module.h>
+#include <linux/workqueue.h>
 #include <sound/soc.h>
 #include <sound/sh_fsi.h>
 
@@ -135,8 +136,8 @@ struct fsi_stream {
 	struct fsi_priv		*priv;
 
 	struct dma_chan		*chan;
-	struct sh_dmae_slave	slave; 
-	struct tasklet_struct	tasklet;
+	struct sh_dmae_slave	slave; 	/* see fsi_handler_init() */
+	struct work_struct	work;
 	dma_addr_t		dma;
 };
 
@@ -876,9 +877,9 @@ static dma_addr_t fsi_dma_get_area(struct fsi_stream *io)
 	return io->dma + samples_to_bytes(runtime, io->buff_sample_pos);
 }
 
-static void fsi_dma_do_tasklet(unsigned long data)
+static void fsi_dma_do_work(struct work_struct *work)
 {
-	struct fsi_stream *io = (struct fsi_stream *)data;
+	struct fsi_stream *io = container_of(work, struct fsi_stream, work);
 	struct fsi_priv *fsi = fsi_stream_to_priv(io);
 	struct dma_chan *chan;
 	struct snd_soc_dai *dai;
@@ -946,7 +947,7 @@ static bool fsi_dma_filter(struct dma_chan *chan, void *param)
 
 static int fsi_dma_transfer(struct fsi_priv *fsi, struct fsi_stream *io)
 {
-	tasklet_schedule(&io->tasklet);
+	schedule_work(&io->work);
 
 	return 0;
 }
@@ -986,14 +987,14 @@ static int fsi_dma_probe(struct fsi_priv *fsi, struct fsi_stream *io)
 	if (!io->chan)
 		return -EIO;
 
-	tasklet_init(&io->tasklet, fsi_dma_do_tasklet, (unsigned long)io);
+	INIT_WORK(&io->work, fsi_dma_do_work);
 
 	return 0;
 }
 
 static int fsi_dma_remove(struct fsi_priv *fsi, struct fsi_stream *io)
 {
-	tasklet_kill(&io->tasklet);
+	cancel_work_sync(&io->work);
 
 	fsi_stream_stop(fsi, io);
 

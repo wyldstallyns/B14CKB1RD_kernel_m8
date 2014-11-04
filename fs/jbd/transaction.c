@@ -1212,15 +1212,17 @@ static int __dispose_buffer(struct journal_head *jh, transaction_t *transaction)
 }
 
 
-static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh)
+static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh,
+				int partial_page)
 {
 	transaction_t *transaction;
 	struct journal_head *jh;
 	int may_free = 1;
-	int ret;
+
 
 	BUFFER_TRACE(bh, "entry");
 
+retry:
 
 	if (!buffer_jbd(bh))
 		goto zap_buffer_unlocked;
@@ -1251,23 +1253,15 @@ static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh)
 
 		if (journal->j_running_transaction) {
 			JBUFFER_TRACE(jh, "checkpointed: add to BJ_Forget");
-			ret = __dispose_buffer(jh,
+			may_free = __dispose_buffer(jh,
 					journal->j_running_transaction);
-			journal_put_journal_head(jh);
-			spin_unlock(&journal->j_list_lock);
-			jbd_unlock_bh_state(bh);
-			spin_unlock(&journal->j_state_lock);
-			return ret;
+			goto zap_buffer;
 		} else {
 			if (journal->j_committing_transaction) {
 				JBUFFER_TRACE(jh, "give to committing trans");
-				ret = __dispose_buffer(jh,
+				may_free = __dispose_buffer(jh,
 					journal->j_committing_transaction);
-				journal_put_journal_head(jh);
-				spin_unlock(&journal->j_list_lock);
-				jbd_unlock_bh_state(bh);
-				spin_unlock(&journal->j_state_lock);
-				return ret;
+				goto zap_buffer;
 			} else {
 				clear_buffer_jbddirty(bh);
 				goto zap_buffer;
@@ -1279,6 +1273,27 @@ static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh)
 			may_free = __dispose_buffer(jh, transaction);
 			goto zap_buffer;
 		}
+ 		/*
+ 		 * The buffer is committing, we simply cannot touch
+		 * it. If the page is straddling i_size we have to wait
+		 * for commit and try again.
+		 */
+		if (partial_page) {
+			tid_t tid = journal->j_committing_transaction->t_tid;
+
+			journal_put_journal_head(jh);
+			spin_unlock(&journal->j_list_lock);
+			jbd_unlock_bh_state(bh);
+			spin_unlock(&journal->j_state_lock);
+			log_wait_commit(journal, tid);
+			goto retry;
+		}
+		/*
+		 * OK, buffer won't be reachable after truncate. We just set
+		 * j_next_transaction to the running transaction (if there is
+		 * one) and mark buffer as freed so that commit code knows it
+		 * should clear dirty bits when it is done with the buffer.
+ 		 */		
 		set_buffer_freed(bh);
 		if (journal->j_running_transaction && buffer_jbddirty(bh))
 			jh->b_next_transaction = journal->j_running_transaction;
@@ -1294,6 +1309,14 @@ static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh)
 	}
 
 zap_buffer:
+	/*
+	 * This is tricky. Although the buffer is truncated, it may be reused
+	 * if blocksize < pagesize and it is attached to the page straddling
+	 * EOF. Since the buffer might have been added to BJ_Forget list of the
+	 * running transaction, journal_get_write_access() won't clear
+	 * b_modified and credit accounting gets confused. So clear b_modified
+	 * here. */
+	jh->b_modified = 0;
 	journal_put_journal_head(jh);
 zap_buffer_no_jh:
 	spin_unlock(&journal->j_list_lock);
@@ -1331,7 +1354,8 @@ void journal_invalidatepage(journal_t *journal,
 		if (offset <= curr_off) {
 			
 			lock_buffer(bh);
-			may_free &= journal_unmap_buffer(journal, bh);
+			may_free &= journal_unmap_buffer(journal, bh,
+							 offset > 0);
 			unlock_buffer(bh);
 		}
 		curr_off = next_off;

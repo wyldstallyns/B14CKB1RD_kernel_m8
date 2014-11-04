@@ -1200,7 +1200,16 @@ static struct snd_emu_chip_details emu_chip_details[] = {
 	 .spk71 = 1,
 	 .emu_model = EMU_MODEL_EMU1010B}, 
 	
-	
+	/* Tested by Maxim Kachur <mcdebugger@duganet.ru> 17th Oct 2012. */
+	/* This is MAEM8986, 0202 is MAEM8980 */
+	{.vendor = 0x1102, .device = 0x0008, .subsystem = 0x40071102,
+	 .driver = "Audigy2", .name = "E-mu 1010 PCIe [MAEM8986]",
+	 .id = "EMU1010",
+	 .emu10k2_chip = 1,
+	 .ca0108_chip = 1,
+	 .spk71 = 1,
+	 .emu_model = EMU_MODEL_EMU1010B}, /* EMU 1010 PCIe */
+
 	{.vendor = 0x1102, .device = 0x0004, .subsystem = 0x40011102,
 	 .driver = "Audigy2", .name = "E-mu 1010 [MAEM8810]",
 	 .id = "EMU1010",
