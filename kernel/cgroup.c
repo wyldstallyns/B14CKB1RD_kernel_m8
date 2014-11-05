@@ -1423,9 +1423,9 @@ static void cgroup_task_migrate(struct cgroup *cgrp, struct cgroup *oldcgrp,
 		list_move(&tsk->cg_list, &newcg->tasks);
 	write_unlock(&css_set_lock);
 
-	put_css_set(oldcg);
 
 	set_bit(CGRP_RELEASABLE, &oldcgrp->flags);
+	put_css_set(oldcg);
 }
 
 int cgroup_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
@@ -3529,12 +3529,26 @@ static const struct file_operations proc_cgroupstats_operations = {
 	.release = single_release,
 };
 
+  /*
+  * A pointer to the shared css_set was automatically copied in
+  * fork.c by dup_task_struct().  However, we ignore that copy, since
+  * it was not made under the protection of RCU or cgroup_mutex, so
+  * might no longer be a valid cgroup pointer.  cgroup_attach_task() might
+  * have already changed current->cgroups, allowing the previously
+  * referenced cgroup group to be removed and freed.
+  *
+  * At the point that cgroup_fork() is called, 'current' is the parent
+  * task, and the passed argument 'child' points to the child task.
+  */
 void cgroup_fork(struct task_struct *child)
 {
+	task_lock(current);
 	child->cgroups = current->cgroups;
 	get_css_set(child->cgroups);
+	task_unlock(current);
 	INIT_LIST_HEAD(&child->cg_list);
 }
+  
 
 void cgroup_fork_callbacks(struct task_struct *child)
 {
@@ -3550,25 +3564,42 @@ void cgroup_fork_callbacks(struct task_struct *child)
 
 void cgroup_post_fork(struct task_struct *child)
 {
+	int i;
 	/*
-	 * use_task_css_set_links is set to 1 before we walk the tasklist
-	 * under the tasklist_lock and we read it here after we added the child
-	 * to the tasklist under the tasklist_lock as well. If the child wasn't
-	 * yet in the tasklist when we walked through it from
-	 * cgroup_enable_task_cg_lists(), then use_task_css_set_links value
-	 * should be visible now due to the paired locking and barriers implied
-	 * by LOCK/UNLOCK: it is written before the tasklist_lock unlock
-	 * in cgroup_enable_task_cg_lists() and read here after the tasklist_lock
-	 * lock on fork.
-	 */
+	* use_task_css_set_links is set to 1 before we walk the tasklist
+	* under the tasklist_lock and we read it here after we added the child
+	* to the tasklist under the tasklist_lock as well. If the child wasn't
+	* yet in the tasklist when we walked through it from
+	* cgroup_enable_task_cg_lists(), then use_task_css_set_links value
+	* should be visible now due to the paired locking and barriers implied
+	* by LOCK/UNLOCK: it is written before the tasklist_lock unlock
+	* in cgroup_enable_task_cg_lists() and read here after the tasklist_lock
+	* lock on fork.
+	*/
 	if (use_task_css_set_links) {
 		write_lock(&css_set_lock);
-		if (list_empty(&child->cg_list)) {
+		task_lock(child);
+		if (list_empty(&child->cg_list))
 			list_add(&child->cg_list, &child->cgroups->tasks);
-		}
+		task_unlock(child);
 		write_unlock(&css_set_lock);
 	}
+	/*
+	* Call ss->fork(). This must happen after @child is linked on
+	* css_set; otherwise, @child might change state between ->fork()
+	* and addition to css_set.
+	*/
+	if (need_forkexit_callback) {
+		for (i = 0; i < CGROUP_BUILTIN_SUBSYS_COUNT; i++) {
+			struct cgroup_subsys *ss = subsys[i];
+			if (ss->fork)
+				ss->fork(child);
+		}
+	}
 }
+
+
+
 void cgroup_exit(struct task_struct *tsk, int run_callbacks)
 {
 	struct css_set *cg;

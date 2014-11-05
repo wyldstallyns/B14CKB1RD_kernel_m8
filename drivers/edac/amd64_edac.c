@@ -117,7 +117,20 @@ static int __amd64_set_scrub_rate(struct pci_dev *ctl, u32 new_bw, u32 min_rate)
 	u32 scrubval;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(scrubrates); i++) {
+	/*
+	* map the configured rate (new_bw) to a value specific to the AMD64
+	* memory controller and apply to register. Search for the first
+	* bandwidth entry that is greater or equal than the setting requested
+	* and program that. If at last entry, turn off DRAM scrubbing.
+	*
+	* If no suitable bandwidth is found, turn off DRAM scrubbing entirely
+	* by falling back to the last element in scrubrates[].
+	*/
+	for (i = 0; i < ARRAY_SIZE(scrubrates) - 1; i++) {
+	/*
+	* skip scrub rates which aren't recommended
+	* (see F10 BKDG, F3x58)
+	*/
 		if (scrubrates[i].scrubval < min_rate)
 			continue;
 
