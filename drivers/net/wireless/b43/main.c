@@ -5186,6 +5186,8 @@ static void b43_ssb_remove(struct ssb_device *sdev)
 	cancel_work_sync(&wldev->restart_work);
 
 	B43_WARN_ON(!wl);
+	if (!wldev->fw.ucode.data)
+		return;			/* NULL if firmware never loaded */
 	if (wl->current_dev == wldev) {
 		wl->hw->queues = wl->mac80211_initially_registered_queues;
 		b43_leds_stop(wldev);
