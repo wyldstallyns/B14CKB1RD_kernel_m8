@@ -31,7 +31,8 @@ static struct vfsmount *nfs_do_submount(struct dentry *dentry,
 					struct nfs_fattr *fattr,
 					rpc_authflavor_t authflavor);
 
-char *nfs_path(char **p, struct dentry *dentry, char *buffer, ssize_t buflen)
+char *nfs_path(char **p, struct dentry *dentry, char *buffer, ssize_t buflen,
+	       unsigned flags)
 {
 	char *end;
 	int namelen;
@@ -64,7 +65,7 @@ rename_retry:
 		rcu_read_unlock();
 		goto rename_retry;
 	}
-	if (*end != '/') {
+	if ((flags & NFS_PATH_CANONICAL) && *end != '/') {
 		if (--buflen < 0) {
 			spin_unlock(&dentry->d_lock);
 			rcu_read_unlock();
@@ -82,8 +83,11 @@ rename_retry:
 	}
 	namelen = strlen(base);
 	
-	while (namelen > 0 && base[namelen - 1] == '/')
-		namelen--;
+	if (flags & NFS_PATH_CANONICAL) {
+		/* Strip off excess slashes in base string */
+		while (namelen > 0 && base[namelen - 1] == '/')
+			namelen--;
+	}
 	buflen -= namelen;
 	if (buflen < 0) {
 		spin_unlock(&dentry->d_lock);

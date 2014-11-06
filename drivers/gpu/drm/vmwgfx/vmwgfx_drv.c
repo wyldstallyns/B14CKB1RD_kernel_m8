@@ -944,6 +944,11 @@ static int vmw_pci_suspend(struct pci_dev *pdev, pm_message_t state)
 	struct drm_device *dev = pci_get_drvdata(pdev);
 	struct vmw_private *dev_priv = vmw_priv(dev);
 
+	mutex_lock(&dev_priv->hw_mutex);
+	vmw_write(dev_priv, SVGA_REG_ID, SVGA_ID_2);
+	(void) vmw_read(dev_priv, SVGA_REG_ID);
+	mutex_unlock(&dev_priv->hw_mutex);
+
 	if (dev_priv->num_3d_resources != 0) {
 		DRM_INFO("Can't suspend or hibernate "
 			 "while 3D resources are active.\n");

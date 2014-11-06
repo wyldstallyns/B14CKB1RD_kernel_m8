@@ -378,7 +378,7 @@ fsloc_parse(char **mesg, char *buf, struct nfsd4_fs_locations *fsloc)
 	int migrated, i, err;
 
 	
-	err = get_int(mesg, &fsloc->locations_count);
+	err = get_uint(mesg, &fsloc->locations_count);
 	if (err)
 		return err;
 	if (fsloc->locations_count > MAX_FS_LOCATIONS)
@@ -436,13 +436,13 @@ static int secinfo_parse(char **mesg, char *buf, struct svc_export *exp)
 		return -EINVAL;
 
 	for (f = exp->ex_flavors; f < exp->ex_flavors + listsize; f++) {
-		err = get_int(mesg, &f->pseudoflavor);
+		err = get_uint(mesg, &f->pseudoflavor);
 		if (err)
 			return err;
-		err = get_int(mesg, &f->flags);
-		if (err)
-			return err;
-		
+		err = get_uint(mesg, &f->flags);
+ 		if (err)
+ 			return err;
+ 		/* Only some flags are allowed to differ between flavors: */
 		if (~NFSEXP_SECINFO_FLAGS & (f->flags ^ exp->ex_flags))
 			return -EINVAL;
 	}

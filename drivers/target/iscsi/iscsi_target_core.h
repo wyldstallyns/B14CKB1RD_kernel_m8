@@ -471,7 +471,8 @@ struct iscsi_tmr_req {
 };
 
 struct iscsi_conn {
-	
+	wait_queue_head_t	queues_wq;
+ 	/* Authentication Successful for this connection */
 	u8			auth_complete;
 	
 	u8			conn_state;
