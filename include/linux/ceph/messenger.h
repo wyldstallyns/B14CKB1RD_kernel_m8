@@ -21,16 +21,14 @@ struct ceph_connection_operations {
 	
 	void (*dispatch) (struct ceph_connection *con, struct ceph_msg *m);
 
-	
-	int (*get_authorizer) (struct ceph_connection *con,
-			       void **buf, int *len, int *proto,
-			       void **reply_buf, int *reply_len, int force_new);
+
+	struct ceph_auth_handshake *(*get_authorizer) (
+				struct ceph_connection *con,
+			       int *proto, int force_new);
 	int (*verify_authorizer_reply) (struct ceph_connection *con, int len);
 	int (*invalidate_authorizer)(struct ceph_connection *con);
 
 	
-	void (*bad_proto) (struct ceph_connection *con);
-
 	
 	void (*fault) (struct ceph_connection *con);
 
@@ -47,6 +45,7 @@ struct ceph_messenger {
 	struct ceph_entity_inst inst;    
 	struct ceph_entity_addr my_enc_addr;
 
+	atomic_t stopping;
 	bool nocrc;
 
 	u32 global_seq;
@@ -65,7 +64,10 @@ struct ceph_msg {
 	unsigned nr_pages;              
 	unsigned page_alignment;        
 	struct ceph_pagelist *pagelist; 
-	struct list_head list_head;
+
+	struct ceph_connection *con;
+ 	struct list_head list_head;
+
 	struct kref kref;
 	struct bio  *bio;		
 	struct bio  *bio_iter;		
@@ -89,32 +91,27 @@ struct ceph_msg_pos {
 #define BASE_DELAY_INTERVAL	(HZ/2)
 #define MAX_DELAY_INTERVAL	(5 * 60 * HZ)
 
-#define LOSSYTX         0  
-#define CONNECTING	1
-#define NEGOTIATING	2
-#define KEEPALIVE_PENDING      3
-#define WRITE_PENDING	4  
-#define STANDBY		8  
-#define CLOSED		10 
-#define SOCK_CLOSED	11 
-#define OPENING         13 
-#define DEAD            14 
-#define BACKOFF         15
+
 
 struct ceph_connection {
 	void *private;
-	atomic_t nref;
 
 	const struct ceph_connection_operations *ops;
 
 	struct ceph_messenger *msgr;
+
+	atomic_t sock_state;
 	struct socket *sock;
+	struct ceph_entity_addr peer_addr; /* peer address */
+	struct ceph_entity_addr peer_addr_for_me;
+
+	unsigned long flags;
 	unsigned long state;	
 	const char *error_msg;  
 
-	struct ceph_entity_addr peer_addr; 
+
 	struct ceph_entity_name peer_name; 
-	struct ceph_entity_addr peer_addr_for_me;
+
 	unsigned peer_features;
 	u32 connect_seq;      
 	u32 peer_global_seq;  
@@ -134,16 +131,8 @@ struct ceph_connection {
 
 	
 	char in_banner[CEPH_BANNER_MAX_LEN];
-	union {
-		struct {  
-			struct ceph_msg_connect out_connect;
-			struct ceph_msg_connect_reply in_reply;
-		};
-		struct {  
-			struct ceph_msg_connect in_connect;
-			struct ceph_msg_connect_reply out_reply;
-		};
-	};
+	struct ceph_msg_connect out_connect;
+	struct ceph_msg_connect_reply in_reply;
 	struct ceph_entity_addr actual_peer_addr;
 
 	
@@ -185,24 +174,26 @@ extern int ceph_msgr_init(void);
 extern void ceph_msgr_exit(void);
 extern void ceph_msgr_flush(void);
 
-extern struct ceph_messenger *ceph_messenger_create(
-	struct ceph_entity_addr *myaddr,
-	u32 features, u32 required);
-extern void ceph_messenger_destroy(struct ceph_messenger *);
+extern void ceph_messenger_init(struct ceph_messenger *msgr,
+			struct ceph_entity_addr *myaddr,
+			u32 supported_features,
+			u32 required_features,
+			bool nocrc);
 
-extern void ceph_con_init(struct ceph_messenger *msgr,
-			  struct ceph_connection *con);
+extern void ceph_con_init(struct ceph_connection *con, void *private,
+			const struct ceph_connection_operations *ops,
+			struct ceph_messenger *msgr);
 extern void ceph_con_open(struct ceph_connection *con,
+			  __u8 entity_type, __u64 entity_num,
 			  struct ceph_entity_addr *addr);
 extern bool ceph_con_opened(struct ceph_connection *con);
 extern void ceph_con_close(struct ceph_connection *con);
 extern void ceph_con_send(struct ceph_connection *con, struct ceph_msg *msg);
-extern void ceph_con_revoke(struct ceph_connection *con, struct ceph_msg *msg);
-extern void ceph_con_revoke_message(struct ceph_connection *con,
-				  struct ceph_msg *msg);
+
+extern void ceph_msg_revoke(struct ceph_msg *msg);
+extern void ceph_msg_revoke_incoming(struct ceph_msg *msg);
+
 extern void ceph_con_keepalive(struct ceph_connection *con);
-extern struct ceph_connection *ceph_con_get(struct ceph_connection *con);
-extern void ceph_con_put(struct ceph_connection *con);
 
 extern struct ceph_msg *ceph_msg_new(int type, int front_len, gfp_t flags,
 				     bool can_fail);

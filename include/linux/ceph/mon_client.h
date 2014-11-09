@@ -58,7 +58,7 @@ struct ceph_mon_client {
 	bool hunting;
 	int cur_mon;                       
 	unsigned long sub_sent, sub_renew_after;
-	struct ceph_connection *con;
+	struct ceph_connection con;
 	bool have_fsid;
 
 	

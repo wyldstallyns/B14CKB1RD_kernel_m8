@@ -481,15 +481,16 @@ static int __decode_pool_names(void **p, void *end, struct ceph_osdmap *map)
 		ceph_decode_32_safe(p, end, pool, bad);
 		ceph_decode_32_safe(p, end, len, bad);
 		dout("  pool %d len %d\n", pool, len);
+		ceph_decode_need(p, end, len, bad);
 		pi = __lookup_pg_pool(&map->pg_pools, pool);
 		if (pi) {
+			char *name = kstrndup(*p, len, GFP_NOFS);
+
+			if (!name)
+				return -ENOMEM;
 			kfree(pi->name);
-			pi->name = kmalloc(len + 1, GFP_NOFS);
-			if (pi->name) {
-				memcpy(pi->name, *p, len);
-				pi->name[len] = '\0';
-				dout("  name is %s\n", pi->name);
-			}
+			pi->name = name;
+			dout("  name is %s\n", pi->name);
 		}
 		*p += len;
 	}
@@ -650,6 +651,9 @@ struct ceph_osdmap *osdmap_decode(void **p, void *end)
 		ceph_decode_need(p, end, sizeof(u32) + sizeof(u64), bad);
 		ceph_decode_copy(p, &pgid, sizeof(pgid));
 		n = ceph_decode_32(p);
+		err = -EINVAL;
+		if (n > (UINT_MAX - sizeof(*pg)) / sizeof(u32))
+			goto bad;
 		ceph_decode_need(p, end, n * sizeof(u32), bad);
 		err = -ENOMEM;
 		pg = kmalloc(sizeof(*pg) + n*sizeof(u32), GFP_NOFS);
@@ -866,6 +870,15 @@ struct ceph_osdmap *osdmap_apply_incremental(void **p, void *end,
 		if (pglen) {
 			
 			ceph_decode_need(p, end, pglen*sizeof(u32), bad);
+
+			/* removing existing (if any) */
+			(void) __remove_pg_mapping(&map->pg_temp, pgid);
+
+			/* insert */
+			if (pglen > (UINT_MAX - sizeof(*pg)) / sizeof(u32)) {
+				err = -EINVAL;
+				goto bad;
+			}
 			pg = kmalloc(sizeof(*pg) + sizeof(u32)*pglen, GFP_NOFS);
 			if (!pg) {
 				err = -ENOMEM;
@@ -906,7 +919,7 @@ bad:
 
 
 
-void ceph_calc_file_object_mapping(struct ceph_file_layout *layout,
+int ceph_calc_file_object_mapping(struct ceph_file_layout *layout,
 				   u64 off, u64 *plen,
 				   u64 *ono,
 				   u64 *oxoff, u64 *oxlen)
@@ -920,12 +933,18 @@ void ceph_calc_file_object_mapping(struct ceph_file_layout *layout,
 
 	dout("mapping %llu~%llu  osize %u fl_su %u\n", off, *plen,
 	     osize, su);
+	if (su == 0 || sc == 0)
+		goto invalid;
 	su_per_object = osize / su;
+	if (su_per_object == 0)
+		goto invalid;
 	dout("osize %u / su %u = su_per_object %u\n", osize, su,
 	     su_per_object);
 
-	BUG_ON((su & ~PAGE_MASK) != 0);
-	
+	if ((su & ~PAGE_MASK) != 0)
+		goto invalid;
+
+ 	/* bl = *off / su; */	
 	t = off;
 	do_div(t, su);
 	bl = t;
@@ -952,6 +971,14 @@ void ceph_calc_file_object_mapping(struct ceph_file_layout *layout,
 	*plen = *oxlen;
 
 	dout(" obj extent %llu~%llu\n", *oxoff, *oxlen);
+	return 0;
+
+invalid:
+	dout(" invalid layout\n");
+	*ono = 0;
+	*oxoff = 0;
+	*oxlen = 0;
+	return -EINVAL;
 }
 EXPORT_SYMBOL(ceph_calc_file_object_mapping);
 
