@@ -261,6 +261,17 @@ static inline void __thread_fpu_begin(struct task_struct *tsk)
 }
 
 typedef struct { int preload; } fpu_switch_t;
+ /*
+ * Must be run with preemption disabled: this clears the fpu_owner_task,
+ * on this CPU.
+  *
+ * This will disable any lazy FPU state restore of the current FPU state,
+ * but if the current thread owns the FPU, it will still be saved by.
+  */
+static inline void __cpu_disable_lazy_restore(unsigned int cpu)
+{
+	per_cpu(fpu_owner_task, cpu) = NULL;
+}
 
 static inline int fpu_lazy_restore(struct task_struct *new, unsigned int cpu)
 {
