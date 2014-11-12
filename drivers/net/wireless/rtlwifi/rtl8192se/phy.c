@@ -1237,6 +1237,9 @@ static void _rtl92s_phy_get_txpower_index(struct ieee80211_hw *hw, u8 channel,
 		
 		ofdmpowerLevel[0] = rtlefuse->txpwrlevel_ht40_2s[0][index];
 		ofdmpowerLevel[1] = rtlefuse->txpwrlevel_ht40_2s[1][index];
+	} else {
+		ofdmpowerLevel[0] = 0;
+		ofdmpowerLevel[1] = 0;
 	}
 }
 

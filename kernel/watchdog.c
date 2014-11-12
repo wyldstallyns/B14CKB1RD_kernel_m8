@@ -94,9 +94,9 @@ static unsigned long get_timestamp(int this_cpu)
 	return cpu_clock(this_cpu) >> 30LL;  
 }
 
-static unsigned long get_sample_period(void)
+static u64 get_sample_period(void)
 {
-	return get_softlockup_thresh() * (NSEC_PER_SEC / 5);
+	return get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
 }
 
 static void __touch_watchdog(void)

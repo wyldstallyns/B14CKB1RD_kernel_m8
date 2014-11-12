@@ -295,7 +295,8 @@ static struct usb_device_id rtl8192c_usb_ids[] = {
 
 	
 	
-	{RTL_USB_DEVICE(0x050d, 0x1102, rtl92cu_hal_cfg)}, 
+	{RTL_USB_DEVICE(0x050d, 0x1102, rtl92cu_hal_cfg)},
+	{RTL_USB_DEVICE(0x050d, 0x11f2, rtl92cu_hal_cfg)}, /*Belkin - ISY*/	
 	{RTL_USB_DEVICE(0x06f8, 0xe033, rtl92cu_hal_cfg)}, 
 	{RTL_USB_DEVICE(0x07b8, 0x8188, rtl92cu_hal_cfg)}, 
 	{RTL_USB_DEVICE(0x07b8, 0x8189, rtl92cu_hal_cfg)}, 

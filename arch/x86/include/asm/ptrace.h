@@ -184,14 +184,16 @@ static inline bool user_64bit_mode(struct pt_regs *regs)
 }
 #endif
 
+
+#ifdef CONFIG_X86_32
+	extern unsigned long kernel_stack_pointer(struct pt_regs *regs);
+#else
 static inline unsigned long kernel_stack_pointer(struct pt_regs *regs)
 {
-#ifdef CONFIG_X86_32
-	return (unsigned long)(&regs->sp);
-#else
 	return regs->sp;
-#endif
+
 }
+#endif
 
 #define GET_IP(regs) ((regs)->ip)
 #define GET_FP(regs) ((regs)->bp)
