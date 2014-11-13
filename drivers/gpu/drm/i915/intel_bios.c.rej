@@ -1,0 +1,12 @@
+--- drivers/gpu/drm/i915/intel_bios.c
++++ drivers/gpu/drm/i915/intel_bios.c
+@@ -613,9 +609,6 @@
+ 	dev_priv->lvds_use_ssc = 1;
+ 	dev_priv->lvds_ssc_freq = intel_bios_ssc_frequency(dev, 1);
+ 	DRM_DEBUG_KMS("Set default to SSC at %dMHz\n", dev_priv->lvds_ssc_freq);
+-
+-	/* eDP data */
+-	dev_priv->edp.bpp = 18;
+ }
+ 
+ static int __init intel_no_opregion_vbt_callback(const struct dmi_system_id *id)

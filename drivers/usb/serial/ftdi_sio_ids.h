@@ -457,7 +457,14 @@
 
 #define TTI_VID			0x103E	
 #define TTI_QL355P_PID		0x03E8	
+ /*
+  * Newport Cooperation (www.newport.com)
+  */
+#define NEWPORT_VID			0x104D
+#define NEWPORT_AGILIS_PID		0x3000
 
+ /* Interbiometrics USB I/O Board */
+ /* Developed for Interbiometrics by Rudolf Gugler */
 #define INTERBIOMETRICS_VID              0x1209
 #define INTERBIOMETRICS_IOBOARD_PID      0x1002
 #define INTERBIOMETRICS_MINI_IOBOARD_PID 0x1006

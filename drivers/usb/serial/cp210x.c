@@ -112,7 +112,8 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(0x10C4, 0x846E) }, 
 	{ USB_DEVICE(0x10C4, 0x8477) }, 
 	{ USB_DEVICE(0x10C4, 0x85EA) }, 
-	{ USB_DEVICE(0x10C4, 0x85EB) }, 
+	{ USB_DEVICE(0x10C4, 0x85EB) },
+	{ USB_DEVICE(0x10C4, 0x85F8) }, /* Virtenio Preon32 */	
 	{ USB_DEVICE(0x10C4, 0x8664) }, 
 	{ USB_DEVICE(0x10C4, 0x8665) }, 
 	{ USB_DEVICE(0x10C4, 0xEA60) }, 
