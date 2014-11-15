@@ -1,2 +1,2 @@
-		drivers/gpu/drm/i915/intel_display.c
-        
+		sound/usb/midi.c.orig
+        sound/usb/midi.c.rej

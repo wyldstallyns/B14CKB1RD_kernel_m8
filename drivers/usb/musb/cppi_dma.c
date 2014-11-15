@@ -1236,4 +1236,5 @@ static int cppi_channel_abort(struct dma_channel *channel)
 	cppi_ch->maxpacket = 0;
 	return 0;
 }
+EXPORT_SYMBOL_GPL(cppi_interrupt);
 

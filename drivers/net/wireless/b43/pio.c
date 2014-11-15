@@ -188,7 +188,7 @@ static void b43_pio_cancel_tx_packets(struct b43_pio_txqueue *q)
 	for (i = 0; i < ARRAY_SIZE(q->packets); i++) {
 		pack = &(q->packets[i]);
 		if (pack->skb) {
-			dev_kfree_skb_any(pack->skb);
+			ieee80211_free_txskb(q->dev->wl->hw, pack->skb);
 			pack->skb = NULL;
 		}
 	}
@@ -532,7 +532,9 @@ int b43_pio_tx(struct b43_wldev *dev, struct sk_buff *skb)
 
 	err = pio_tx_frame(q, skb);
 	if (unlikely(err == -ENOKEY)) {
-		dev_kfree_skb_any(skb);
+		/* Drop this packet, as we don't have the encryption key
+ 		 * anymore and must not transmit it unencrypted. */
+		ieee80211_free_txskb(dev->wl->hw, skb);
 		err = 0;
 		goto out;
 	}
