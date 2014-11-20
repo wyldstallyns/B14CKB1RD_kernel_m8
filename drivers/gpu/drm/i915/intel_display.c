@@ -353,6 +353,27 @@ static const intel_limit_t intel_limits_ironlake_display_port = {
 	.find_pll = intel_find_pll_ironlake_dp,
 };
 
+static bool is_dual_link_lvds(struct drm_i915_private *dev_priv,
+			      unsigned int reg)
+{
+	unsigned int val;
+
+	if (dev_priv->lvds_val)
+		val = dev_priv->lvds_val;
+	else {
+		/* BIOS should set the proper LVDS register value at boot, but
+		 * in reality, it doesn't set the value when the lid is closed;
+		 * we need to check "the value to be set" in VBT when LVDS
+		 * register is uninitialized.
+		 */
+		val = I915_READ(reg);
+		if (!(val & ~LVDS_DETECTED))
+			val = dev_priv->bios_lvds_val;
+		dev_priv->lvds_val = val;
+	}
+	return (val & LVDS_CLKB_POWER_MASK) == LVDS_CLKB_POWER_UP;
+}
+
 static const intel_limit_t *intel_ironlake_limit(struct drm_crtc *crtc,
 						int refclk)
 {
@@ -2443,9 +2464,6 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
 	POSTING_READ(reg);
 	udelay(150);
 
-	if (HAS_PCH_CPT(dev))
-		cpt_phase_pointer_enable(dev, pipe);
-
 	for (i = 0; i < 4; i++) {
 		reg = FDI_TX_CTL(pipe);
 		temp = I915_READ(reg);
@@ -2595,8 +2613,6 @@ static void ironlake_fdi_disable(struct drm_crtc *crtc)
 		I915_WRITE(FDI_RX_CHICKEN(pipe),
 			   I915_READ(FDI_RX_CHICKEN(pipe) &
 				     ~FDI_RX_PHASE_SYNC_POINTER_EN));
-	} else if (HAS_PCH_CPT(dev)) {
-		cpt_phase_pointer_disable(dev, pipe);
 	}
 
 	
@@ -2640,18 +2656,37 @@ static void intel_clear_scanline_wait(struct drm_device *dev)
 		I915_WRITE_CTL(ring, tmp);
 }
 
+static bool intel_crtc_has_pending_flip(struct drm_crtc *crtc)
+{
+	struct drm_device *dev = crtc->dev;
+	struct drm_i915_private *dev_priv = dev->dev_private;
+	unsigned long flags;
+	bool pending;
+
+	if (atomic_read(&dev_priv->mm.wedged))
+		return false;
+
+	spin_lock_irqsave(&dev->event_lock, flags);
+	pending = to_intel_crtc(crtc)->unpin_work != NULL;
+	spin_unlock_irqrestore(&dev->event_lock, flags);
+
+	return pending;
+}
+
 static void intel_crtc_wait_for_pending_flips(struct drm_crtc *crtc)
 {
-	struct drm_i915_gem_object *obj;
-	struct drm_i915_private *dev_priv;
+	struct drm_device *dev = crtc->dev;
+	struct drm_i915_private *dev_priv = dev->dev_private;
 
 	if (crtc->fb == NULL)
 		return;
 
-	obj = to_intel_framebuffer(crtc->fb)->obj;
-	dev_priv = crtc->dev->dev_private;
 	wait_event(dev_priv->pending_flip_queue,
-		   atomic_read(&obj->pending_flip) == 0);
+		   !intel_crtc_has_pending_flip(crtc));
+
+	mutex_lock(&dev->struct_mutex);
+	intel_finish_fb(crtc->fb);
+	mutex_unlock(&dev->struct_mutex);
 }
 
 static bool intel_crtc_driving_pch(struct drm_crtc *crtc)
@@ -6639,9 +6674,8 @@ static void do_intel_finish_page_flip(struct drm_device *dev,
 
 	atomic_clear_mask(1 << intel_crtc->plane,
 			  &obj->pending_flip.counter);
-	if (atomic_read(&obj->pending_flip) == 0)
-		wake_up(&dev_priv->pending_flip_queue);
 
+	wake_up(&dev_priv->pending_flip_queue);
 	schedule_work(&work->work);
 
 	trace_i915_flip_complete(intel_crtc->plane, work->pending_flip_obj);
@@ -6714,7 +6748,11 @@ static int intel_gen2_queue_flip(struct drm_device *dev,
 	OUT_RING(obj->gtt_offset + offset);
 	OUT_RING(0); 
 	ADVANCE_LP_RING();
-out:
+	return 0;
+
+err_unpin:
+	intel_unpin_fb_obj(obj);
+err:
 	return ret;
 }
 
@@ -6753,7 +6791,11 @@ static int intel_gen3_queue_flip(struct drm_device *dev,
 	OUT_RING(MI_NOOP);
 
 	ADVANCE_LP_RING();
-out:
+	return 0;
+
+err_unpin:
+	intel_unpin_fb_obj(obj);
+err:
 	return ret;
 }
 
@@ -6769,11 +6811,11 @@ static int intel_gen4_queue_flip(struct drm_device *dev,
 
 	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
 	if (ret)
-		goto out;
+		goto err;
 
 	ret = BEGIN_LP_RING(4);
 	if (ret)
-		goto out;
+		goto err_unpin;
 
 	OUT_RING(MI_DISPLAY_FLIP |
 		 MI_DISPLAY_FLIP_PLANE(intel_crtc->plane));
@@ -6784,7 +6826,11 @@ static int intel_gen4_queue_flip(struct drm_device *dev,
 	pipesrc = I915_READ(PIPESRC(intel_crtc->pipe)) & 0x0fff0fff;
 	OUT_RING(pf | pipesrc);
 	ADVANCE_LP_RING();
-out:
+	return 0;
+
+err_unpin:
+	intel_unpin_fb_obj(obj);
+err:
 	return ret;
 }
 
@@ -6800,11 +6846,11 @@ static int intel_gen6_queue_flip(struct drm_device *dev,
 
 	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
 	if (ret)
-		goto out;
+		goto err;
 
 	ret = BEGIN_LP_RING(4);
 	if (ret)
-		goto out;
+		goto err_unpin;
 
 	OUT_RING(MI_DISPLAY_FLIP |
 		 MI_DISPLAY_FLIP_PLANE(intel_crtc->plane));
@@ -6815,7 +6861,11 @@ static int intel_gen6_queue_flip(struct drm_device *dev,
 	pipesrc = I915_READ(PIPESRC(intel_crtc->pipe)) & 0x0fff0fff;
 	OUT_RING(pf | pipesrc);
 	ADVANCE_LP_RING();
-out:
+	return 0;
+
+err_unpin:
+	intel_unpin_fb_obj(obj);
+err:
 	return ret;
 }
 
@@ -6827,22 +6877,43 @@ static int intel_gen7_queue_flip(struct drm_device *dev,
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
 	struct intel_ring_buffer *ring = &dev_priv->ring[BCS];
+	uint32_t plane_bit = 0;
 	int ret;
 
 	ret = intel_pin_and_fence_fb_obj(dev, obj, ring);
 	if (ret)
-		goto out;
+		goto err;
+
+	switch(intel_crtc->plane) {
+	case PLANE_A:
+		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_A;
+		break;
+	case PLANE_B:
+		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_B;
+		break;
+	case PLANE_C:
+		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_C;
+		break;
+	default:
+		WARN_ONCE(1, "unknown plane in flip command\n");
+		ret = -ENODEV;
+		goto err_unpin;
+	}
 
 	ret = intel_ring_begin(ring, 4);
 	if (ret)
-		goto out;
+		goto err_unpin;
 
-	intel_ring_emit(ring, MI_DISPLAY_FLIP_I915 | (intel_crtc->plane << 19));
+	intel_ring_emit(ring, MI_DISPLAY_FLIP_I915 | plane_bit);
 	intel_ring_emit(ring, (fb->pitches[0] | obj->tiling_mode));
 	intel_ring_emit(ring, (obj->gtt_offset));
 	intel_ring_emit(ring, (MI_NOOP));
 	intel_ring_advance(ring);
-out:
+	return 0;
+
+err_unpin:
+	intel_unpin_fb_obj(obj);
+err:
 	return ret;
 }
 
@@ -7853,6 +7924,11 @@ static void gen6_init_clock_gating(struct drm_device *dev)
 			   DISPPLANE_TRICKLE_FEED_DISABLE);
 		intel_flush_display_plane(dev_priv, pipe);
 	}
+
+	/* The default value should be 0x200 according to docs, but the two
+	 * platforms I checked have a 0 for this. (Maybe BIOS overrides?) */
+	I915_WRITE(GEN6_GT_MODE, 0xffff << 16);
+	I915_WRITE(GEN6_GT_MODE, GEN6_GT_MODE_HI << 16 | GEN6_GT_MODE_HI);
 }
 
 static void gen7_setup_fixed_func_scheduler(struct drm_i915_private *dev_priv)

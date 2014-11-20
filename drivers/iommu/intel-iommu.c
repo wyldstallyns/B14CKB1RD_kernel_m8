@@ -1700,11 +1700,17 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 			if (!pte)
 				return -ENOMEM;
 			
-			if (largepage_lvl > 1)
+			if (largepage_lvl > 1) {
 				pteval |= DMA_PTE_LARGE_PAGE;
-			else
+				/* Ensure that old small page tables are removed to make room
+				   for superpage, if they exist. */
+				dma_pte_clear_range(domain, iov_pfn,
+						    iov_pfn + lvl_to_nr_pages(largepage_lvl) - 1);
+				dma_pte_free_pagetable(domain, iov_pfn,
+						       iov_pfn + lvl_to_nr_pages(largepage_lvl) - 1);
+			} else {
 				pteval &= ~(uint64_t)DMA_PTE_LARGE_PAGE;
-
+			}
 		}
 		tmp = cmpxchg64_local(&pte->val, 0ULL, pteval);
 		if (tmp) {

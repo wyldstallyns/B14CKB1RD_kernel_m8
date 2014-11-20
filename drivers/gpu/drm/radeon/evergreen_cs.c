@@ -2614,6 +2614,7 @@ static bool evergreen_vm_reg_valid(u32 reg)
 
 	
 	switch (reg) {
+	case WAIT_UNTIL:
 	case GRBM_GFX_INDEX:
 	case CP_STRMOUT_CNTL:
 	case CP_COHER_CNTL:

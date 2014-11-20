@@ -1502,8 +1502,12 @@ static int radeon_atom_pick_pll(struct drm_crtc *crtc)
 		list_for_each_entry(test_encoder, &dev->mode_config.encoder_list, head) {
 			if (test_encoder->crtc && (test_encoder->crtc == crtc)) {
 				if (ENCODER_MODE_IS_DP(atombios_get_encoder_mode(test_encoder))) {
-					if (ASIC_IS_DCE5(rdev) || rdev->clock.dp_extclk)
+					if (rdev->clock.dp_extclk)
 						return ATOM_PPLL_INVALID;
+					else if (ASIC_IS_DCE6(rdev))
+						return ATOM_PPLL0;
+					else if (ASIC_IS_DCE5(rdev))
+						return ATOM_DCPLL;
 				}
 			}
 		}

@@ -9,7 +9,7 @@ if [ "$1" == "local" ]; then
 	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 else
 	echo "Remote Build"
-	build=/home/giro/m8/remote/
+	build=/home/giro/m8/output/
 	export PATH=/home/giro/toolchain/arm-eabi-4.10-sm/bin:$PATH
 fi
 kernel="B14CKB1RD"

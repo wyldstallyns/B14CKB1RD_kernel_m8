@@ -1900,6 +1900,7 @@ int ata_bus_probe(struct ata_port *ap)
  retry:
 	ata_for_each_dev(dev, &ap->link, ALL) {
 		dev->pio_mode = XFER_PIO_0;
+		dev->dma_mode = 0xff;
 
 		if (ap->ops->set_piomode)
 			ap->ops->set_piomode(ap, dev);

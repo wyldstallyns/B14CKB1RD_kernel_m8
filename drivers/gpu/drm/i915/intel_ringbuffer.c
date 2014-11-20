@@ -173,11 +173,16 @@ u32 intel_ring_get_active_head(struct intel_ring_buffer *ring)
 
 static int init_ring_common(struct intel_ring_buffer *ring)
 {
-	drm_i915_private_t *dev_priv = ring->dev->dev_private;
+	struct drm_device *dev = ring->dev;
+	drm_i915_private_t *dev_priv = dev->dev_private;
 	struct drm_i915_gem_object *obj = ring->obj;
+	int ret = 0;
 	u32 head;
 
-	
+	if (HAS_FORCE_WAKE(dev))
+		gen6_gt_force_wake_get(dev_priv);
+
+ 	/* Stop the ring if it's running. */
 	I915_WRITE_CTL(ring, 0);
 	I915_WRITE_HEAD(ring, 0);
 	ring->write_tail(ring, 0);
@@ -214,10 +219,10 @@ static int init_ring_common(struct intel_ring_buffer *ring)
 			((ring->size - PAGE_SIZE) & RING_NR_PAGES)
 			| RING_VALID);
 
-	
-	if ((I915_READ_CTL(ring) & RING_VALID) == 0 ||
-	    I915_READ_START(ring) != obj->gtt_offset ||
-	    (I915_READ_HEAD(ring) & HEAD_ADDR) != 0) {
+	/* If the head is still not zero, the ring is dead */
+	if (wait_for((I915_READ_CTL(ring) & RING_VALID) != 0 &&
+		     I915_READ_START(ring) == obj->gtt_offset &&
+		     (I915_READ_HEAD(ring) & HEAD_ADDR) == 0, 50)) {
 		DRM_ERROR("%s initialization failed "
 				"ctl %08x head %08x tail %08x start %08x\n",
 				ring->name,
@@ -225,7 +230,8 @@ static int init_ring_common(struct intel_ring_buffer *ring)
 				I915_READ_HEAD(ring),
 				I915_READ_TAIL(ring),
 				I915_READ_START(ring));
-		return -EIO;
+		ret = -EIO;
+		goto out;
 	}
 
 	if (!drm_core_check_feature(ring->dev, DRIVER_MODESET))
@@ -237,7 +243,11 @@ static int init_ring_common(struct intel_ring_buffer *ring)
 		ring->last_retired_head = -1;
 	}
 
-	return 0;
+out:
+	if (HAS_FORCE_WAKE(dev))
+		gen6_gt_force_wake_put(dev_priv);
+
+	return ret;
 }
 
 static int

@@ -1898,6 +1898,7 @@ int ata_eh_reset(struct ata_link *link, int classify,
 
 	ata_for_each_dev(dev, link, ALL) {
 		dev->pio_mode = XFER_PIO_0;
+		dev->dma_mode = 0xff;
 
 		if (ap->ops->set_piomode)
 			ap->ops->set_piomode(ap, dev);

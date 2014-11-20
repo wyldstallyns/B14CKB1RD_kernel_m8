@@ -29,7 +29,10 @@
 #ifndef __TTYPE_H__
 #define __TTYPE_H__
 
+#include <linux/types.h>
 
+ /******* Common definitions and typedefs ***********************************/
+ 
 typedef int             BOOL;
 
 #if !defined(TRUE)
@@ -40,22 +43,22 @@ typedef int             BOOL;
 #endif
 
 
-typedef unsigned char   BYTE;           
-typedef unsigned short  WORD;           
-typedef unsigned long   DWORD;          
+typedef u8 BYTE;
+typedef u16 WORD;
+typedef u32 DWORD;       
 
 typedef union tagUQuadWord {
     struct {
-        DWORD   dwLowDword;
-        DWORD   dwHighDword;
+	u32 dwLowDword;
+	u32 dwHighDword;
     } u;
     double      DoNotUseThisField;
 } UQuadWord;
 typedef UQuadWord       QWORD;          
 
 
-typedef unsigned long   ULONG_PTR;      
-typedef unsigned long   DWORD_PTR;      
+typedef u32 ULONG_PTR;
+typedef u32 DWORD_PTR;
 
 
 typedef BYTE *           PBYTE;

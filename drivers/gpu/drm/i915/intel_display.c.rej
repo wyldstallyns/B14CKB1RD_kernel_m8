@@ -1,20 +1,150 @@
 --- drivers/gpu/drm/i915/intel_display.c
 +++ drivers/gpu/drm/i915/intel_display.c
-@@ -4996,6 +4996,17 @@
- 			}
- 		}
+@@ -389,8 +410,7 @@
+ 	const intel_limit_t *limit;
  
-+		if (intel_encoder->type == INTEL_OUTPUT_EDP) {
-+			/* Use VBT settings if we have an eDP panel */
-+			unsigned int edp_bpc = dev_priv->edp.bpp / 3;
-+
-+			if (edp_bpc && edp_bpc < display_bpc) {
-+				DRM_DEBUG_KMS("clamping display bpc (was %d) to eDP (%d)\n", display_bpc, edp_bpc);
-+				display_bpc = edp_bpc;
-+			}
-+			continue;
-+		}
-+
- 		/*
- 		 * HDMI is either 12 or 8, so if the display lets 10bpc sneak
- 		 * through, clamp it down.  (Note: >12bpc will be caught below.)
+ 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
+-		if ((I915_READ(PCH_LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP) {
++		if (is_dual_link_lvds(dev_priv, PCH_LVDS)) {
+ 			/* LVDS dual channel */
+ 			if (refclk == 100000)
+ 				limit = &intel_limits_ironlake_dual_lvds_100m;
+@@ -418,8 +438,7 @@
+ 	const intel_limit_t *limit;
+ 
+ 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
+-		if ((I915_READ(LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP)
++		if (is_dual_link_lvds(dev_priv, LVDS))
+ 			/* LVDS with dual channel */
+ 			limit = &intel_limits_g4x_dual_channel_lvds;
+ 		else
+@@ -557,8 +576,7 @@
+ 		 * reliably set up different single/dual channel state, if we
+ 		 * even can.
+ 		 */
+-		if ((I915_READ(LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP)
++		if (is_dual_link_lvds(dev_priv, LVDS))
+ 			clock.p2 = limit->p2.p2_fast;
+ 		else
+ 			clock.p2 = limit->p2.p2_slow;
+@@ -2445,18 +2463,6 @@
+ 			   FDI_FE_ERRC_ENABLE);
+ }
+ 
+-static void cpt_phase_pointer_enable(struct drm_device *dev, int pipe)
+-{
+-	struct drm_i915_private *dev_priv = dev->dev_private;
+-	u32 flags = I915_READ(SOUTH_CHICKEN1);
+-
+-	flags |= FDI_PHASE_SYNC_OVR(pipe);
+-	I915_WRITE(SOUTH_CHICKEN1, flags); /* once to unlock... */
+-	flags |= FDI_PHASE_SYNC_EN(pipe);
+-	I915_WRITE(SOUTH_CHICKEN1, flags); /* then again to enable */
+-	POSTING_READ(SOUTH_CHICKEN1);
+-}
+-
+ /* The FDI link training functions for ILK/Ibexpeak. */
+ static void ironlake_fdi_link_train(struct drm_crtc *crtc)
+ {
+@@ -2725,9 +2728,6 @@
+ 	POSTING_READ(reg);
+ 	udelay(150);
+ 
+-	if (HAS_PCH_CPT(dev))
+-		cpt_phase_pointer_enable(dev, pipe);
+-
+ 	for (i = 0; i < 4; i++) {
+ 		reg = FDI_TX_CTL(pipe);
+ 		temp = I915_READ(reg);
+@@ -2837,17 +2837,6 @@
+ 	}
+ }
+ 
+-static void cpt_phase_pointer_disable(struct drm_device *dev, int pipe)
+-{
+-	struct drm_i915_private *dev_priv = dev->dev_private;
+-	u32 flags = I915_READ(SOUTH_CHICKEN1);
+-
+-	flags &= ~(FDI_PHASE_SYNC_EN(pipe));
+-	I915_WRITE(SOUTH_CHICKEN1, flags); /* once to disable... */
+-	flags &= ~(FDI_PHASE_SYNC_OVR(pipe));
+-	I915_WRITE(SOUTH_CHICKEN1, flags); /* then again to lock */
+-	POSTING_READ(SOUTH_CHICKEN1);
+-}
+ static void ironlake_fdi_disable(struct drm_crtc *crtc)
+ {
+ 	struct drm_device *dev = crtc->dev;
+@@ -3130,7 +3136,11 @@
+ 		 * as some pre-programmed values are broken,
+ 		 * e.g. x201.
+ 		 */
+-		I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3);
++		if (IS_IVYBRIDGE(dev))
++			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3 |
++						 PF_PIPE_SEL_IVB(pipe));
++		else
++			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3);
+ 		I915_WRITE(PF_WIN_POS(pipe), dev_priv->pch_pf_pos);
+ 		I915_WRITE(PF_WIN_SZ(pipe), dev_priv->pch_pf_size);
+ 	}
+@@ -3416,23 +3426,6 @@
+ 	struct drm_crtc_helper_funcs *crtc_funcs = crtc->helper_private;
+ 	struct drm_device *dev = crtc->dev;
+ 
+-	/* Flush any pending WAITs before we disable the pipe. Note that
+-	 * we need to drop the struct_mutex in order to acquire it again
+-	 * during the lowlevel dpms routines around a couple of the
+-	 * operations. It does not look trivial nor desirable to move
+-	 * that locking higher. So instead we leave a window for the
+-	 * submission of further commands on the fb before we can actually
+-	 * disable it. This race with userspace exists anyway, and we can
+-	 * only rely on the pipe being disabled by userspace after it
+-	 * receives the hotplug notification and has flushed any pending
+-	 * batches.
+-	 */
+-	if (crtc->fb) {
+-		mutex_lock(&dev->struct_mutex);
+-		intel_finish_fb(crtc->fb);
+-		mutex_unlock(&dev->struct_mutex);
+-	}
+-
+ 	crtc_funcs->dpms(crtc, DRM_MODE_DPMS_OFF);
+ 	assert_plane_disabled(dev->dev_private, to_intel_crtc(crtc)->plane);
+ 	assert_pipe_disabled(dev->dev_private, to_intel_crtc(crtc)->pipe);
+@@ -7374,14 +7366,14 @@
+ 
+ 	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
+ 	if (ret)
+-		goto out;
++		goto err;
+ 
+ 	/* Offset into the new buffer for cases of shared fbs between CRTCs */
+ 	offset = crtc->y * fb->pitches[0] + crtc->x * fb->bits_per_pixel/8;
+ 
+ 	ret = BEGIN_LP_RING(6);
+ 	if (ret)
+-		goto out;
++		goto err_unpin;
+ 
+ 	/* Can't queue multiple flips, so wait for the previous
+ 	 * one to finish before executing the next.
+@@ -7419,14 +7415,14 @@
+ 
+ 	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
+ 	if (ret)
+-		goto out;
++		goto err;
+ 
+ 	/* Offset into the new buffer for cases of shared fbs between CRTCs */
+ 	offset = crtc->y * fb->pitches[0] + crtc->x * fb->bits_per_pixel/8;
+ 
+ 	ret = BEGIN_LP_RING(6);
+ 	if (ret)
+-		goto out;
++		goto err_unpin;
+ 
+ 	if (intel_crtc->plane)
+ 		flip_mask = MI_WAIT_FOR_PLANE_B_FLIP;

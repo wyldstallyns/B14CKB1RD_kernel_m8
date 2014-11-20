@@ -177,6 +177,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 	const struct bdb_lvds_lfp_data *lvds_lfp_data;
 	const struct bdb_lvds_lfp_data_ptrs *lvds_lfp_data_ptrs;
 	const struct lvds_dvo_timing *panel_dvo_timing;
+	const struct lvds_fp_timing *fp_timing;
 	struct drm_display_mode *panel_fixed_mode;
 	int i, downclock;
 
@@ -233,6 +234,19 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 		DRM_DEBUG_KMS("LVDS downclock is found in VBT. "
 			      "Normal Clock %dKHz, downclock %dKHz\n",
 			      panel_fixed_mode->clock, 10*downclock);
+	}
+
+	fp_timing = get_lvds_fp_timing(bdb, lvds_lfp_data,
+				       lvds_lfp_data_ptrs,
+				       lvds_options->panel_type);
+	if (fp_timing) {
+		/* check the resolution, just to be sure */
+		if (fp_timing->x_res == panel_fixed_mode->hdisplay &&
+		    fp_timing->y_res == panel_fixed_mode->vdisplay) {
+			dev_priv->bios_lvds_val = fp_timing->lvds_reg_val;
+			DRM_DEBUG_KMS("VBT initial LVDS value %x\n",
+				      dev_priv->bios_lvds_val);
+		}
 	}
 }
 
