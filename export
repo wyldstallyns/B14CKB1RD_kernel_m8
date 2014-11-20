@@ -112,7 +112,7 @@ fi
 
 echo "Making ramdisk..."
 if [ -d $ramdisk ]; then
-	mkbootfs $ramdisk | lz4demo -c stdin out/ramdisk.lz4
+	mkbootfs $ramdisk | lz4demo -c stdin out/ramdisk.gz
 else
 	echo "No ramdisk found..."
 	exit 0;
