@@ -16,7 +16,7 @@ kernel="B14CKB1RD"
 version="1.0"
 rom="aosp"
 variant="m8"
-ramdisk=ramdisk
+ramdisk=initramfs
 config="furnace_defconfig"
 kerneltype="zImage"
 jobcount="-j$(grep -c ^processor /proc/cpuinfo)"
@@ -112,7 +112,9 @@ fi
 
 echo "Making ramdisk..."
 if [ -d $ramdisk ]; then
-	mkbootfs $ramdisk | lz4demo -c stdin out/ramdisk.gz
+	cd $ramdisk
+	find . | cpio -o -H newc | gzip > "../out/initramfs.img"
+	cd ..
 else
 	echo "No ramdisk found..."
 	exit 0;
