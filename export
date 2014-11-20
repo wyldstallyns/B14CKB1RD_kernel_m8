@@ -120,7 +120,7 @@ fi
 
 echo "Making boot.img..."
 if [ -f out/"$kerneltype" ]; then
-	mkbootimg --kernel out/"$kerneltype" --ramdisk out/ramdisk.lz4 --cmdline "$cmdline" --base $base --pagesize $ps --kernel_offset $kernel_offset --ramdisk_offset $ramdisk_offset --tags_offset $tags_offset --dt out/dt.img --output ozip/boot.img
+	mkbootimg --kernel out/"$kerneltype" --ramdisk out/ramdisk.gz --cmdline "$cmdline" --base $base --pagesize $ps --kernel_offset $kernel_offset --ramdisk_offset $ramdisk_offset --tags_offset $tags_offset --dt out/dt.img --output ozip/boot.img
 else
 	echo "No $kerneltype found..."
 	exit 0;
