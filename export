@@ -17,7 +17,7 @@ version="1.0"
 rom="aosp"
 variant="m8"
 ramdisk=initramfs
-config="furnace_defconfig"
+config="B14CKB1RD_defconfig"
 kerneltype="zImage"
 jobcount="-j$(grep -c ^processor /proc/cpuinfo)"
 ps=2048
@@ -122,7 +122,7 @@ fi
 
 echo "Making boot.img..."
 if [ -f out/"$kerneltype" ]; then
-	mkbootimg --kernel out/"$kerneltype" --ramdisk out/ramdisk.gz --cmdline "$cmdline" --base $base --pagesize $ps --kernel_offset $kernel_offset --ramdisk_offset $ramdisk_offset --tags_offset $tags_offset --dt out/dt.img --output ozip/boot.img
+	mkbootimg --kernel out/"$kerneltype" --ramdisk out/initramfs.img --cmdline "$cmdline" --base $base --pagesize $ps --kernel_offset $kernel_offset --ramdisk_offset $ramdisk_offset --tags_offset $tags_offset --dt out/dt.img --output ozip/boot.img
 else
 	echo "No $kerneltype found..."
 	exit 0;
