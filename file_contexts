@@ -266,7 +266,7 @@
 /sys/devices/virtual/graphics/fb1/hpd          -- u:object_r:sysfs:s0
 /sys/devices/virtual/graphics/fb1/vendor_name  -- u:object_r:sysfs:s0
 /sys/devices/virtual/graphics/fb1/product_description       -- u:object_r:sysfs:s0
-#line 1 "vendor/cm/sepolicy/file_contexts"
+#line 1 "vendor/vanir/sepolicy/file_contexts"
 /cache/dalvik-cache(/.*)? u:object_r:dalvikcache_data_file:s0
 
 #############################

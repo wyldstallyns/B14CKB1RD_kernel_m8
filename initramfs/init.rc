@@ -37,7 +37,6 @@ on early-init
 on init
 
 sysclktz 0
-
 loglevel 3
 
 # Backward compatibility
@@ -101,10 +100,13 @@ loglevel 3
     write /proc/sys/kernel/panic_on_oops 1
     write /proc/sys/kernel/hung_task_timeout_secs 0
     write /proc/cpu/alignment 4
-    write /proc/sys/kernel/sched_latency_ns 10000000
-    write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
+    write /proc/sys/kernel/sched_latency_ns 4000000
+    write /proc/sys/kernel/sched_wakeup_granularity_ns 1600000
     write /proc/sys/kernel/sched_compat_yield 1
     write /proc/sys/kernel/sched_child_runs_first 0
+#    Disabled virtual memory randomization
+##    (this was causing a CTS failure)
+#    write /proc/sys/kernel/randomize_va_space 0
     write /proc/sys/kernel/randomize_va_space 2
     write /proc/sys/kernel/kptr_restrict 2
     write /proc/sys/kernel/dmesg_restrict 1
@@ -112,6 +114,11 @@ loglevel 3
     write /proc/sys/net/ipv4/ping_group_range "0 2147483647"
     write /proc/sys/kernel/sched_rt_runtime_us 950000
     write /proc/sys/kernel/sched_rt_period_us 1000000
+
+# Flash storage isn't a good entropy source, and only causes locking
+# overhead in the kernel. Turn it off.
+    write /sys/block/mmcblk0/queue/add_random 0
+
 
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
@@ -156,6 +163,8 @@ loglevel 3
     mount pstore pstore /sys/fs/pstore
     chown system log /sys/fs/pstore/console-ramoops
     chmod 0440 /sys/fs/pstore/console-ramoops
+
+    trigger late-init
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -293,9 +302,8 @@ on post-fs-data
     # Set indication (checked by vold) that we have finished this action
     #setprop vold.post_fs_data_done 1
 
-# Include extra init files
-    import /init.cm.rc
-    import /init.furnace.rc
+# Include extra init file
+    import /init.vanir.rc
 
 on boot
 # basic network init
@@ -358,6 +366,8 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
     chown system system /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/target_load
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/target_load
 
     # Assume SMP uses shared cpufreq policy for all CPUs
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
@@ -366,6 +376,10 @@ on boot
     chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
     chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+
+    # I/O scheduler
+    chown system system /sys/block/mmcblk0/queue/scheduler
+    chmod 0660 /sys/block/mmcblk0/queue/scheduler
 
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/class/leds/keyboard-backlight/brightness
@@ -532,6 +546,8 @@ service surfaceflinger /system/bin/surfaceflinger
     class main
     user system
     group graphics drmrpc
+    # allow the minimum realtime scheduler priority: RLIMIT_RTPRIO(14)=1
+    rlimit 14 1 1
     onrestart restart zygote
 
 service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
@@ -611,3 +627,15 @@ service mdnsd /system/bin/mdnsd
     socket mdnsd stream 0660 mdnsr inet
     disabled
     oneshot
+
+on property:ro.build.type=eng
+    chmod 0777 /data/anr
+    chmod 0777 /data/misc
+
+on property:ro.build.type=userdebug
+    chmod 0777 /data/anr
+    chmod 0777 /data/misc
+
+on property:ro.build.type=user
+    chmod 0771 /data/anr
+    chmod 01771 /data/misc

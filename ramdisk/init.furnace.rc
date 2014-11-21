@@ -1,6 +1,0 @@
-# Furnace Extras
-
-service furnace-sh /system/bin/sh /init.furnace.sh
-	class late_start
-	user root
-	oneshot
