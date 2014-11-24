@@ -712,6 +712,12 @@ void pcie_clear_aspm(struct pci_bus *bus)
 {
 	struct pci_dev *child;
 
+	if (aspm_force)
+		return;
+
+ 	/*
+ 	 * Clear any ASPM setup that the firmware has carried out on this bus
+ 	 */
 	list_for_each_entry(child, &bus->devices, bus_list) {
 		__pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
 					 PCIE_LINK_STATE_L1 |
