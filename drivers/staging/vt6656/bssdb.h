@@ -78,9 +78,10 @@ typedef struct tagSRSNCapObject {
     WORD    wRSNCap;
 } SRSNCapObject, *PSRSNCapObject;
 
-#pragma pack(1)
+ // BSS info(AP)	
+
 typedef struct tagKnownBSS {
-    
+    //BSS info
     BOOL            bActive;
     BYTE            abyBSSID[WLAN_BSSID_LEN];
     unsigned int            uChannel;

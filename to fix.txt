@@ -1,3 +1,1 @@
-		drivers/usb/core/message.c.orig
-        drivers/usb/core/message.c.rej
-        
+	

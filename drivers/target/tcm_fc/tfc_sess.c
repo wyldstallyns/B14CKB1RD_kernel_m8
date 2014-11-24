@@ -297,11 +297,11 @@ static int ft_prli_locked(struct fc_rport_priv *rdata, u32 spp_len,
 
 	tport = ft_tport_create(rdata->local_port);
 	if (!tport)
-		return 0;	
+		goto not_target;	/* not a target for this local port */
 
 	acl = ft_acl_get(tport->tpg, rdata);
 	if (!acl)
-		return 0;
+		goto not_target;	/* not a target for this local port */
 
 	if (!rspp)
 		goto fill;
@@ -328,11 +328,22 @@ static int ft_prli_locked(struct fc_rport_priv *rdata, u32 spp_len,
 
 		
 	}
+	
+	/*
+ 	 * OR in our service parameters with other provider (initiator), if any.
+ 	 */
 
 fill:
 	fcp_parm = ntohl(spp->spp_params);
+	fcp_parm &= ~FCP_SPPF_RETRY;
 	spp->spp_params = htonl(fcp_parm | FCP_SPPF_TARG_FCN);
 	return FC_SPP_RESP_ACK;
+
+not_target:
+	fcp_parm = ntohl(spp->spp_params);
+	fcp_parm &= ~FCP_SPPF_TARG_FCN;
+	spp->spp_params = htonl(fcp_parm);
+	return 0;
 }
 
 static int ft_prli(struct fc_rport_priv *rdata, u32 spp_len,
