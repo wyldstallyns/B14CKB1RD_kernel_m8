@@ -66,6 +66,11 @@ static struct dma_map_ops amd_iommu_dma_ops;
  /*
   * general struct to manage commands send to an IOMMU
   */
+static struct dma_map_ops amd_iommu_dma_ops;
+
+ /*
+  * general struct to manage commands send to an IOMMU
+  */
 struct iommu_cmd {
 	u32 data[4];
 };
