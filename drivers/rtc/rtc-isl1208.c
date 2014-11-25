@@ -472,6 +472,7 @@ isl1208_rtc_interrupt(int irq, void *data)
 {
 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
 	struct i2c_client *client = data;
+	struct rtc_device *rtc = i2c_get_clientdata(client);
 	int handled = 0, sr, err;
 
 	while (1) {
@@ -490,7 +491,10 @@ isl1208_rtc_interrupt(int irq, void *data)
 		dev_dbg(&client->dev, "alarm!\n");
 
 		
-		sr &= ~ISL1208_REG_SR_ALM;
+		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
+
+ 		/* Clear the alarm */
+ 		sr &= ~ISL1208_REG_SR_ALM;
 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
 		if (sr < 0)
 			dev_err(&client->dev, "%s: writing SR failed\n",

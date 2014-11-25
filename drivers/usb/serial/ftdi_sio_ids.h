@@ -492,6 +492,11 @@
 #define PI_C865_PID	0xe0a0  /* PI C-865 Piezomotor Controller */
 #define PI_C857_PID	0xe0a1  /* PI Encoder Trigger Box */
 
+/**
+ * Zolix (www.zolix.com.cb) product ids
+ */
+#define FTDI_OMNI1509			0xD491	/* Omni1509 embedded USB-serial */
+
 /*
  * TIAO product ids (FTDI_VID)
  * http://www.tiaowiki.com/w/Main_Page
