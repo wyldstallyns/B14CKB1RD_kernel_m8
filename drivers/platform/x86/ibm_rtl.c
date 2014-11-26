@@ -241,11 +241,11 @@ static int __init ibm_rtl_init(void) {
 
 	if (force)
 		pr_warn("module loaded by force\n");
-	
-	else if (efi_enabled || !dmi_check_system(ibm_rtl_dmi_table))
+	/* first ensure that we are running on IBM HW */
+	else if (efi_enabled(EFI_BOOT) || !dmi_check_system(ibm_rtl_dmi_table))
 		return -ENODEV;
 
-	
+	/* Get the address for the Extended BIOS Data Area */
 	ebda_addr = get_bios_ebda();
 	if (!ebda_addr) {
 		RTL_DEBUG("no BIOS EBDA found\n");

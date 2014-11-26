@@ -139,6 +139,10 @@ void xenvif_receive_skb(struct xenvif *vif, struct sk_buff *skb);
 void xen_netbk_queue_tx_skb(struct xenvif *vif, struct sk_buff *skb);
 void xenvif_notify_tx_completion(struct xenvif *vif);
 
-unsigned int xen_netbk_count_skb_slots(struct xenvif *vif, struct sk_buff *skb);
+/* Prevent the device from generating any further traffic. */
+void xenvif_carrier_off(struct xenvif *vif);
+
+ /* Returns number of ring slots required to send an skb to the frontend */
+ unsigned int xen_netbk_count_skb_slots(struct xenvif *vif, struct sk_buff *skb);
 
 #endif 

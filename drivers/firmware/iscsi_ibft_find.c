@@ -86,7 +86,7 @@ unsigned long __init find_ibft_region(unsigned long *sizep)
 	ibft_addr = NULL;
 
 
-	if (!efi_enabled)
+	if (!efi_enabled(EFI_BOOT))
 		find_ibft_in_mem();
 
 	if (ibft_addr) {
