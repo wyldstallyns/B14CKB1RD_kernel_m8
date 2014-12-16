@@ -38,6 +38,7 @@
 #define R7XX_MAX_PIPES             8
 #define R7XX_MAX_PIPES_MASK        0xff
 
+/* Registers */
 #define	CB_COLOR0_BASE					0x28040
 #define	CB_COLOR1_BASE					0x28044
 #define	CB_COLOR2_BASE					0x28048
@@ -173,7 +174,6 @@
 #define	MC_VM_MD_L1_TLB0_CNTL				0x2654
 #define	MC_VM_MD_L1_TLB1_CNTL				0x2658
 #define	MC_VM_MD_L1_TLB2_CNTL				0x265C
-#define	MC_VM_MD_L1_TLB3_CNTL				0x2698
 #define	MC_VM_SYSTEM_APERTURE_DEFAULT_ADDR		0x203C
 #define	MC_VM_SYSTEM_APERTURE_HIGH_ADDR			0x2038
 #define	MC_VM_SYSTEM_APERTURE_LOW_ADDR			0x2034
@@ -207,7 +207,6 @@
 #define	SCRATCH_UMSK					0x8540
 #define	SCRATCH_ADDR					0x8544
 
-#define	SMX_SAR_CTL0					0xA008
 #define	SMX_DC_CTL0					0xA020
 #define		USE_HASH_FUNCTION				(1 << 0)
 #define		CACHE_DEPTH(x)					((x) << 1)
@@ -307,8 +306,6 @@
 #define	TCP_CNTL					0x9610
 #define	TCP_CHAN_STEER					0x9614
 
-#define	VC_ENHANCE					0x9714
-
 #define	VGT_CACHE_INVALIDATION				0x88C4
 #define		CACHE_INVALIDATION(x)				((x)<<0)
 #define			VC_ONLY						0
@@ -363,8 +360,9 @@
 #define D1GRPH_SECONDARY_SURFACE_ADDRESS_HIGH             0x691c
 #define D2GRPH_SECONDARY_SURFACE_ADDRESS_HIGH             0x611c
 
-#define PCIE_LC_TRAINING_CNTL                             0xa1 
-#define PCIE_LC_LINK_WIDTH_CNTL                           0xa2 
+/* PCIE link stuff */
+#define PCIE_LC_TRAINING_CNTL                             0xa1 /* PCIE_P */
+#define PCIE_LC_LINK_WIDTH_CNTL                           0xa2 /* PCIE_P */
 #       define LC_LINK_WIDTH_SHIFT                        0
 #       define LC_LINK_WIDTH_MASK                         0x7
 #       define LC_LINK_WIDTH_X0                           0
@@ -382,7 +380,7 @@
 #       define LC_SHORT_RECONFIG_EN                       (1 << 11)
 #       define LC_UPCONFIGURE_SUPPORT                     (1 << 12)
 #       define LC_UPCONFIGURE_DIS                         (1 << 13)
-#define PCIE_LC_SPEED_CNTL                                0xa4 
+#define PCIE_LC_SPEED_CNTL                                0xa4 /* PCIE_P */
 #       define LC_GEN2_EN_STRAP                           (1 << 0)
 #       define LC_TARGET_LINK_SPEED_OVERRIDE_EN           (1 << 1)
 #       define LC_FORCE_EN_HW_SPEED_CHANGE                (1 << 5)
@@ -396,7 +394,7 @@
 #       define LC_OTHER_SIDE_SUPPORTS_GEN2                (1 << 24)
 #define MM_CFGREGS_CNTL                                   0x544c
 #       define MM_WR_TO_CFG_EN                            (1 << 3)
-#define LINK_CNTL2                                        0x88 
+#define LINK_CNTL2                                        0x88 /* F0 */
 #       define TARGET_LINK_SPEED_MASK                     (0xf << 0)
 #       define SELECTABLE_DEEMPHASIS                      (1 << 6)
 

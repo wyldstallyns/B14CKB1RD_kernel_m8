@@ -29,9 +29,18 @@
 #ifndef __IOWPA_H__
 #define __IOWPA_H__
 
+/*---------------------  Export Definitions -------------------------*/
 
 #define WPA_IE_LEN 64
 
+//WPA related
+/*
+typedef enum { WPA_ALG_NONE, WPA_ALG_WEP, WPA_ALG_TKIP, WPA_ALG_CCMP } wpa_alg;
+typedef enum { CIPHER_NONE, CIPHER_WEP40, CIPHER_TKIP, CIPHER_CCMP,
+	       CIPHER_WEP104 } wpa_cipher;
+typedef enum { KEY_MGMT_802_1X, KEY_MGMT_PSK, KEY_MGMT_NONE,
+	       KEY_MGMT_802_1X_NO_WPA, KEY_MGMT_WPA_NONE } wpa_key_mgmt;
+*/
 
 enum {
 	VIAWGET_SET_WPA = 1,
@@ -58,11 +67,12 @@ enum {
 
 
 
+#pragma pack(1)
 typedef struct viawget_wpa_header {
 	u8 type;
 	u16 req_ie_len;
 	u16 resp_ie_len;
-} __packed viawget_wpa_header;
+} viawget_wpa_header;
 
 struct viawget_wpa_param {
 	u32 cmd;
@@ -103,8 +113,9 @@ struct viawget_wpa_param {
 			u8 *buf;
 		} scan_results;
 	} u;
-} __packed;
+};
 
+#pragma pack(1)
 struct viawget_scan_result {
 	u8 bssid[6];
 	u8 ssid[32];
@@ -113,16 +124,20 @@ struct viawget_scan_result {
 	u16 wpa_ie_len;
 	u8 rsn_ie[WPA_IE_LEN];
 	u16 rsn_ie_len;
-	int freq; 
-	int caps; 
-	int qual; 
+	int freq; // MHz
+	int caps; // e.g. privacy
+	int qual; // signal quality
 	int noise;
 	int level;
 	int maxrate;
-} __packed;
+};
 
+/*---------------------  Export Classes  ----------------------------*/
 
+/*---------------------  Export Variables  --------------------------*/
 
+/*---------------------  Export Types  ------------------------------*/
 
+/*---------------------  Export Functions  --------------------------*/
 
-#endif 
+#endif /* __IOWPA_H__ */

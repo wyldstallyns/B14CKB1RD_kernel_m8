@@ -253,7 +253,7 @@ static struct dentry *d_kill(struct dentry *dentry, struct dentry *parent)
 	__releases(dentry->d_inode->i_lock)
 {
 	list_del(&dentry->d_u.d_child);
-	dentry->d_flags |= DCACHE_DENTRY_KILLED;
+	dentry->d_flags |= DCACHE_DISCONNECTED;
 	if (parent)
 		spin_unlock(&parent->d_lock);
 	dentry_iput(dentry);
@@ -705,7 +705,7 @@ static struct dentry *try_to_ascend(struct dentry *old, int locked, unsigned seq
 	spin_lock(&new->d_lock);
 
 	if (new != old->d_parent ||
-		 (old->d_flags & DCACHE_DENTRY_KILLED) ||
+		 (old->d_flags & DCACHE_DISCONNECTED) ||
 		 (!locked && read_seqretry(&rename_lock, seq))) {
 		spin_unlock(&new->d_lock);
 		new = NULL;
@@ -776,8 +776,6 @@ positive:
 	return 1;
 
 rename_retry:
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;
@@ -847,8 +845,6 @@ out:
 rename_retry:
 	if (found)
 		return found;
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;
@@ -1401,7 +1397,10 @@ EXPORT_SYMBOL(d_delete);
 
 static void __d_rehash(struct dentry * entry, struct hlist_bl_head *b)
 {
-	BUG_ON(!d_unhashed(entry));
+	WARN_ON(!d_unhashed(entry));
+	if (!d_unhashed(entry))
+		return;
+
 	hlist_bl_lock(b);
 	entry->d_flags |= DCACHE_RCUACCESS;
 	hlist_bl_add_head_rcu(&entry->d_hash, b);
@@ -2092,8 +2091,6 @@ resume:
 	return;
 
 rename_retry:
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;

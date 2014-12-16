@@ -797,6 +797,15 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 
 	
 	intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
+
+	
+	if (intf == NULL) {
+		pr_err("usb_interface is NULL\n");
+		ret = -EIO;
+		goto unlock;
+	}
+	
+
 	gspca_dev->alt = gspca_dev->cam.bulk ? intf->num_altsetting : 0;
 	if (gspca_dev->sd_desc->isoc_init) {
 		ret = gspca_dev->sd_desc->isoc_init(gspca_dev);
@@ -1638,7 +1647,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
 				enum v4l2_buf_type buf_type)
 {
 	struct gspca_dev *gspca_dev = priv;
-	int i, ret;
+	int ret;
 
 	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;

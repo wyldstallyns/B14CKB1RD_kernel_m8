@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -76,6 +76,7 @@ static struct snd_pcm_hardware msm_pcm_hardware = {
 	.fifo_size =            0,
 };
 
+/* Conventional and unconventional sample rate supported */
 static unsigned int supported_sample_rates[] = {
 	8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000,
 	96000, 192000
@@ -219,6 +220,12 @@ static void event_handler(uint32_t opcode,
 		}
 		break;
 	}
+	case RESET_EVENTS:
+		pr_debug("%s RESET_EVENTS\n", __func__);
+		prtd->cmd_ack = 1;
+		prtd->reset_event = true;
+		wake_up(&the_locks.eos_wait);
+		break;
 	default:
 		pr_debug("Not Supported Event opcode[0x%x]\n", opcode);
 		break;
@@ -238,7 +245,7 @@ static int msm_pcm_playback_prepare(struct snd_pcm_substream *substream)
 	prtd->pcm_size = snd_pcm_lib_buffer_bytes(substream);
 	prtd->pcm_count = snd_pcm_lib_period_bytes(substream);
 	prtd->pcm_irq_pos = 0;
-	
+	/* rate and channels are sent to audio driver */
 	prtd->samp_rate = runtime->rate;
 	prtd->channel_mode = runtime->channels;
 	prtd->out_head = 0;
@@ -387,6 +394,7 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 	}
 	runtime->hw = msm_pcm_hardware;
 	prtd->substream = substream;
+	prtd->reset_event = false;
 	runtime->render_flag = SNDRV_DMA_MODE;
 	prtd->audio_client = q6asm_audio_client_alloc(
 				(app_cb)event_handler, prtd);
@@ -397,7 +405,7 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 	}
 
 	prtd->meta_data_mode = false;
-	
+	/* Capture path */
 	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
 		return -EPERM;
 
@@ -406,7 +414,7 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 				&constraints_sample_rates);
 	if (ret < 0)
 		pr_debug("snd_pcm_hw_constraint_list failed\n");
-	
+	/* Ensure that buffer size is a multiple of period size */
 	ret = snd_pcm_hw_constraint_integer(runtime,
 					    SNDRV_PCM_HW_PARAM_PERIODS);
 	if (ret < 0)
@@ -450,6 +458,12 @@ static int msm_pcm_playback_close(struct snd_pcm_substream *substream)
 	int dir = 0;
 	int rc = 0;
 
+	/*
+	If routing is still enabled, we need to issue EOS to
+	the DSP
+	To issue EOS to dsp, we need to be run state otherwise
+	EOS is not honored.
+	*/
 	if (msm_routing_check_backend_enabled(soc_prtd->dai_link->be_id) &&
 		(!atomic_read(&prtd->stop))) {
 		rc = q6asm_run(prtd->audio_client, 0, 0, 0);
@@ -669,8 +683,13 @@ static int msm_pcm_ioctl(struct snd_pcm_substream *substream,
 		rc = q6asm_cmd(prtd->audio_client, CMD_FLUSH);
 		if (rc < 0)
 			pr_err("%s: flush cmd failed rc=%d\n", __func__, rc);
+		if (prtd->reset_event == true) {
+			prtd->cmd_ack = 1;
+			prtd->reset_event = false;
+			return -ENETRESET;
+		}
 		rc = wait_event_timeout(the_locks.eos_wait,
-			prtd->cmd_ack, 5 * HZ);
+			!prtd->reset_event && prtd->cmd_ack, 5 * HZ);
 		if (!rc)
 			pr_err("Flush cmd timeout\n");
 		prtd->pcm_irq_pos = 0;

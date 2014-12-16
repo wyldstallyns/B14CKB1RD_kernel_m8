@@ -20,6 +20,10 @@
 #include <asm/uaccess.h>
 #include "hfsplus_fs.h"
 
+/*
+ * "Blessing" an HFS+ filesystem writes metadata to the superblock informing
+ * the platform firmware which file to boot from
+ */
 static int hfsplus_ioctl_bless(struct file *file, int __user *user_flags)
 {
 	struct dentry *dentry = file->f_path.dentry;
@@ -27,21 +31,20 @@ static int hfsplus_ioctl_bless(struct file *file, int __user *user_flags)
 	struct hfsplus_sb_info *sbi = HFSPLUS_SB(inode->i_sb);
 	struct hfsplus_vh *vh = sbi->s_vhdr;
 	struct hfsplus_vh *bvh = sbi->s_backup_vhdr;
-	u32 cnid = (unsigned long)dentry->d_fsdata;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
 	mutex_lock(&sbi->vh_mutex);
 
-	
+	/* Directory containing the bootable system */
 	vh->finder_info[0] = bvh->finder_info[0] =
 		cpu_to_be32(parent_ino(dentry));
 
-	
+	/* Bootloader */
 	vh->finder_info[1] = bvh->finder_info[1] = cpu_to_be32(inode->i_ino);
 
-	
+	/* Per spec, the OS X system folder - same as finder_info[0] here */
 	vh->finder_info[5] = bvh->finder_info[5] =
 		cpu_to_be32(parent_ino(dentry));
 
@@ -96,7 +99,7 @@ static int hfsplus_ioctl_setflags(struct file *file, int __user *user_flags)
 		}
 	}
 
-	
+	/* don't silently ignore unsupported ext2 flags */
 	if (flags & ~(FS_IMMUTABLE_FL|FS_APPEND_FL|FS_NODUMP_FL)) {
 		err = -EOPNOTSUPP;
 		goto out_unlock_inode;

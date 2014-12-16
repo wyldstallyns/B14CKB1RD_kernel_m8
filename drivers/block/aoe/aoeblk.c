@@ -1,4 +1,8 @@
 /* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
+/*
+ * aoeblk.c
+ * block device routines
+ */
 
 #include <linux/kernel.h>
 #include <linux/hdreg.h>
@@ -28,7 +32,7 @@ static ssize_t aoedisk_show_state(struct device *dev,
 			(d->flags & DEVFL_UP) ? "up" : "down",
 			(d->flags & DEVFL_KICKME) ? ",kickme" :
 			(d->nopen && !(d->flags & DEVFL_UP)) ? ",closewait" : "");
-	
+	/* I'd rather see nopen exported so we can ditch closewait */
 }
 static ssize_t aoedisk_show_mac(struct device *dev,
 				struct device_attribute *attr, char *page)
@@ -78,6 +82,7 @@ static ssize_t aoedisk_show_netif(struct device *dev,
 	p += snprintf(p, PAGE_SIZE - (p-page), "\n");
 	return p-page;
 }
+/* firmware version */
 static ssize_t aoedisk_show_fwver(struct device *dev,
 				  struct device_attribute *attr, char *page)
 {
@@ -243,6 +248,7 @@ static const struct block_device_operations aoe_bdops = {
 	.owner = THIS_MODULE,
 };
 
+/* alloc_disk and add_disk can sleep */
 void
 aoeblk_gdalloc(void *vp)
 {
@@ -270,6 +276,8 @@ aoeblk_gdalloc(void *vp)
 		goto err_mempool;
 	blk_queue_make_request(d->blkq, aoeblk_make_request);
 	d->blkq->backing_dev_info.name = "aoe";
+	if (bdi_init(&d->blkq->backing_dev_info))
+		goto err_blkq;
 	spin_lock_irqsave(&d->lock, flags);
 	gd->major = AOE_MAJOR;
 	gd->first_minor = d->sysminor * AOE_PARTITIONS;
@@ -290,6 +298,9 @@ aoeblk_gdalloc(void *vp)
 	aoedisk_add_sysfs(d);
 	return;
 
+err_blkq:
+	blk_cleanup_queue(d->blkq);
+	d->blkq = NULL;
 err_mempool:
 	mempool_destroy(d->bufpool);
 err_disk:

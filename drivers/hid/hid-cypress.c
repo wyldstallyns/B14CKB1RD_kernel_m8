@@ -27,6 +27,10 @@
 #define CP_2WHEEL_MOUSE_HACK		0x02
 #define CP_2WHEEL_MOUSE_HACK_ON		0x04
 
+/*
+ * Some USB barcode readers from cypress have usage min and usage max in
+ * the wrong order
+ */
 static __u8 *cp_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int *rsize)
 {
@@ -124,8 +128,6 @@ static const struct hid_device_id cp_devices[] = {
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_BARCODE_2),
 		.driver_data = CP_RDESC_SWAPPED_MIN_MAX },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_BARCODE_3),
-		.driver_data = CP_RDESC_SWAPPED_MIN_MAX },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_BARCODE_4),
 		.driver_data = CP_RDESC_SWAPPED_MIN_MAX },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_MOUSE),
 		.driver_data = CP_2WHEEL_MOUSE_HACK },

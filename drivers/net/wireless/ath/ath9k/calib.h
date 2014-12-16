@@ -21,9 +21,6 @@
 
 #define AR_PHY_CCA_FILTERWINDOW_LENGTH          5
 
-/* Internal noise floor can vary by about 6db depending on the frequency */
-#define ATH9K_NF_CAL_NOISE_THRESH		6
-
 #define NUM_NF_READINGS       6
 #define ATH9K_NF_CAL_HIST_MAX 5
 
@@ -96,9 +93,9 @@ struct ath9k_nfcal_hist {
 
 #define MAX_PACAL_SKIPCOUNT 8
 struct ath9k_pacal_info{
-	int32_t prev_offset;	
-	int8_t max_skipcount;	
-	int8_t skipcount;	
+	int32_t prev_offset;	/* Previous value of PA offset value */
+	int8_t max_skipcount;	/* Max No. of times PACAL can be skipped */
+	int8_t skipcount;	/* No. of times the PACAL to be skipped */
 };
 
 bool ath9k_hw_reset_calvalid(struct ath_hw *ah);
@@ -113,4 +110,4 @@ void ath9k_hw_reset_calibration(struct ath_hw *ah,
 s16 ath9k_hw_getchan_noise(struct ath_hw *ah, struct ath9k_channel *chan);
 
 
-#endif 
+#endif /* CALIB_H */

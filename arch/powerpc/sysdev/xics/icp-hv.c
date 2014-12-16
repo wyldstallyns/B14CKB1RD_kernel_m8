@@ -65,11 +65,7 @@ static inline void icp_hv_set_xirr(unsigned int value)
 static inline void icp_hv_set_qirr(int n_cpu , u8 value)
 {
 	int hw_cpu = get_hard_smp_processor_id(n_cpu);
-	long rc;
-
-	/* Make sure all previous accesses are ordered before IPI sending */
-	mb();
-	rc = plpar_hcall_norets(H_IPI, hw_cpu, value);
+	long rc = plpar_hcall_norets(H_IPI, hw_cpu, value);
 	if (rc != H_SUCCESS) {
 		pr_err("%s: bad return code qirr cpu=%d hw_cpu=%d mfrr=0x%x "
 			"returned %ld\n", __func__, n_cpu, hw_cpu, value, rc);
@@ -89,12 +85,19 @@ static void icp_hv_teardown_cpu(void)
 {
 	int cpu = smp_processor_id();
 
-	
+	/* Clear any pending IPI */
 	icp_hv_set_qirr(cpu, 0xff);
 }
 
 static void icp_hv_flush_ipi(void)
 {
+	/* We take the ipi irq but and never return so we
+	 * need to EOI the IPI, but want to leave our priority 0
+	 *
+	 * should we check all the other interrupts too?
+	 * should we be flagging idle loop instead?
+	 * or creating some task to be scheduled?
+	 */
 
 	icp_hv_set_xirr((0x00 << 24) | XICS_IPI);
 }
@@ -114,10 +117,10 @@ static unsigned int icp_hv_get_irq(void)
 		return irq;
 	}
 
-	
+	/* We don't have a linux mapping, so have rtas mask it. */
 	xics_mask_unknown_vec(vec);
 
-	
+	/* We might learn about it later, so EOI it */
 	icp_hv_set_xirr(xirr);
 
 	return NO_IRQ;
@@ -146,7 +149,7 @@ static irqreturn_t icp_hv_ipi_action(int irq, void *dev_id)
 	return smp_ipi_demux();
 }
 
-#endif 
+#endif /* CONFIG_SMP */
 
 static const struct icp_ops icp_hv_ops = {
 	.get_irq	= icp_hv_get_irq,

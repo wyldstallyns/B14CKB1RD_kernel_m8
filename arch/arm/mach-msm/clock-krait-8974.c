@@ -22,10 +22,6 @@
 #include <linux/of.h>
 #include <linux/cpumask.h>
 
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
-#include <linux/cpufreq.h>
-#endif
-
 #include <asm/cputype.h>
 
 #include <mach/rpm-regulator-smd.h>
@@ -34,6 +30,10 @@
 #include <mach/clk.h>
 #include "clock-krait.h"
 #include "clock.h"
+
+#ifdef CONFIG_HTC_POWER_DEBUG
+#include <linux/debugfs.h>
+#endif
 
 #ifdef CONFIG_PERFLOCK
 #include <mach/perflock.h>
@@ -492,6 +492,52 @@ static void get_krait_bin_format_b(struct platform_device *pdev,
 	devm_iounmap(&pdev->dev, base);
 }
 
+#ifdef CONFIG_HTC_POWER_DEBUG
+int htc_pvs = 0;
+int htc_speed = 0;
+int htc_pvs_ver = 0;
+static void htc_get_pvs_info(int speed, int pvs, int pvs_ver)
+{
+	htc_pvs = pvs;
+	htc_speed = speed;
+	htc_pvs_ver = pvs_ver;
+}
+
+static int pvs_info_show(struct seq_file *m, void *unused)
+{
+	seq_printf(m, "pvs%d-speed%d-bin-v%d\n", htc_pvs, htc_speed, htc_pvs_ver);
+	return 0;
+}
+
+static int pvs_info_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, pvs_info_show, inode->i_private);
+}
+
+static const struct file_operations pvs_info_fops = {
+        .open = pvs_info_open,
+        .read = seq_read,
+        .llseek = seq_lseek,
+        .release = seq_release,
+};
+
+static int htc_pvs_debugfs_init(void)
+{
+	static struct dentry *debugfs_pvs_base;
+
+	debugfs_pvs_base = debugfs_create_dir("htc_pvs", NULL);
+
+	if (!debugfs_pvs_base)
+		return -ENOMEM;
+
+	if (!debugfs_create_file("pvs_info", S_IRUGO, debugfs_pvs_base,
+                                NULL, &pvs_info_fops))
+		return -ENOMEM;
+
+	return 0;
+}
+#endif
+
 static int parse_tbl(struct device *dev, char *prop, int num_cols,
 		u32 **col1, u32 **col2, u32 **col3)
 {
@@ -606,94 +652,14 @@ module_param_string(table_name, table_name, sizeof(table_name), S_IRUGO);
 static unsigned int pvs_config_ver;
 module_param(pvs_config_ver, uint, S_IRUGO);
 
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
-
-#define CPU_VDD_MIN	 600
-#define CPU_VDD_MAX	1450
-
-extern bool is_used_by_scaling(unsigned int freq);
-
-static unsigned int cnt;
-
-ssize_t show_UV_mV_table(struct cpufreq_policy *policy, char *buf)
-{
-	int i, freq, len = 0;
-	/* use only master core 0 */
-	int num_levels = cpu_clk[0]->vdd_class->num_levels;
-
-	/* sanity checks */
-	if (num_levels < 0)
-		return -EINVAL;
-
-	if (!buf)
-		return -EINVAL;
-
-	/* format UV_mv table */
-	for (i = 0; i < num_levels; i++) {
-		/* show only those used in scaling */
-		if (!is_used_by_scaling(freq = cpu_clk[0]->fmax[i] / 1000))
-			continue;
-
-		len += sprintf(buf + len, "%dmhz: %u mV\n", freq / 1000,
-			       cpu_clk[0]->vdd_class->vdd_uv[i] / 1000);
-	}
-	return len;
-}
-
-ssize_t store_UV_mV_table(struct cpufreq_policy *policy, char *buf,
-				size_t count)
-{
-	int i, j;
-	int ret = 0;
-	unsigned int val;
-	char size_cur[8];
-	/* use only master core 0 */
-	int num_levels = cpu_clk[0]->vdd_class->num_levels;
-
-	if (cnt) {
-		cnt = 0;
-		return -EINVAL;
-	}
-
-	/* sanity checks */
-	if (num_levels < 0)
-		return -1;
-
-	for (i = 0; i < num_levels; i++) {
-		if (!is_used_by_scaling(cpu_clk[0]->fmax[i] / 1000))
-			continue;
-
-		ret = sscanf(buf, "%u", &val);
-		if (!ret)
-			return -EINVAL;
-
-		/* bounds check */
-		val = min( max((unsigned int)val, (unsigned int)CPU_VDD_MIN),
-			(unsigned int)CPU_VDD_MAX);
-
-		/* apply it to all available cores */
-		for (j = 0; j < NR_CPUS; j++)
-			cpu_clk[j]->vdd_class->vdd_uv[i] = val * 1000;
-
-		/* Non-standard sysfs interface: advance buf */
-		ret = sscanf(buf, "%s", size_cur);
-		cnt = strlen(size_cur);
-		buf += cnt + 1;
-	}
-	pr_warn("faux123: user voltage table modified!\n");
-
-	return ret;
-}
-#endif
-
 static int clock_krait_8974_driver_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct clk *c;
 	int speed, pvs, pvs_ver, config_ver, rows, cpu;
-	unsigned long *freq, cur_rate, aux_rate;
-	int *uv, *ua;
-	u32 *dscr, vco_mask, config_val;
+	unsigned long *freq = 0, cur_rate, aux_rate;
+	int *uv = 0, *ua = 0;
+	u32 *dscr = 0, vco_mask, config_val;
 	int ret;
 
 	vdd_l2.regulator[0] = devm_regulator_get(dev, "l2-dig");
@@ -781,9 +747,13 @@ static int clock_krait_8974_driver_probe(struct platform_device *pdev)
 	}
 
 	get_krait_bin_format_b(pdev, &speed, &pvs, &pvs_ver);
-	snprintf(table_name, ARRAY_SIZE(table_name),
+	snprintf(table_name, sizeof(table_name) - 1,
 			"qcom,speed%d-pvs%d-bin-v%d", speed, pvs, pvs_ver);
 
+#ifdef CONFIG_HTC_POWER_DEBUG
+	htc_pvs_debugfs_init();
+	htc_get_pvs_info(speed, pvs, pvs_ver);
+#endif
 	rows = parse_tbl(dev, table_name, 3,
 			(u32 **) &freq, (u32 **) &uv, (u32 **) &ua);
 	if (rows < 0) {

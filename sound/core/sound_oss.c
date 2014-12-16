@@ -40,9 +40,6 @@
 static struct snd_minor *snd_oss_minors[SNDRV_OSS_MINORS];
 static DEFINE_MUTEX(sound_oss_mutex);
 
-/* NOTE: This function increments the refcount of the associated card like
- * snd_lookup_minor_data(); the caller must call snd_card_unref() appropriately
- */
 void *snd_lookup_oss_minor_data(unsigned int minor, int type)
 {
 	struct snd_minor *mreg;
@@ -52,11 +49,9 @@ void *snd_lookup_oss_minor_data(unsigned int minor, int type)
 		return NULL;
 	mutex_lock(&sound_oss_mutex);
 	mreg = snd_oss_minors[minor];
-	if (mreg && mreg->type == type) {
+	if (mreg && mreg->type == type)
 		private_data = mreg->private_data;
-		if (private_data && mreg->card_ptr)
-			atomic_inc(&mreg->card_ptr->refcount);
-	} else
+	else
 		private_data = NULL;
 	mutex_unlock(&sound_oss_mutex);
 	return private_data;
@@ -117,7 +112,7 @@ int snd_register_oss_device(int type, struct snd_card *card, int dev,
 	struct device *carddev = snd_card_get_device_link(card);
 
 	if (card && card->number >= 8)
-		return 0; 
+		return 0; /* ignore silently */
 	if (minor < 0)
 		return minor;
 	preg = kmalloc(sizeof(struct snd_minor), GFP_KERNEL);
@@ -128,7 +123,6 @@ int snd_register_oss_device(int type, struct snd_card *card, int dev,
 	preg->device = dev;
 	preg->f_ops = f_ops;
 	preg->private_data = private_data;
-	preg->card_ptr = card;
 	mutex_lock(&sound_oss_mutex);
 	snd_oss_minors[minor] = preg;
 	minor_unit = SNDRV_MINOR_OSS_DEVICE(minor);
@@ -210,6 +204,9 @@ int snd_unregister_oss_device(int type, struct snd_card *card, int dev)
 
 EXPORT_SYMBOL(snd_unregister_oss_device);
 
+/*
+ *  INFO PART
+ */
 
 #ifdef CONFIG_PROC_FS
 
@@ -277,6 +274,6 @@ int __exit snd_minor_info_oss_done(void)
 	snd_info_free_entry(snd_minor_info_oss_entry);
 	return 0;
 }
-#endif 
+#endif /* CONFIG_PROC_FS */
 
-#endif 
+#endif /* CONFIG_SND_OSSEMUL */

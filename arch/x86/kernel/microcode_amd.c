@@ -75,6 +75,7 @@ struct microcode_amd {
 
 static struct equiv_cpu_entry *equiv_cpu_table;
 
+/* page-sized ucode patch buffer */
 void *patch;
 
 static int collect_cpu_info_amd(int cpu, struct cpu_signature *csig)
@@ -96,7 +97,6 @@ static unsigned int verify_ucode_size(int cpu, u32 patch_size,
 #define F1XH_MPB_MAX_SIZE 2048
 #define F14H_MPB_MAX_SIZE 1824
 #define F15H_MPB_MAX_SIZE 4096
-#define F16H_MPB_MAX_SIZE 3458
 
 	switch (c->x86) {
 	case 0x14:
@@ -104,9 +104,6 @@ static unsigned int verify_ucode_size(int cpu, u32 patch_size,
 		break;
 	case 0x15:
 		max_size = F15H_MPB_MAX_SIZE;
-		break;
-	case 0x16:
-		max_size = F16H_MPB_MAX_SIZE;
 		break;
 	default:
 		max_size = F1XH_MPB_MAX_SIZE;
@@ -138,28 +135,33 @@ static u16 find_equiv_id(void)
 	return 0;
 }
 
+/*
+ * we signal a good patch is found by returning its size > 0
+ */
 static int get_matching_microcode(int cpu, const u8 *ucode_ptr,
 				  unsigned int leftover_size, int rev,
 				  unsigned int *current_size)
 {
 	struct microcode_header_amd *mc_hdr;
-	unsigned int actual_size, patch_size;
+	unsigned int actual_size;
 	u16 equiv_cpu_id;
 
 	/* size of the current patch we're staring at */
-	patch_size = *(u32 *)(ucode_ptr + 4);
-	*current_size = patch_size + SECTION_HDR_SIZE;
+	*current_size = *(u32 *)(ucode_ptr + 4) + SECTION_HDR_SIZE;
 
 	equiv_cpu_id = find_equiv_id();
 	if (!equiv_cpu_id)
 		return 0;
 
+	/*
+	 * let's look at the patch header itself now
+	 */
 	mc_hdr = (struct microcode_header_amd *)(ucode_ptr + SECTION_HDR_SIZE);
 
 	if (mc_hdr->processor_rev_id != equiv_cpu_id)
 		return 0;
 
-	
+	/* ucode might be chipset specific -- currently we don't support this */
 	if (mc_hdr->nb_dev_id || mc_hdr->sb_dev_id) {
 		pr_err("CPU%d: chipset specific code not yet supported\n",
 		       cpu);
@@ -169,14 +171,17 @@ static int get_matching_microcode(int cpu, const u8 *ucode_ptr,
 	if (mc_hdr->patch_id <= rev)
 		return 0;
 
-	actual_size = verify_ucode_size(cpu, patch_size, leftover_size);
+	/*
+	 * now that the header looks sane, verify its size
+	 */
+	actual_size = verify_ucode_size(cpu, *current_size, leftover_size);
 	if (!actual_size)
 		return 0;
 
-	
+	/* clear the patch buffer */
 	memset(patch, 0, PAGE_SIZE);
 
-	
+	/* all looks ok, get the binary patch */
 	get_ucode_data(patch, ucode_ptr + SECTION_HDR_SIZE, actual_size);
 
 	return actual_size;
@@ -190,17 +195,17 @@ static int apply_microcode_amd(int cpu)
 	struct microcode_amd *mc_amd = uci->mc;
 	struct cpuinfo_x86 *c = &cpu_data(cpu);
 
-	
+	/* We should bind the task to the CPU */
 	BUG_ON(cpu_num != cpu);
 
 	if (mc_amd == NULL)
 		return 0;
 
 	wrmsrl(MSR_AMD64_PATCH_LOADER, (u64)(long)&mc_amd->hdr.data_code);
-	
+	/* get patch id after patching */
 	rdmsr(MSR_AMD64_PATCH_LEVEL, rev, dummy);
 
-	
+	/* check current patch id and patch's id for match */
 	if (rev != mc_amd->hdr.patch_id) {
 		pr_err("CPU%d: update failed for patch_level=0x%08x\n",
 		       cpu, mc_amd->hdr.patch_id);
@@ -234,7 +239,7 @@ static int install_equiv_cpu_table(const u8 *buf)
 
 	get_ucode_data(equiv_cpu_table, buf + CONTAINER_HDR_SZ, size);
 
-	
+	/* add header length */
 	return size + CONTAINER_HDR_SZ;
 }
 
@@ -301,6 +306,22 @@ out:
 	return state;
 }
 
+/*
+ * AMD microcode firmware naming convention, up to family 15h they are in
+ * the legacy file:
+ *
+ *    amd-ucode/microcode_amd.bin
+ *
+ * This legacy file is always smaller than 2K in size.
+ *
+ * Starting at family 15h they are in family specific firmware files:
+ *
+ *    amd-ucode/microcode_amd_fam15h.bin
+ *    amd-ucode/microcode_amd_fam16h.bin
+ *    ...
+ *
+ * These might be larger than 2K.
+ */
 static enum ucode_state request_microcode_amd(int cpu, struct device *device)
 {
 	char fw_name[36] = "amd-ucode/microcode_amd.bin";

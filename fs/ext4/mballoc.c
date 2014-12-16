@@ -1918,9 +1918,6 @@ int ext4_mb_release(struct super_block *sb)
 	struct ext4_sb_info *sbi = EXT4_SB(sb);
 	struct kmem_cache *cachep = get_groupinfo_cache(sb->s_blocksize_bits);
 
-	if (sbi->s_proc)
-		remove_proc_entry("mb_groups", sbi->s_proc);
-
 	if (sbi->s_group_info) {
 		for (i = 0; i < ngroups; i++) {
 			grinfo = ext4_get_group_info(sb, i);
@@ -1968,6 +1965,8 @@ int ext4_mb_release(struct super_block *sb)
 	}
 
 	free_percpu(sbi->s_locality_groups);
+	if (sbi->s_proc)
+		remove_proc_entry("mb_groups", sbi->s_proc);
 
 	return 0;
 }
@@ -1993,11 +1992,12 @@ static void ext4_free_data_callback(struct super_block *sb,
 	struct ext4_buddy e4b;
 	struct ext4_group_info *db;
 	int err, count = 0, count2 = 0;
+	journal_t *journal = EXT4_SB(sb)->s_journal;
 
 	mb_debug(1, "gonna free %u blocks in group %u (0x%p):",
 		 entry->efd_count, entry->efd_group, entry);
 
-	if (test_opt(sb, DISCARD))
+	if (test_opt(sb, DISCARD) && (atomic_read(&journal->j_log_wait) == 0))
 		ext4_issue_discard(sb, entry->efd_group,
 				   entry->efd_start_cluster, entry->efd_count);
 
@@ -2365,7 +2365,7 @@ ext4_mb_normalize_request(struct ext4_allocation_context *ac,
 	}
 	BUG_ON(start + size <= ac->ac_o_ex.fe_logical &&
 			start > ac->ac_o_ex.fe_logical);
-	BUG_ON(size <= 0 || size > EXT4_CLUSTERS_PER_GROUP(ac->ac_sb));
+	BUG_ON(size <= 0 || size > EXT4_BLOCKS_PER_GROUP(ac->ac_sb));
 
 	
 
@@ -2622,6 +2622,9 @@ static void ext4_mb_pa_callback(struct rcu_head *head)
 {
 	struct ext4_prealloc_space *pa;
 	pa = container_of(head, struct ext4_prealloc_space, u.pa_rcu);
+
+	BUG_ON(atomic_read(&pa->pa_count));
+	BUG_ON(pa->pa_deleted == 0);
 	kmem_cache_free(ext4_pspace_cachep, pa);
 }
 
@@ -2631,11 +2634,13 @@ static void ext4_mb_put_pa(struct ext4_allocation_context *ac,
 	ext4_group_t grp;
 	ext4_fsblk_t grp_blk;
 
-	if (!atomic_dec_and_test(&pa->pa_count) || pa->pa_free != 0)
-		return;
-
-	
+	/* in this short window concurrent discard can set pa_deleted */
 	spin_lock(&pa->pa_lock);
+	if (!atomic_dec_and_test(&pa->pa_count) || pa->pa_free != 0) {
+		spin_unlock(&pa->pa_lock);
+		return;
+	}
+
 	if (pa->pa_deleted == 1) {
 		spin_unlock(&pa->pa_lock);
 		return;
@@ -3743,7 +3748,6 @@ do_more:
 		struct ext4_free_data *new_entry;
 		new_entry = kmem_cache_alloc(ext4_free_data_cachep, GFP_NOFS);
 		if (!new_entry) {
-			ext4_mb_unload_buddy(&e4b);
 			err = -ENOMEM;
 			goto error_return;
 		}
@@ -4017,9 +4021,8 @@ int ext4_trim_fs(struct super_block *sb, struct fstrim_range *range)
 	end = start + (range->len >> sb->s_blocksize_bits) - 1;
 	minlen = range->minlen >> sb->s_blocksize_bits;
 
-	if (minlen > EXT4_CLUSTERS_PER_GROUP(sb) ||
-	    start >= max_blks ||
-	    range->len < sb->s_blocksize)
+	if (unlikely(minlen > EXT4_CLUSTERS_PER_GROUP(sb)) ||
+	    unlikely(start >= max_blks))
 		return -EINVAL;
 	if (end >= max_blks)
 		end = max_blks - 1;

@@ -19,6 +19,10 @@
 
 #include "pinctrl-tegra.h"
 
+/*
+ * Most pins affected by the pinmux can also be GPIOs. Define these first.
+ * These must match how the GPIO driver names/numbers its pins.
+ */
 #define _GPIO(offset)				(offset)
 
 #define TEGRA_PIN_CLK_32K_OUT_PA0	_GPIO(0)
@@ -270,9 +274,11 @@
 #define TEGRA_PIN_PEE6			_GPIO(246)
 #define TEGRA_PIN_PEE7			_GPIO(247)
 
+/* All non-GPIO pins follow */
 #define NUM_GPIOS				(TEGRA_PIN_PEE7 + 1)
 #define _PIN(offset)				(NUM_GPIOS + (offset))
 
+/* Non-GPIO pins */
 #define TEGRA_PIN_CLK_32K_IN		_PIN(0)
 #define TEGRA_PIN_CORE_PWR_REQ		_PIN(1)
 #define TEGRA_PIN_CPU_PWR_REQ		_PIN(2)
@@ -3337,10 +3343,10 @@ static const struct tegra_function tegra30_functions[] = {
 	FUNCTION(vi_alt3),
 };
 
-#define DRV_PINGROUP_REG_A	0x868	/* bank 0 */
-#define PINGROUP_REG_A		0x3000	/* bank 1 */
+#define MUXCTL_REG_A	0x3000
+#define PINGROUP_REG_A	0x868
 
-#define PINGROUP_REG_Y(r) ((r) - PINGROUP_REG_A)
+#define PINGROUP_REG_Y(r) ((r) - MUXCTL_REG_A)
 #define PINGROUP_REG_N(r) -1
 
 #define PINGROUP(pg_name, f0, f1, f2, f3, f_safe, r, od, ior)	\
@@ -3356,25 +3362,25 @@ static const struct tegra_function tegra30_functions[] = {
 		},						\
 		.func_safe = TEGRA_MUX_ ## f_safe,		\
 		.mux_reg = PINGROUP_REG_Y(r),			\
-		.mux_bank = 1,					\
+		.mux_bank = 0,					\
 		.mux_bit = 0,					\
 		.pupd_reg = PINGROUP_REG_Y(r),			\
-		.pupd_bank = 1,					\
+		.pupd_bank = 0,					\
 		.pupd_bit = 2,					\
 		.tri_reg = PINGROUP_REG_Y(r),			\
-		.tri_bank = 1,					\
+		.tri_bank = 0,					\
 		.tri_bit = 4,					\
 		.einput_reg = PINGROUP_REG_Y(r),		\
-		.einput_bank = 1,				\
+		.einput_bank = 0,				\
 		.einput_bit = 5,				\
 		.odrain_reg = PINGROUP_REG_##od(r),		\
-		.odrain_bank = 1,				\
+		.odrain_bank = 0,				\
 		.odrain_bit = 6,				\
 		.lock_reg = PINGROUP_REG_Y(r),			\
-		.lock_bank = 1,					\
+		.lock_bank = 0,					\
 		.lock_bit = 7,					\
 		.ioreset_reg = PINGROUP_REG_##ior(r),		\
-		.ioreset_bank = 1,				\
+		.ioreset_bank = 0,				\
 		.ioreset_bit = 8,				\
 		.drv_reg = -1,					\
 	}
@@ -3393,8 +3399,8 @@ static const struct tegra_function tegra30_functions[] = {
 		.odrain_reg = -1,				\
 		.lock_reg = -1,					\
 		.ioreset_reg = -1,				\
-		.drv_reg = ((r) - DRV_PINGROUP_REG_A),		\
-		.drv_bank = 0,					\
+		.drv_reg = ((r) - PINGROUP_REG_A),		\
+		.drv_bank = 1,					\
 		.hsm_bit = hsm_b,				\
 		.schmitt_bit = schmitt_b,			\
 		.lpmd_bit = lpmd_b,				\
@@ -3409,8 +3415,8 @@ static const struct tegra_function tegra30_functions[] = {
 	}
 
 static const struct tegra_pingroup tegra30_groups[] = {
-	
-	
+	/*       pg_name,              f0,           f1,           f2,           f3,           safe,         r,      od, ior */
+	/* FIXME: Fill in correct data in safe column */
 	PINGROUP(clk_32k_out_pa0,      BLINK,        RSVD2,        RSVD3,        RSVD4,        RSVD4,        0x331c, N, N),
 	PINGROUP(uart3_cts_n_pa1,      UARTC,        RSVD2,        GMI,          RSVD4,        RSVD4,        0x317c, N, N),
 	PINGROUP(dap2_fs_pa2,          I2S1,         HDA,          RSVD3,        GMI,          RSVD3,        0x3358, N, N),
@@ -3660,7 +3666,7 @@ static const struct tegra_pingroup tegra30_groups[] = {
 	PINGROUP(cpu_pwr_req,          CPU_PWR_REQ,  RSVD2,        RSVD3,        RSVD4,        RSVD4,        0x3328, N, N),
 	PINGROUP(owr,                  OWR,          CEC,          RSVD3,        RSVD4,        RSVD4,        0x3334, N, N),
 	PINGROUP(pwr_int_n,            PWR_INT_N,    RSVD2,        RSVD3,        RSVD4,        RSVD4,        0x332c, N, N),
-	
+	/* pg_name, r, hsm_b, schmitt_b, lpmd_b, drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w */
 	DRV_PINGROUP(ao1,   0x868,  2,  3,  4,  12,  5,  20,  5,  28,  2,  30,  2),
 	DRV_PINGROUP(ao2,   0x86c,  2,  3,  4,  12,  5,  20,  5,  28,  2,  30,  2),
 	DRV_PINGROUP(at1,   0x870,  2,  3,  4,  14,  5,  19,  5,  24,  2,  28,  2),

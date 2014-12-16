@@ -711,16 +711,10 @@ static int exec_mmap(struct mm_struct *mm)
 	
 	tsk = current;
 	old_mm = current->mm;
+	sync_mm_rss(old_mm);
 	mm_release(tsk, old_mm);
 
 	if (old_mm) {
-			sync_mm_rss(old_mm);
-	/*
-	* Make sure that if there is a core dump in progress
-	* for the old mm, we get out and die instead of going
-	* through with the exec. We must hold mmap_sem around
-	* checking core_state and changing tsk->mm.
-	*/
 		down_read(&old_mm->mmap_sem);
 		if (unlikely(old_mm->core_state)) {
 			up_read(&old_mm->mmap_sem);
@@ -860,7 +854,7 @@ static void flush_old_files(struct files_struct * files)
 		unsigned long set, i;
 
 		j++;
-		i = j * BITS_PER_LONG;
+		i = j * __NFDBITS;
 		fdt = files_fdtable(files);
 		if (i >= fdt->max_fds)
 			break;
@@ -937,8 +931,7 @@ int flush_old_exec(struct linux_binprm * bprm)
 	bprm->mm = NULL;		
 
 	set_fs(USER_DS);
-	current->flags &=
-		~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD | PF_NOFREEZE);
+	current->flags &= ~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD);
 	flush_thread();
 	current->personality &= ~bprm->per_clear;
 
@@ -1013,27 +1006,9 @@ void free_bprm(struct linux_binprm *bprm)
 		mutex_unlock(&current->signal->cred_guard_mutex);
 		abort_creds(bprm->cred);
 	}
-	/* If a binfmt changed the interp, free it. */
-	if (bprm->interp != bprm->filename)
-		kfree(bprm->interp);
 	kfree(bprm);
 }
 
-int bprm_change_interp(char *interp, struct linux_binprm *bprm)
-{
-	/* If a binfmt changed the interp, free it first. */
-	if (bprm->interp != bprm->filename)
-		kfree(bprm->interp);
-	bprm->interp = kstrdup(interp, GFP_KERNEL);
-	if (!bprm->interp)
-		return -ENOMEM;
-	return 0;
-}
-EXPORT_SYMBOL(bprm_change_interp);
-
- /*
-  * install the new credentials for this executable
-  */
 void install_exec_creds(struct linux_binprm *bprm)
 {
 	security_bprm_committing_creds(bprm);

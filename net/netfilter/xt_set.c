@@ -8,13 +8,14 @@
  * published by the Free Software Foundation.
  */
 
+/* Kernel module which implements the set match and SET target
+ * for netfilter/iptables. */
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
 
 #include <linux/netfilter/x_tables.h>
 #include <linux/netfilter/xt_set.h>
-#include <linux/netfilter/ipset/ip_set_timeout.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
@@ -43,15 +44,8 @@ const struct ip_set_adt_opt n = {	\
 	.cmdflags = cfs,		\
 	.timeout = t,			\
 }
-#define ADT_MOPT(n, f, d, fs, cfs, t)	\
-struct ip_set_adt_opt n = {		\
-	.family	= f,			\
-	.dim = d,			\
-	.flags = fs,			\
-	.cmdflags = cfs,		\
-	.timeout = t,			\
-}
 
+/* Revision 0 interface: backward compatible with netfilter/iptables */
 
 static bool
 set_match_v0(const struct sk_buff *skb, struct xt_action_param *par)
@@ -69,7 +63,7 @@ compat_flags(struct xt_set_info_v0 *info)
 {
 	u_int8_t i;
 
-	
+	/* Fill out compatibility data according to enum ip_set_kopt */
 	info->u.compat.dim = IPSET_DIM_ZERO;
 	if (info->u.flags[0] & IPSET_MATCH_INV)
 		info->u.compat.flags |= IPSET_INV_MATCH;
@@ -100,7 +94,7 @@ set_match_v0_checkentry(const struct xt_mtchk_param *par)
 		return -ERANGE;
 	}
 
-	
+	/* Fill out compatibility data */
 	compat_flags(&info->match_set);
 
 	return 0;
@@ -167,7 +161,7 @@ set_target_v0_checkentry(const struct xt_tgchk_param *par)
 		return -ERANGE;
 	}
 
-	
+	/* Fill out compatibility data */
 	compat_flags(&info->add_set);
 	compat_flags(&info->del_set);
 
@@ -185,6 +179,7 @@ set_target_v0_destroy(const struct xt_tgdtor_param *par)
 		ip_set_nfnl_put(info->del_set.index);
 }
 
+/* Revision 1 match and target */
 
 static bool
 set_match_v1(const struct sk_buff *skb, struct xt_action_param *par)
@@ -295,20 +290,17 @@ set_target_v1_destroy(const struct xt_tgdtor_param *par)
 		ip_set_nfnl_put(info->del_set.index);
 }
 
+/* Revision 2 target */
 
 static unsigned int
 set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
 {
 	const struct xt_set_info_target_v2 *info = par->targinfo;
-	ADT_MOPT(add_opt, par->family, info->add_set.dim,
-		 info->add_set.flags, info->flags, info->timeout);
+	ADT_OPT(add_opt, par->family, info->add_set.dim,
+		info->add_set.flags, info->flags, info->timeout);
 	ADT_OPT(del_opt, par->family, info->del_set.dim,
 		info->del_set.flags, 0, UINT_MAX);
 
-	/* Normalize to fit into jiffies */
-	if (add_opt.timeout != IPSET_NO_TIMEOUT &&
-	    add_opt.timeout > UINT_MAX/MSEC_PER_SEC)
-		add_opt.timeout = UINT_MAX/MSEC_PER_SEC;
 	if (info->add_set.index != IPSET_INVALID_ID)
 		ip_set_add(info->add_set.index, skb, par, &add_opt);
 	if (info->del_set.index != IPSET_INVALID_ID)

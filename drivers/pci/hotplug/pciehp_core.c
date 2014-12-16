@@ -37,10 +37,12 @@
 #include <linux/interrupt.h>
 #include <linux/time.h>
 
+/* Global variables */
 bool pciehp_debug;
 bool pciehp_poll_mode;
 int pciehp_poll_time;
 bool pciehp_force;
+struct workqueue_struct *pciehp_wq;
 
 #define DRIVER_VERSION	"0.4"
 #define DRIVER_AUTHOR	"Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>"
@@ -69,6 +71,10 @@ static int get_attention_status	(struct hotplug_slot *slot, u8 *value);
 static int get_latch_status	(struct hotplug_slot *slot, u8 *value);
 static int get_adapter_status	(struct hotplug_slot *slot, u8 *value);
 
+/**
+ * release_slot - free up the memory used by a slot
+ * @hotplug_slot: slot to free
+ */
 static void release_slot(struct hotplug_slot *hotplug_slot)
 {
 	struct slot *slot = hotplug_slot->private;
@@ -98,7 +104,7 @@ static int init_slot(struct controller *ctrl)
 	if (!info)
 		goto out;
 
-	
+	/* Setup hotplug slot ops */
 	ops = kzalloc(sizeof(*ops), GFP_KERNEL);
 	if (!ops)
 		goto out;
@@ -113,7 +119,7 @@ static int init_slot(struct controller *ctrl)
 		ops->set_attention_status = set_attention_status;
 	}
 
-	
+	/* register this slot with the hotplug pci core */
 	hotplug->info = info;
 	hotplug->private = slot;
 	hotplug->release = &release_slot;
@@ -143,6 +149,9 @@ static void cleanup_slot(struct controller *ctrl)
 	pci_hp_deregister(ctrl->slot->hotplug_slot);
 }
 
+/*
+ * set_attention_status - Turns the Amber LED for a slot on, off or blink
+ */
 static int set_attention_status(struct hotplug_slot *hotplug_slot, u8 status)
 {
 	struct slot *slot = hotplug_slot->private;
@@ -236,7 +245,7 @@ static int pciehp_probe(struct pcie_device *dev)
 	}
 	set_service_data(dev, ctrl);
 
-	
+	/* Setup the slot information structures */
 	rc = init_slot(ctrl);
 	if (rc) {
 		if (rc == -EBUSY)
@@ -247,20 +256,20 @@ static int pciehp_probe(struct pcie_device *dev)
 		goto err_out_release_ctlr;
 	}
 
-	
+	/* Enable events after we have setup the data structures */
 	rc = pcie_init_notification(ctrl);
 	if (rc) {
 		ctrl_err(ctrl, "Notification initialization failed\n");
 		goto err_out_free_ctrl_slot;
 	}
 
-	
+	/* Check if slot is occupied */
 	slot = ctrl->slot;
 	pciehp_get_adapter_status(slot, &occupied);
 	pciehp_get_power_status(slot, &poweron);
 	if (occupied && pciehp_force)
 		pciehp_enable_slot(slot);
-	
+	/* If empty slot's power status is on, turn power off */
 	if (!occupied && poweron && POWER_CTRL(ctrl))
 		pciehp_power_off_slot(slot);
 
@@ -297,12 +306,12 @@ static int pciehp_resume (struct pcie_device *dev)
 		struct slot *slot;
 		u8 status;
 
-		
+		/* reinitialize the chipset's event detection logic */
 		pcie_enable_notification(ctrl);
 
 		slot = ctrl->slot;
 
-		
+		/* Check if slot is occupied */
 		pciehp_get_adapter_status(slot, &status);
 		if (status)
 			pciehp_enable_slot(slot);
@@ -311,7 +320,7 @@ static int pciehp_resume (struct pcie_device *dev)
 	}
 	return 0;
 }
-#endif 
+#endif /* PM */
 
 static struct pcie_port_service_driver hpdriver_portdrv = {
 	.name		= PCIE_MODULE_NAME,
@@ -324,20 +333,25 @@ static struct pcie_port_service_driver hpdriver_portdrv = {
 #ifdef	CONFIG_PM
 	.suspend	= pciehp_suspend,
 	.resume		= pciehp_resume,
-#endif	
+#endif	/* PM */
 };
 
 static int __init pcied_init(void)
 {
 	int retval = 0;
 
+	pciehp_wq = alloc_workqueue("pciehp", 0, 0);
+	if (!pciehp_wq)
+		return -ENOMEM;
+
 	pciehp_firmware_init();
 	retval = pcie_port_service_register(&hpdriver_portdrv);
  	dbg("pcie_port_service_register = %d\n", retval);
   	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
-	if (retval)
+ 	if (retval) {
+		destroy_workqueue(pciehp_wq);
 		dbg("Failure to register service\n");
-
+	}
 	return retval;
 }
 
@@ -345,6 +359,7 @@ static void __exit pcied_cleanup(void)
 {
 	dbg("unload_pciehpd()\n");
 	pcie_port_service_unregister(&hpdriver_portdrv);
+	destroy_workqueue(pciehp_wq);
 	info(DRIVER_DESC " version: " DRIVER_VERSION " unloaded\n");
 }
 

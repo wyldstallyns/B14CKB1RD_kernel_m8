@@ -19,7 +19,7 @@
 #define TRNG_ISR	0x1c
 #define TRNG_ODATA	0x50
 
-#define TRNG_KEY	0x524e4700 
+#define TRNG_KEY	0x524e4700 /* RNG */
 
 struct atmel_trng {
 	struct clk *clk;
@@ -33,16 +33,9 @@ static int atmel_trng_read(struct hwrng *rng, void *buf, size_t max,
 	struct atmel_trng *trng = container_of(rng, struct atmel_trng, rng);
 	u32 *data = buf;
 
-	
+	/* data ready? */
 	if (readl(trng->base + TRNG_ODATA) & 1) {
 		*data = readl(trng->base + TRNG_ODATA);
-		/*
-		  ensure data ready is only set again AFTER the next data
-		  word is ready in case it got set between checking ISR
-		  and reading ODATA, so we don't risk re-reading the
-		  same word
-		*/
-		readl(trng->base + TRNG_ISR);
 		return 4;
 	} else
 		return 0;
@@ -134,7 +127,7 @@ static const struct dev_pm_ops atmel_trng_pm_ops = {
 	.suspend	= atmel_trng_suspend,
 	.resume		= atmel_trng_resume,
 };
-#endif 
+#endif /* CONFIG_PM */
 
 static struct platform_driver atmel_trng_driver = {
 	.probe		= atmel_trng_probe,
@@ -144,7 +137,7 @@ static struct platform_driver atmel_trng_driver = {
 		.owner	= THIS_MODULE,
 #ifdef CONFIG_PM
 		.pm	= &atmel_trng_pm_ops,
-#endif 
+#endif /* CONFIG_PM */
 	},
 };
 

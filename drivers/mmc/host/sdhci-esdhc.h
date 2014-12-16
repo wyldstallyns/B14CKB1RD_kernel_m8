@@ -14,6 +14,9 @@
 #ifndef _DRIVERS_MMC_SDHCI_ESDHC_H
 #define _DRIVERS_MMC_SDHCI_ESDHC_H
 
+/*
+ * Ops and quirks for the Freescale eSDHC controller.
+ */
 
 #define ESDHC_DEFAULT_QUIRKS	(SDHCI_QUIRK_FORCE_BLK_SZ_2048 | \
 				SDHCI_QUIRK_NO_BUSY_IRQ | \
@@ -30,8 +33,10 @@
 #define ESDHC_CLOCK_HCKEN	0x00000002
 #define ESDHC_CLOCK_IPGEN	0x00000001
 
+/* pltfm-specific */
 #define ESDHC_HOST_CONTROL_LE	0x20
 
+/* OF-specific */
 #define ESDHC_DMA_SYSCTL	0x40c
 #define ESDHC_DMA_SNOOP		0x00000040
 
@@ -43,13 +48,13 @@ static inline void esdhc_set_clock(struct sdhci_host *host, unsigned int clock)
 	int div = 1;
 	u32 temp;
 
-	if (clock == 0)
-		goto out;
-
 	temp = sdhci_readl(host, ESDHC_SYSTEM_CONTROL);
 	temp &= ~(ESDHC_CLOCK_IPGEN | ESDHC_CLOCK_HCKEN | ESDHC_CLOCK_PEREN
 		| ESDHC_CLOCK_MASK);
 	sdhci_writel(host, temp, ESDHC_SYSTEM_CONTROL);
+
+	if (clock == 0)
+		goto out;
 
 	while (host->max_clk / pre_div / 16 > clock && pre_div < 256)
 		pre_div *= 2;
@@ -73,4 +78,4 @@ out:
 	host->clock = clock;
 }
 
-#endif 
+#endif /* _DRIVERS_MMC_SDHCI_ESDHC_H */

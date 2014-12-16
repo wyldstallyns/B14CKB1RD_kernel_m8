@@ -28,6 +28,7 @@
 #include "ext4_jbd2.h"
 #include "xattr.h"
 #include "acl.h"
+#include <trace/events/mmcio.h>
 
 static int ext4_release_file(struct inode *inode, struct file *filp)
 {
@@ -75,7 +76,7 @@ ext4_unaligned_aio(struct inode *inode, const struct iovec *iov,
 	size_t count = iov_length(iov, nr_segs);
 	loff_t final_size = pos + count;
 
-	if (pos >= inode->i_size)
+	if (pos >= i_size_read(inode))
 		return 0;
 
 	if ((pos & blockmask) || (final_size & blockmask))
@@ -92,6 +93,7 @@ ext4_file_write(struct kiocb *iocb, const struct iovec *iov,
 	int unaligned_aio = 0;
 	int ret;
 
+	trace_ext4_file_write(iocb->ki_filp->f_path.dentry, iocb->ki_left);
 
 	if (!(ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS))) {
 		struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);

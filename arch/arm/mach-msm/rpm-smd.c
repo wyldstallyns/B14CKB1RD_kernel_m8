@@ -825,7 +825,7 @@ static void msm_rpm_smd_work(struct work_struct *work)
 	char buf[MAX_ERR_BUFFER_SIZE] = {0};
 
 	while (1) {
-		wait_for_completion(&data_ready);
+		wait_for_completion_interruptible(&data_ready);
 
 		spin_lock(&msm_rpm_data.smd_lock_read);
 		while (smd_is_pkt_avail(msm_rpm_data.ch_info)) {
@@ -1179,7 +1179,7 @@ int msm_rpm_wait_for_ack(uint32_t msg_id)
 
 	
 	if (0 == remain) {
-		WARN(1, "%u msecs timeout for waiting rpm ack.\n", SMD_CHANNEL_NOTIF_TIMEOUT);
+		WARN(1, "%u msecs timeout for waiting msg rpm ack of msg %u.\n", SMD_CHANNEL_NOTIF_TIMEOUT, msg_id);
 
 		
 		msm_rpm_dump_channel_data(msm_rpm_data.ch_info);

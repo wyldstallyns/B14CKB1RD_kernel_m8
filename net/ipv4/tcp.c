@@ -294,8 +294,17 @@ int sysctl_tcp_rmem[3] __read_mostly;
 EXPORT_SYMBOL(sysctl_tcp_rmem);
 EXPORT_SYMBOL(sysctl_tcp_wmem);
 
+int sysctl_tcp_delack_seg __read_mostly = TCP_DELACK_SEG;
+EXPORT_SYMBOL(sysctl_tcp_delack_seg);
+
+int sysctl_tcp_use_userconfig __read_mostly;
+EXPORT_SYMBOL(sysctl_tcp_use_userconfig);
+
 atomic_long_t tcp_memory_allocated;	
 EXPORT_SYMBOL(tcp_memory_allocated);
+
+int sysctl_tcp_use_userconfig __read_mostly;
+EXPORT_SYMBOL(sysctl_tcp_use_userconfig);
 
 struct percpu_counter tcp_sockets_allocated;
 EXPORT_SYMBOL(tcp_sockets_allocated);
@@ -660,9 +669,7 @@ static unsigned int tcp_xmit_size_goal(struct sock *sk, u32 mss_now,
 			   old_size_goal + mss_now > xmit_size_goal)) {
 			xmit_size_goal = old_size_goal;
 		} else {
-			tp->xmit_size_goal_segs =
-				min_t(u16, xmit_size_goal / mss_now,
-				      sk->sk_gso_max_segs);
+			tp->xmit_size_goal_segs = xmit_size_goal / mss_now;
 			xmit_size_goal = tp->xmit_size_goal_segs * mss_now;
 		}
 	}
@@ -1097,8 +1104,8 @@ void tcp_cleanup_rbuf(struct sock *sk, int copied)
 	if (inet_csk_ack_scheduled(sk)) {
 		const struct inet_connection_sock *icsk = inet_csk(sk);
 		if (icsk->icsk_ack.blocked ||
-		    
-		    tp->rcv_nxt - tp->rcv_wup > icsk->icsk_ack.rcv_mss ||
+		    tp->rcv_nxt - tp->rcv_wup > (icsk->icsk_ack.rcv_mss) *
+						sysctl_tcp_delack_seg ||
 		    (copied > 0 &&
 		     ((icsk->icsk_ack.pending & ICSK_ACK_PUSHED2) ||
 		      ((icsk->icsk_ack.pending & ICSK_ACK_PUSHED) &&
@@ -1409,14 +1416,8 @@ int tcp_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 		}
 
 #ifdef CONFIG_NET_DMA
-		if (tp->ucopy.dma_chan) {
-			if (tp->rcv_wnd == 0 &&
-			    !skb_queue_empty(&sk->sk_async_wait_queue)) {
-				tcp_service_net_dma(sk, true);
-				tcp_cleanup_rbuf(sk, copied);
-			} else
-				dma_async_memcpy_issue_pending(tp->ucopy.dma_chan);
-		}
+		if (tp->ucopy.dma_chan)
+			dma_async_memcpy_issue_pending(tp->ucopy.dma_chan);
 #endif
 		if (copied >= target) {
 			
@@ -2157,10 +2158,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
 		break;
 #endif
 	case TCP_USER_TIMEOUT:
-		if (val < 0)
-			err = -EINVAL;
-		else
-			icsk->icsk_user_timeout = msecs_to_jiffies(val);
+		icsk->icsk_user_timeout = msecs_to_jiffies(val);
 		break;
 	default:
 		err = -ENOPROTOOPT;

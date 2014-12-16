@@ -81,15 +81,12 @@ static int snd_compr_open(struct inode *inode, struct file *f)
 
 	if (dirn != compr->direction) {
 		pr_err("this device doesn't support this direction\n");
-		snd_card_unref(compr->card);
 		return -EINVAL;
 	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
-	if (!data) {
-		snd_card_unref(compr->card);
+	if (!data)
 		return -ENOMEM;
-	}
 	data->stream.ops = compr->ops;
 	data->stream.direction = dirn;
 	data->stream.private_data = compr->private_data;
@@ -97,7 +94,6 @@ static int snd_compr_open(struct inode *inode, struct file *f)
 	runtime = kzalloc(sizeof(*runtime), GFP_KERNEL);
 	if (!runtime) {
 		kfree(data);
-		snd_card_unref(compr->card);
 		return -ENOMEM;
 	}
 	runtime->state = SNDRV_PCM_STATE_OPEN;
@@ -111,8 +107,7 @@ static int snd_compr_open(struct inode *inode, struct file *f)
 		kfree(runtime);
 		kfree(data);
 	}
-	snd_card_unref(compr->card);
-	return 0;
+	return ret;
 }
 
 static int snd_compr_free(struct inode *inode, struct file *f)
@@ -140,9 +135,12 @@ static int snd_compr_free(struct inode *inode, struct file *f)
 static int snd_compr_update_tstamp(struct snd_compr_stream *stream,
 		struct snd_compr_tstamp *tstamp)
 {
+	int err = 0;
 	if (!stream->ops->pointer)
 		return -ENOTSUPP;
-	stream->ops->pointer(stream, tstamp);
+	err = stream->ops->pointer(stream, tstamp);
+	if (err)
+		return err;
 	pr_debug("dsp consumed till %d total %d bytes\n",
 		tstamp->byte_offset, tstamp->copied_total);
 	if (stream->direction == SND_COMPRESS_PLAYBACK)

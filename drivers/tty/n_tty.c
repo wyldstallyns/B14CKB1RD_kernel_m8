@@ -1275,8 +1275,7 @@ static ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
 
 do_it_again:
 
-	if (WARN_ON(!tty->read_buf))
-		return -EAGAIN;
+	BUG_ON(!tty->read_buf);
 
 	c = job_control(tty, file);
 	if (c < 0)
@@ -1494,6 +1493,7 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
 			if (tty->ops->flush_chars)
 				tty->ops->flush_chars(tty);
 		} else {
+
 			while (nr > 0) {
 				mutex_lock(&tty->output_lock);
 				c = tty->ops->write(tty, b, nr);

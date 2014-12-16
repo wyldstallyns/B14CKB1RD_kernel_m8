@@ -1635,6 +1635,13 @@ int vfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 	if (error)
 		return error;
 	error = dir->i_op->create(dir, dentry, mode, nd);
+	if (error)
+		return error;
+
+	error = security_inode_post_create(dir, dentry, mode);
+	if (error)
+		return error;
+
 	if (!error)
 		fsnotify_create(dir, dentry);
 	return error;
@@ -2074,6 +2081,13 @@ int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
 		return error;
 
 	error = dir->i_op->mknod(dir, dentry, mode, dev);
+	if (error)
+		return error;
+
+	error = security_inode_post_create(dir, dentry, mode);
+	if (error)
+		return error;
+
 	if (!error)
 		fsnotify_create(dir, dentry);
 	return error;
@@ -2255,7 +2269,7 @@ out:
 static long do_rmdir(int dfd, const char __user *pathname)
 {
 	int error = 0;
-	char * name;
+	char * name = NULL;
 	struct dentry *dentry;
 	struct nameidata nd;
 
@@ -2352,7 +2366,7 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry)
 static long do_unlinkat(int dfd, const char __user *pathname)
 {
 	int error;
-	char *name;
+	char *name = NULL;
 	struct dentry *dentry;
 	struct nameidata nd;
 	struct inode *inode = NULL;
@@ -2704,8 +2718,8 @@ SYSCALL_DEFINE4(renameat, int, olddfd, const char __user *, oldname,
 	struct dentry *old_dentry, *new_dentry;
 	struct dentry *trap;
 	struct nameidata oldnd, newnd;
-	char *from;
-	char *to;
+	char *from = NULL;
+	char *to = NULL;
 	int error;
 
 	error = user_path_parent(olddfd, oldname, &oldnd, &from);

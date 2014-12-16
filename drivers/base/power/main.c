@@ -536,8 +536,6 @@ static int device_resume(struct device *dev, pm_message_t state, bool async)
 
  Unlock:
 	device_unlock(dev);
-
- Complete:
 	complete_all(&dev->power.completion);
 
 	TRACE_RESUME(error);
@@ -851,7 +849,7 @@ int dpm_suspend_end(pm_message_t state)
 
 	error = dpm_suspend_noirq(state);
 	if (error) {
-		dpm_resume_early(resume_event(state));
+		dpm_resume_early(state);
 		return error;
 	}
 

@@ -37,17 +37,19 @@
 #include <linux/err.h>
 #include <linux/types.h>
 
+/*
+ * sysfs hook function
+ */
 static ssize_t madc_read(struct device *dev,
 			 struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-	struct twl4030_madc_request req = {
-		.channels = 1 << attr->index,
-		.method = TWL4030_MADC_SW2,
-		.type = TWL4030_MADC_WAIT,
-	};
+	struct twl4030_madc_request req;
 	long val;
 
+	req.channels = (1 << attr->index);
+	req.method = TWL4030_MADC_SW2;
+	req.func_cb = NULL;
 	val = twl4030_madc_conversion(&req);
 	if (val < 0)
 		return val;
@@ -55,6 +57,7 @@ static ssize_t madc_read(struct device *dev,
 	return sprintf(buf, "%d\n", req.rbuf[attr->index]);
 }
 
+/* sysfs nodes to read individual channels from user side */
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, madc_read, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, madc_read, NULL, 1);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);

@@ -503,16 +503,16 @@ int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)
 	return signr;
 }
 
-void signal_wake_up_state(struct task_struct *t, unsigned int state)
+void signal_wake_up(struct task_struct *t, int resume)
 {
-	/*
-	 * TASK_WAKEKILL also means wake it up in the stopped/traced/killable
- 	 * case. We don't check t->state here because there is a race with it
- 	 * executing another processor and just now entering stopped state.
- 	 * By using wake_up_state, we ensure the process will wake up and
- 	 * handle its death signal.
- 	 */
-	if (!wake_up_state(t, state | TASK_INTERRUPTIBLE))
+	unsigned int mask;
+
+	set_tsk_thread_flag(t, TIF_SIGPENDING);
+
+	mask = TASK_INTERRUPTIBLE;
+	if (resume)
+		mask |= TASK_WAKEKILL;
+	if (!wake_up_state(t, mask))
 		kick_process(t);
 }
 
@@ -618,7 +618,7 @@ static void ptrace_trap_notify(struct task_struct *t)
 	assert_spin_locked(&t->sighand->siglock);
 
 	task_set_jobctl_pending(t, JOBCTL_TRAP_NOTIFY);
-	ptrace_signal_wake_up(t, t->jobctl & JOBCTL_LISTENING);
+	signal_wake_up(t, t->jobctl & JOBCTL_LISTENING);
 }
 
 static int prepare_signal(int sig, struct task_struct *p, bool force)
@@ -831,6 +831,7 @@ struct dying_pid {
 	unsigned long jiffy;
 };
 static DEFINE_SPINLOCK(dying_pid_lock);
+static int sigkill_pending(struct task_struct *tsk);
 static struct dying_pid dying_pid_buf[MAX_DYING_PROC_COUNT];
 static unsigned int dying_pid_buf_idx;
 
@@ -876,7 +877,7 @@ static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
 #endif
 
 #if defined(CONFIG_HTC_DEBUG_DYING_PROCS)
-	if (sig == SIGKILL) {
+	if (sig == SIGKILL && !sigkill_pending(t)) {
 		unsigned long flags;
 		spin_lock_irqsave(&dying_pid_lock, flags);
 		dying_pid_buf_idx = ((dying_pid_buf_idx + 1) % MAX_DYING_PROC_COUNT);
@@ -1460,7 +1461,6 @@ static void ptrace_stop(int exit_code, int why, int clear_code, siginfo_t *info)
 		if (gstop_done)
 			do_notify_parent_cldstop(current, false, why);
 
-		/* tasklist protects us from ptrace_freeze_traced() */
 		__set_current_state(TASK_RUNNING);
 		if (clear_code)
 			current->exit_code = 0;

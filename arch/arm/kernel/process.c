@@ -14,6 +14,7 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
+#include <linux/vmalloc.h>
 #include <linux/stddef.h>
 #include <linux/unistd.h>
 #include <linux/user.h>
@@ -280,7 +281,6 @@ void machine_shutdown(void)
 void machine_halt(void)
 {
 	machine_shutdown();
-	local_irq_disable();
 	while (1);
 }
 
@@ -307,7 +307,6 @@ void machine_restart(char *cmd)
 
 	
 	printk("Reboot failed -- System halted\n");
-	local_irq_disable();
 	while (1);
 }
 
@@ -331,7 +330,8 @@ static void show_data(unsigned long addr, int nbytes, const char *name)
 		printk("%04lx ", (unsigned long)p & 0xffff);
 		for (j = 0; j < 8; j++) {
 			u32	data;
-			if (probe_kernel_address(p, data)) {
+			if (is_vmalloc_addr(p) ||
+			    probe_kernel_address(p, data)) {
 				printk(" ********");
 			} else {
 				printk(" %08x", data);

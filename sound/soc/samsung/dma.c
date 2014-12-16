@@ -34,7 +34,9 @@ static const struct snd_pcm_hardware dma_hardware = {
 	.info			= SNDRV_PCM_INFO_INTERLEAVED |
 				    SNDRV_PCM_INFO_BLOCK_TRANSFER |
 				    SNDRV_PCM_INFO_MMAP |
-				    SNDRV_PCM_INFO_MMAP_VALID,
+				    SNDRV_PCM_INFO_MMAP_VALID |
+				    SNDRV_PCM_INFO_PAUSE |
+				    SNDRV_PCM_INFO_RESUME,
 	.formats		= SNDRV_PCM_FMTBIT_S16_LE |
 				    SNDRV_PCM_FMTBIT_U16_LE |
 				    SNDRV_PCM_FMTBIT_U8 |
@@ -62,6 +64,11 @@ struct runtime_data {
 
 static void audio_buffdone(void *data);
 
+/* dma_enqueue
+ *
+ * place a dma buffer onto the queue for the dma system
+ * to handle.
+ */
 static void dma_enqueue(struct snd_pcm_substream *substream)
 {
 	struct runtime_data *prtd = substream->runtime->private_data;
@@ -143,11 +150,15 @@ static int dma_hw_params(struct snd_pcm_substream *substream,
 
 	pr_debug("Entered %s\n", __func__);
 
+	/* return if this is a bufferless transfer e.g.
+	 * codec <--> BT codec or GSM modem -- lg FIXME */
 	if (!dma)
 		return 0;
 
+	/* this may get called several times by oss emulation
+	 * with different params -HW */
 	if (prtd->params == NULL) {
-		
+		/* prepare DMA */
 		prtd->params = dma;
 
 		pr_debug("params %p, client %p, channel %d\n", prtd->params,
@@ -207,16 +218,18 @@ static int dma_prepare(struct snd_pcm_substream *substream)
 
 	pr_debug("Entered %s\n", __func__);
 
+	/* return if this is a bufferless transfer e.g.
+	 * codec <--> BT codec or GSM modem -- lg FIXME */
 	if (!prtd->params)
 		return 0;
 
-	
+	/* flush the DMA channel */
 	prtd->params->ops->flush(prtd->params->ch);
 
 	prtd->dma_loaded = 0;
 	prtd->dma_pos = prtd->dma_start;
 
-	
+	/* enqueue dma buffers */
 	dma_enqueue(substream);
 
 	return ret;
@@ -233,11 +246,15 @@ static int dma_trigger(struct snd_pcm_substream *substream, int cmd)
 
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
+	case SNDRV_PCM_TRIGGER_RESUME:
+	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
 		prtd->state |= ST_RUNNING;
 		prtd->params->ops->trigger(prtd->params->ch);
 		break;
 
 	case SNDRV_PCM_TRIGGER_STOP:
+	case SNDRV_PCM_TRIGGER_SUSPEND:
+	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
 		prtd->state &= ~ST_RUNNING;
 		prtd->params->ops->stop(prtd->params->ch);
 		break;
@@ -265,6 +282,11 @@ dma_pointer(struct snd_pcm_substream *substream)
 
 	pr_debug("Pointer offset: %lu\n", res);
 
+	/* we seem to be getting the odd error from the pcm library due
+	 * to out-of-bounds pointers. this is maybe due to the dma engine
+	 * not having loaded the new values for the channel before being
+	 * called... (todo - fix )
+	 */
 
 	if (res >= snd_pcm_lib_buffer_bytes(substream)) {
 		if (res == snd_pcm_lib_buffer_bytes(substream))

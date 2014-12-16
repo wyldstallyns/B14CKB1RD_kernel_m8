@@ -7,11 +7,34 @@
 #include "super.h"
 #include "mds_client.h"
 
+/*
+ * NFS export support
+ *
+ * NFS re-export of a ceph mount is, at present, only semireliable.
+ * The basic issue is that the Ceph architectures doesn't lend itself
+ * well to generating filehandles that will remain valid forever.
+ *
+ * So, we do our best.  If you're lucky, your inode will be in the
+ * client's cache.  If it's not, and you have a connectable fh, then
+ * the MDS server may be able to find it for you.  Otherwise, you get
+ * ESTALE.
+ *
+ * There are ways to this more reliable, but in the non-connectable fh
+ * case, we won't every work perfectly, and in the connectable case,
+ * some changes are needed on the MDS side to work better.
+ */
 
+/*
+ * Basic fh
+ */
 struct ceph_nfs_fh {
 	u64 ino;
 } __attribute__ ((packed));
 
+/*
+ * Larger 'connectable' fh that includes parent ino and name hash.
+ * Use this whenever possible, as it works more reliably.
+ */
 struct ceph_nfs_confh {
 	u64 ino, parent_ino;
 	u32 parent_name_hash;
@@ -28,7 +51,7 @@ static int ceph_encode_fh(struct dentry *dentry, u32 *rawfh, int *max_len,
 	int connected_handle_length = sizeof(*cfh)/4;
 	int handle_length = sizeof(*fh)/4;
 
-	
+	/* don't re-export snaps */
 	if (ceph_snap(inode) != CEPH_NOSNAP)
 		return -EINVAL;
 
@@ -60,17 +83,19 @@ static int ceph_encode_fh(struct dentry *dentry, u32 *rawfh, int *max_len,
 	return type;
 }
 
+/*
+ * convert regular fh to dentry
+ *
+ * FIXME: we should try harder by querying the mds for the ino.
+ */
 static struct dentry *__fh_to_dentry(struct super_block *sb,
-				     struct ceph_nfs_fh *fh, int fh_len)
+				     struct ceph_nfs_fh *fh)
 {
 	struct ceph_mds_client *mdsc = ceph_sb_to_client(sb)->mdsc;
 	struct inode *inode;
 	struct dentry *dentry;
 	struct ceph_vino vino;
 	int err;
-
-	if (fh_len < sizeof(*fh) / 4)
-		return ERR_PTR(-ESTALE);
 
 	dout("__fh_to_dentry %llx\n", fh->ino);
 	vino.ino = fh->ino;
@@ -111,17 +136,17 @@ static struct dentry *__fh_to_dentry(struct super_block *sb,
 	return dentry;
 }
 
+/*
+ * convert connectable fh to dentry
+ */
 static struct dentry *__cfh_to_dentry(struct super_block *sb,
-				      struct ceph_nfs_confh *cfh, int fh_len)
+				      struct ceph_nfs_confh *cfh)
 {
 	struct ceph_mds_client *mdsc = ceph_sb_to_client(sb)->mdsc;
 	struct inode *inode;
 	struct dentry *dentry;
 	struct ceph_vino vino;
 	int err;
-
-	if (fh_len < sizeof(*cfh) / 4)
-		return ERR_PTR(-ESTALE);
 
 	dout("__cfh_to_dentry %llx (%llx/%x)\n",
 	     cfh->ino, cfh->parent_ino, cfh->parent_name_hash);
@@ -172,13 +197,17 @@ static struct dentry *ceph_fh_to_dentry(struct super_block *sb, struct fid *fid,
 					int fh_len, int fh_type)
 {
 	if (fh_type == 1)
-		return __fh_to_dentry(sb, (struct ceph_nfs_fh *)fid->raw,
-								fh_len);
+		return __fh_to_dentry(sb, (struct ceph_nfs_fh *)fid->raw);
 	else
-		return __cfh_to_dentry(sb, (struct ceph_nfs_confh *)fid->raw,
-								fh_len);
+		return __cfh_to_dentry(sb, (struct ceph_nfs_confh *)fid->raw);
 }
 
+/*
+ * get parent, if possible.
+ *
+ * FIXME: we could do better by querying the mds to discover the
+ * parent.
+ */
 static struct dentry *ceph_fh_to_parent(struct super_block *sb,
 					 struct fid *fid,
 					int fh_len, int fh_type)
@@ -190,8 +219,6 @@ static struct dentry *ceph_fh_to_parent(struct super_block *sb,
 	int err;
 
 	if (fh_type == 1)
-		return ERR_PTR(-ESTALE);
-	if (fh_len < sizeof(*cfh) / 4)
 		return ERR_PTR(-ESTALE);
 
 	pr_debug("fh_to_parent %llx/%d\n", cfh->parent_ino,

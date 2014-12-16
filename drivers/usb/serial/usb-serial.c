@@ -69,6 +69,7 @@ struct usb_serial *usb_serial_get_by_index(unsigned index)
 			mutex_unlock(&serial->disc_mutex);
 			serial = NULL;
 		} else {
+			mutex_unlock(&serial->disc_mutex);
 			kref_get(&serial->kref);
 		}
 	}
@@ -679,7 +680,7 @@ int usb_serial_probe(struct usb_interface *interface,
 
 		if (retval) {
 			dbg("sub driver rejected device");
-			usb_serial_put(serial);
+			kfree(serial);
 			module_put(type->driver.owner);
 			return retval;
 		}
@@ -747,7 +748,7 @@ int usb_serial_probe(struct usb_interface *interface,
 
 		if (num_bulk_in == 0 || num_bulk_out == 0) {
 			dev_info(&interface->dev, "PL-2303 hack: descriptors matched but endpoints did not\n");
-			usb_serial_put(serial);
+			kfree(serial);
 			module_put(type->driver.owner);
 			return -ENODEV;
 		}
@@ -761,7 +762,7 @@ int usb_serial_probe(struct usb_interface *interface,
 		if (num_ports == 0) {
 			dev_err(&interface->dev,
 			    "Generic device with no bulk out, not allowed.\n");
-			usb_serial_put(serial);
+			kfree(serial);
 			module_put(type->driver.owner);
 			return -EIO;
 		}
@@ -1237,6 +1238,7 @@ static int usb_serial_register(struct usb_serial_driver *driver)
 				driver->description);
 		return -EINVAL;
 	}
+	driver->usb_driver->supports_autosuspend = 1;
 
 	
 	mutex_lock(&table_lock);
@@ -1276,12 +1278,9 @@ int usb_serial_register_drivers(struct usb_driver *udriver,
 	udriver->id_table = NULL;
 
 	udriver->no_dynamic_id = 1;
-	udriver->supports_autosuspend = 1;
-	udriver->suspend = usb_serial_suspend;
-	udriver->resume = usb_serial_resume;
 	rc = usb_register(udriver);
 	if (rc)
-		return rc;
+		goto failed1;
 
 	for (sd = serial_drivers; *sd; ++sd) {
 		(*sd)->usb_driver = udriver;
@@ -1298,6 +1297,7 @@ int usb_serial_register_drivers(struct usb_driver *udriver,
  failed:
 	while (sd-- > serial_drivers)
 		usb_serial_deregister(*sd);
+ failed1:
 	usb_deregister(udriver);
 	return rc;
 }

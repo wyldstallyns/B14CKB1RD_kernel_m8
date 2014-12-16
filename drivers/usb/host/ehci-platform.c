@@ -75,6 +75,8 @@ static const struct hc_driver ehci_platform_hc_driver = {
 	.relinquish_port	= ehci_relinquish_port,
 	.port_handed_over	= ehci_port_handed_over,
 
+	.update_device		= ehci_update_device,
+
 	.clear_tt_buffer_complete = ehci_clear_tt_buffer_complete,
 };
 
@@ -167,10 +169,10 @@ static int ehci_platform_resume(struct device *dev)
 	return 0;
 }
 
-#else 
+#else /* !CONFIG_PM */
 #define ehci_platform_suspend	NULL
 #define ehci_platform_resume	NULL
-#endif 
+#endif /* CONFIG_PM */
 
 static const struct platform_device_id ehci_platform_table[] = {
 	{ "ehci-platform", 0 },

@@ -59,17 +59,15 @@
 #define USB_PRODUCT_IPHONE_3G   0x1292
 #define USB_PRODUCT_IPHONE_3GS  0x1294
 #define USB_PRODUCT_IPHONE_4	0x1297
-#define USB_PRODUCT_IPAD 0x129a
 #define USB_PRODUCT_IPHONE_4_VZW 0x129c
 #define USB_PRODUCT_IPHONE_4S	0x12a0
-#define USB_PRODUCT_IPHONE_5	0x12a8
 
 #define IPHETH_USBINTF_CLASS    255
 #define IPHETH_USBINTF_SUBCLASS 253
 #define IPHETH_USBINTF_PROTO    1
 
 #define IPHETH_BUF_SIZE         1516
-#define IPHETH_IP_ALIGN		2	
+#define IPHETH_IP_ALIGN		2	/* padding at front of URB */
 #define IPHETH_TX_TIMEOUT       (5 * HZ)
 
 #define IPHETH_INTFNUM          2
@@ -103,19 +101,11 @@ static struct usb_device_id ipheth_table[] = {
 		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
 		IPHETH_USBINTF_PROTO) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(
-		USB_VENDOR_APPLE, USB_PRODUCT_IPAD,
-		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
-		IPHETH_USBINTF_PROTO) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(
 		USB_VENDOR_APPLE, USB_PRODUCT_IPHONE_4_VZW,
 		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
 		IPHETH_USBINTF_PROTO) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(
 		USB_VENDOR_APPLE, USB_PRODUCT_IPHONE_4S,
-		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
-		IPHETH_USBINTF_PROTO) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(
-		USB_VENDOR_APPLE, USB_PRODUCT_IPHONE_5,
 		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
 		IPHETH_USBINTF_PROTO) },
 	{ }
@@ -274,10 +264,10 @@ static int ipheth_carrier_set(struct ipheth_device *dev)
 
 	retval = usb_control_msg(udev,
 			usb_rcvctrlpipe(udev, IPHETH_CTRL_ENDP),
-			IPHETH_CMD_CARRIER_CHECK, 
-			0xc0, 
-			0x00, 
-			0x02, 
+			IPHETH_CMD_CARRIER_CHECK, /* request */
+			0xc0, /* request type */
+			0x00, /* value */
+			0x02, /* index */
 			dev->ctrl_buf, IPHETH_CTRL_BUF_SIZE,
 			IPHETH_CTRL_TIMEOUT);
 	if (retval < 0) {
@@ -310,10 +300,10 @@ static int ipheth_get_macaddr(struct ipheth_device *dev)
 
 	retval = usb_control_msg(udev,
 				 usb_rcvctrlpipe(udev, IPHETH_CTRL_ENDP),
-				 IPHETH_CMD_GET_MACADDR, 
-				 0xc0, 
-				 0x00, 
-				 0x02, 
+				 IPHETH_CMD_GET_MACADDR, /* request */
+				 0xc0, /* request type */
+				 0x00, /* value */
+				 0x02, /* index */
 				 dev->ctrl_buf,
 				 IPHETH_CTRL_BUF_SIZE,
 				 IPHETH_CTRL_TIMEOUT);
@@ -385,7 +375,7 @@ static int ipheth_tx(struct sk_buff *skb, struct net_device *net)
 	struct usb_device *udev = dev->udev;
 	int retval;
 
-	
+	/* Paranoid */
 	if (skb->len > IPHETH_BUF_SIZE) {
 		WARN(1, "%s: skb too large: %d bytes\n", __func__, skb->len);
 		dev->net->stats.tx_dropped++;
@@ -470,7 +460,7 @@ static int ipheth_probe(struct usb_interface *intf,
 	dev->net = netdev;
 	dev->intf = intf;
 
-	
+	/* Set up endpoints */
 	hintf = usb_altnum_to_altsetting(intf, IPHETH_ALT_INTFNUM);
 	if (hintf == NULL) {
 		retval = -ENODEV;

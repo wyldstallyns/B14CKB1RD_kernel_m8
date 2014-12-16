@@ -72,8 +72,13 @@ struct rionet_peer {
 static int rionet_check = 0;
 static int rionet_capable = 1;
 
+/*
+ * This is a fast lookup table for translating TX
+ * Ethernet packets into a destination RIO device. It
+ * could be made into a hash table to save memory depending
+ * on system trade-offs.
+ */
 static struct rio_dev **rionet_active;
-static int nact;	/* total number of active rionet peers */
 
 #define is_rionet_capable(src_ops, dst_ops)			\
 			((src_ops & RIO_SRC_OPS_DATA_MSG) &&	\
@@ -170,7 +175,6 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	struct ethhdr *eth = (struct ethhdr *)skb->data;
 	u16 destid;
 	unsigned long flags;
-	int add_num = 1;
 
 	local_irq_save(flags);
 	if (!spin_trylock(&rnet->tx_lock)) {
@@ -178,10 +182,7 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 		return NETDEV_TX_LOCKED;
 	}
 
-	if (is_multicast_ether_addr(eth->h_dest))
-		add_num = nact;
-
-	if ((rnet->tx_cnt + add_num) > RIONET_TX_RING_SIZE) {
+	if ((rnet->tx_cnt + 1) > RIONET_TX_RING_SIZE) {
 		netif_stop_queue(ndev);
 		spin_unlock_irqrestore(&rnet->tx_lock, flags);
 		printk(KERN_ERR "%s: BUG! Tx Ring full when queue awake!\n",
@@ -190,16 +191,11 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	}
 
 	if (is_multicast_ether_addr(eth->h_dest)) {
-		int count = 0;
 		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size);
 				i++)
-			if (rionet_active[i]) {
+			if (rionet_active[i])
 				rionet_queue_tx_msg(skb, ndev,
 						    rionet_active[i]);
-				if (count)
-					atomic_inc(&skb->users);
-				count++;
-			}
 	} else if (RIONET_MAC_MATCH(eth->h_dest)) {
 		destid = RIONET_GET_DESTID(eth->h_dest);
 		if (rionet_active[destid])
@@ -224,17 +220,14 @@ static void rionet_dbell_event(struct rio_mport *mport, void *dev_id, u16 sid, u
 	if (info == RIONET_DOORBELL_JOIN) {
 		if (!rionet_active[sid]) {
 			list_for_each_entry(peer, &rionet_peers, node) {
-				if (peer->rdev->destid == sid) {
+				if (peer->rdev->destid == sid)
 					rionet_active[sid] = peer->rdev;
-					nact++;
-				}
 			}
 			rio_mport_send_doorbell(mport, sid,
 						RIONET_DOORBELL_JOIN);
 		}
 	} else if (info == RIONET_DOORBELL_LEAVE) {
 		rionet_active[sid] = NULL;
-		nact--;
 	} else {
 		if (netif_msg_intr(rnet))
 			printk(KERN_WARNING "%s: unhandled doorbell\n",
@@ -271,7 +264,7 @@ static void rionet_outb_msg_event(struct rio_mport *mport, void *dev_id, int mbo
 		       DRV_NAME, mbox, slot);
 
 	while (rnet->tx_cnt && (rnet->ack_slot != slot)) {
-		
+		/* dma unmap single */
 		dev_kfree_skb_irq(rnet->tx_skb[rnet->ack_slot]);
 		rnet->tx_skb[rnet->ack_slot] = NULL;
 		++rnet->ack_slot;
@@ -315,7 +308,7 @@ static int rionet_open(struct net_device *ndev)
 					rionet_outb_msg_event)) < 0)
 		goto out;
 
-	
+	/* Initialize inbound message ring */
 	for (i = 0; i < RIONET_RX_RING_SIZE; i++)
 		rnet->rx_skb[i] = NULL;
 	rnet->rx_slot = 0;
@@ -338,7 +331,7 @@ static int rionet_open(struct net_device *ndev)
 			continue;
 		}
 
-		
+		/* Send a join message */
 		rio_send_doorbell(peer->rdev, RIONET_DOORBELL_JOIN);
 	}
 
@@ -450,11 +443,11 @@ static int rionet_setup_netdev(struct rio_mport *mport, struct net_device *ndev)
 	}
 	memset((void *)rionet_active, 0, rionet_active_bytes);
 
-	
+	/* Set up private area */
 	rnet = netdev_priv(ndev);
 	rnet->mport = mport;
 
-	
+	/* Set the default MAC address */
 	device_id = rio_local_get_device_id(mport);
 	ndev->dev_addr[0] = 0x00;
 	ndev->dev_addr[1] = 0x01;
@@ -488,6 +481,9 @@ static int rionet_setup_netdev(struct rio_mport *mport, struct net_device *ndev)
 	return rc;
 }
 
+/*
+ * XXX Make multi-net safe
+ */
 static int rionet_probe(struct rio_dev *rdev, const struct rio_device_id *id)
 {
 	int rc = -ENODEV;
@@ -495,17 +491,22 @@ static int rionet_probe(struct rio_dev *rdev, const struct rio_device_id *id)
 	struct rionet_peer *peer;
 	struct net_device *ndev = NULL;
 
-	
+	/* If local device is not rionet capable, give up quickly */
 	if (!rionet_capable)
 		goto out;
 
-	
+	/* Allocate our net_device structure */
 	ndev = alloc_etherdev(sizeof(struct rionet_private));
 	if (ndev == NULL) {
 		rc = -ENOMEM;
 		goto out;
 	}
 
+	/*
+	 * First time through, make sure local device is rionet
+	 * capable, setup netdev,  and set flags so this is skipped
+	 * on later probes
+	 */
 	if (!rionet_check) {
 		rio_local_read_config_32(rdev->net->hport, RIO_SRC_OPS_CAR,
 					 &lsrc_ops);
@@ -522,9 +523,12 @@ static int rionet_probe(struct rio_dev *rdev, const struct rio_device_id *id)
 
 		rc = rionet_setup_netdev(rdev->net->hport, ndev);
 		rionet_check = 1;
-		nact = 0;
 	}
 
+	/*
+	 * If the remote device has mailbox/doorbell capabilities,
+	 * add it to the peer list.
+	 */
 	if (dev_rionet_capable(rdev)) {
 		if (!(peer = kmalloc(sizeof(struct rionet_peer), GFP_KERNEL))) {
 			rc = -ENOMEM;

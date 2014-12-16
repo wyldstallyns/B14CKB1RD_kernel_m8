@@ -1449,7 +1449,7 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 	struct snd_soc_dapm_context *d;
 	LIST_HEAD(up_list);
 	LIST_HEAD(down_list);
-	LIST_HEAD(async_domain);
+	ASYNC_DOMAIN_EXCLUSIVE(async_domain);
 	enum snd_soc_bias_level bias;
 
 	trace_snd_soc_dapm_start(card);
@@ -1478,15 +1478,7 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 	}
 
 	list_for_each_entry(w, &card->widgets, list) {
-		switch (w->id) {
-		case snd_soc_dapm_pre:
-		case snd_soc_dapm_post:
-			/* These widgets always need to be powered */
-			break;
-		default:
-			list_del_init(&w->dirty);
-			break;
-		}
+		list_del_init(&w->dirty);
 
 		if (w->power) {
 			d = w->dapm;
@@ -1971,8 +1963,10 @@ static int snd_soc_dapm_set_pin(struct snd_soc_dapm_context *dapm,
 {
 	struct snd_soc_dapm_widget *w = dapm_find_widget(dapm, pin, true);
 
+	mutex_lock_nested(&dapm->card->dapm_mutex, SND_SOC_DAPM_CLASS_PCM);
 	if (!w) {
 		dev_err(dapm->dev, "dapm: unknown pin %s\n", pin);
+		mutex_unlock(&dapm->card->dapm_mutex);
 		return -EINVAL;
 	}
 
@@ -1981,6 +1975,7 @@ static int snd_soc_dapm_set_pin(struct snd_soc_dapm_context *dapm,
 		w->force = 0;
 	dapm_mark_dirty(w, "pin configuration");
 
+	mutex_unlock(&dapm->card->dapm_mutex);
 	return 0;
 }
 
@@ -2147,6 +2142,7 @@ int snd_soc_dapm_add_routes(struct snd_soc_dapm_context *dapm,
 		if (ret < 0) {
 			dev_err(dapm->dev, "Failed to add route %s->%s\n",
 				route->source, route->sink);
+			mutex_unlock(&dapm->card->dapm_mutex);
 			return ret;
 		}
 		route++;
@@ -2717,6 +2713,7 @@ int snd_soc_dapm_new_controls(struct snd_soc_dapm_context *dapm,
 			dev_err(dapm->dev,
 				"ASoC: Failed to create DAPM control %s: %d\n",
 				widget->name, ret);
+			mutex_unlock(&dapm->card->dapm_mutex);
 			return ret;
 		}
 		widget++;
@@ -2849,8 +2846,10 @@ int snd_soc_dapm_force_enable_pin(struct snd_soc_dapm_context *dapm,
 {
 	struct snd_soc_dapm_widget *w = dapm_find_widget(dapm, pin, true);
 
+	mutex_lock_nested(&dapm->card->dapm_mutex, SND_SOC_DAPM_CLASS_PCM);
 	if (!w) {
 		dev_err(dapm->dev, "dapm: unknown pin %s\n", pin);
+		mutex_unlock(&dapm->card->dapm_mutex);
 		return -EINVAL;
 	}
 
@@ -2858,6 +2857,7 @@ int snd_soc_dapm_force_enable_pin(struct snd_soc_dapm_context *dapm,
 	w->connected = 1;
 	w->force = 1;
 	dapm_mark_dirty(w, "force enable");
+	mutex_unlock(&dapm->card->dapm_mutex);
 
 	return 0;
 }
@@ -3000,7 +3000,7 @@ void snd_soc_dapm_shutdown(struct snd_soc_card *card)
 {
 	struct snd_soc_codec *codec;
 
-	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
+	list_for_each_entry(codec, &card->codec_dev_list, list) {
 		soc_dapm_shutdown_codec(&codec->dapm);
 		snd_soc_dapm_set_bias_level(&codec->dapm, SND_SOC_BIAS_OFF);
 	}

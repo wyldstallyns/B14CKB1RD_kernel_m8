@@ -17,7 +17,7 @@ endif
 
 OBJCOPYFLAGS	:=-O binary -R .comment -S
 GZFLAGS		:=-9
-KBUILD_CFLAGS	+=-pipe
+#KBUILD_CFLAGS	+=-pipe
 # Explicitly specifiy 32-bit ARM ISA since toolchain default can be -mthumb:
 KBUILD_CFLAGS	+=$(call cc-option,-marm,)
 
@@ -259,13 +259,18 @@ endif
 core-$(CONFIG_FPE_NWFPE)	+= arch/arm/nwfpe/
 core-$(CONFIG_FPE_FASTFPE)	+= $(FASTFPE_OBJ)
 core-$(CONFIG_VFP)		+= arch/arm/vfp/
+
+# TODO: Need to change to BCC flag controlling method
 core-$(CONFIG_VMWARE_MVP)   += arch/arm/mvp/
+
+ifeq ("true", $(findstring "true", "$(BUILD_VMWARE_FLAG)" "$(HTCBCC_VMWARE_FLAG)"))
+core-y   += arch/arm/mvp/
+endif
 
 # If we have a machine-specific directory, then include it in the build.
 core-y				+= arch/arm/kernel/ arch/arm/mm/ arch/arm/common/
 core-y				+= arch/arm/net/
 core-y				+= $(machdirs) $(platdirs)
-core-$(CONFIG_INTELLI_PLUG)	+= arch/arm/hotplug/
 
 drivers-$(CONFIG_OPROFILE)      += arch/arm/oprofile/
 core-y				+= arch/arm/perfmon/

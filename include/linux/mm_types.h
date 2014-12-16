@@ -44,18 +44,8 @@ struct page {
 		};
 
 		union {
-#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 			/* Used for cmpxchg_double in slub */
- 			unsigned long counters;
-#else
-			/*
-			 * Keep _count separate from slub cmpxchg_double data.
-			 * As the rest of the double word is protected by
-			 * slab_lock but _count is not.
-			 */
-			unsigned counters;
-#endif
+			
+			unsigned long counters;
 
 			struct {
 
@@ -165,7 +155,6 @@ struct vm_area_struct {
 		} vm_set;
 
 		struct raw_prio_tree_node prio_tree_node;
-		const char __user *anon_name;
 	} shared;
 
 	struct list_head anon_vma_chain; 
@@ -304,15 +293,6 @@ static inline void mm_init_cpumask(struct mm_struct *mm)
 static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
 {
 	return mm->cpu_vm_mask_var;
-}
-
-
-static inline const char __user *vma_get_anon_name(struct vm_area_struct *vma)
-{
-	if (vma->vm_file)
-		return NULL;
-
-	return vma->shared.anon_name;
 }
 
 #endif 

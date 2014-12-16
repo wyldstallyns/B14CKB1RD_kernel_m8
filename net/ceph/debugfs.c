@@ -14,6 +14,18 @@
 
 #ifdef CONFIG_DEBUG_FS
 
+/*
+ * Implement /sys/kernel/debug/ceph fun
+ *
+ * /sys/kernel/debug/ceph/client*  - an instance of the ceph client
+ *      .../osdmap      - current osdmap
+ *      .../monmap      - current monmap
+ *      .../osdc        - active osd requests
+ *      .../monc        - mon client state
+ *      .../dentry_lru  - dump contents of dentry lru
+ *      .../caps        - expose cap (reservation) stats
+ *      .../bdi         - symlink to ../../bdi/something
+ */
 
 static struct dentry *ceph_debugfs_dir;
 
@@ -177,9 +189,6 @@ int ceph_debugfs_client_init(struct ceph_client *client)
 	snprintf(name, sizeof(name), "%pU.client%lld", &client->fsid,
 		 client->monc.auth->global_id);
 
-	dout("ceph_debugfs_client_init %p %s\n", client, name);
-
-	BUG_ON(client->debugfs_dir);
 	client->debugfs_dir = debugfs_create_dir(name, ceph_debugfs_dir);
 	if (!client->debugfs_dir)
 		goto out;
@@ -225,7 +234,6 @@ out:
 
 void ceph_debugfs_client_cleanup(struct ceph_client *client)
 {
-	dout("ceph_debugfs_client_cleanup %p\n", client);
 	debugfs_remove(client->debugfs_osdmap);
 	debugfs_remove(client->debugfs_monmap);
 	debugfs_remove(client->osdc.debugfs_file);
@@ -233,7 +241,7 @@ void ceph_debugfs_client_cleanup(struct ceph_client *client)
 	debugfs_remove(client->debugfs_dir);
 }
 
-#else  
+#else  /* CONFIG_DEBUG_FS */
 
 int ceph_debugfs_init(void)
 {
@@ -253,7 +261,7 @@ void ceph_debugfs_client_cleanup(struct ceph_client *client)
 {
 }
 
-#endif  
+#endif  /* CONFIG_DEBUG_FS */
 
 EXPORT_SYMBOL(ceph_debugfs_init);
 EXPORT_SYMBOL(ceph_debugfs_cleanup);

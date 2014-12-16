@@ -33,7 +33,7 @@
 
 static bool is_enabled;
 
-static void __init tegra_cpu_reset_handler_enable(void)
+static void tegra_cpu_reset_handler_enable(void)
 {
 	void __iomem *iram_base = IO_ADDRESS(TEGRA_IRAM_RESET_BASE);
 	void __iomem *evp_cpu_reset =
@@ -47,11 +47,19 @@ static void __init tegra_cpu_reset_handler_enable(void)
 	memcpy(iram_base, (void *)__tegra_cpu_reset_handler_start,
 			tegra_cpu_reset_handler_size);
 
+	/*
+	 * NOTE: This must be the one and only write to the EVP CPU reset
+	 *       vector in the entire system.
+	 */
 	writel(TEGRA_IRAM_RESET_BASE + tegra_cpu_reset_handler_offset,
 			evp_cpu_reset);
 	wmb();
 	reg = readl(evp_cpu_reset);
 
+	/*
+	 * Prevent further modifications to the physical reset vector.
+	 *  NOTE: Has no effect on chips prior to Tegra30.
+	 */
 	if (tegra_chip_id != TEGRA20) {
 		reg = readl(sb_ctrl);
 		reg |= 2;

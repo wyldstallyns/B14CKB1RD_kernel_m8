@@ -463,7 +463,7 @@ asmlinkage void __init start_kernel(void)
 	parse_early_param();
 	parse_args("Booting kernel", static_command_line, __start___param,
 		   __stop___param - __start___param,
-		   -1, -1, &unknown_bootoption);
+		   0, 0, &unknown_bootoption);
 
 	jump_label_init();
 
@@ -502,6 +502,9 @@ asmlinkage void __init start_kernel(void)
 	early_boot_irqs_disabled = false;
 	local_irq_enable();
 
+	
+	gfp_allowed_mask = __GFP_BITS_MASK;
+
 	kmem_cache_init_late();
 
 	console_init();
@@ -534,7 +537,7 @@ asmlinkage void __init start_kernel(void)
 	pidmap_init();
 	anon_vma_init();
 #ifdef CONFIG_X86
-	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	if (efi_enabled)
 		efi_enter_virtual_mode();
 #endif
 	thread_info_cache_init();
@@ -561,9 +564,6 @@ asmlinkage void __init start_kernel(void)
 
 	acpi_early_init(); 
 	sfi_init_late();
-
-	if (efi_enabled(EFI_RUNTIME_SERVICES))
-		efi_free_boot_services();
 
 	ftrace_init();
 
@@ -759,13 +759,6 @@ static noinline int init_post(void)
 static int __init kernel_init(void * unused)
 {
 	wait_for_completion(&kthreadd_done);
-
-	/* Now the scheduler is fully set up and can do blocking allocations */
-	gfp_allowed_mask = __GFP_BITS_MASK;
-
-	/*
-	 * init can allocate pages on any node
-	 */
 	set_mems_allowed(node_states[N_HIGH_MEMORY]);
 	set_cpus_allowed_ptr(current, cpu_all_mask);
 

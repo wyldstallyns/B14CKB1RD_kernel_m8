@@ -34,7 +34,6 @@
 #include <linux/dmi.h>
 #include <linux/slab.h>
 #include <linux/suspend.h>
-#include <asm/unaligned.h>
 
 #ifdef CONFIG_ACPI_PROCFS_POWER
 #include <linux/proc_fs.h>
@@ -56,6 +55,7 @@
 #define ACPI_BATTERY_NOTIFY_INFO	0x81
 #define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
 
+/* Battery power unit: 0 means mW, 1 means mA */
 #define ACPI_BATTERY_POWER_UNIT_MA	1
 
 #define _COMPONENT		ACPI_BATTERY_COMPONENT
@@ -95,18 +95,6 @@ enum {
 	ACPI_BATTERY_ALARM_PRESENT,
 	ACPI_BATTERY_XINFO_PRESENT,
 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
-	/* On Lenovo Thinkpad models from 2010 and 2011, the power unit
-	   switches between mWh and mAh depending on whether the system
-	   is running on battery or not.  When mAh is the unit, most
-	   reported values are incorrect and need to be adjusted by
-	   10000/design_voltage.  Verified on x201, t410, t410s, and x220.
-	   Pre-2010 and 2012 models appear to always report in mWh and
-	   are thus unaffected (tested with t42, t61, t500, x200, x300,
-	   and x230).  Also, in mid-2012 Lenovo issued a BIOS update for
-	   the 2011 models that fixes the issue (tested on x220 with a
-	   post-1.29 BIOS), but as of Nov. 2012, no such update is
-	   available for the 2010 models.  */
-	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
 };
 
 struct acpi_battery {
@@ -169,24 +157,24 @@ static int acpi_battery_get_state(struct acpi_battery *battery);
 
 static int acpi_battery_is_charged(struct acpi_battery *battery)
 {
-	
+	/* either charging or discharging */
 	if (battery->state != 0)
 		return 0;
 
-	
+	/* battery not reporting charge */
 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN ||
 	    battery->capacity_now == 0)
 		return 0;
 
-	
+	/* good batteries update full_charge as the batteries degrade */
 	if (battery->full_charge_capacity == battery->capacity_now)
 		return 1;
 
-	
+	/* fallback to using design values for broken batteries */
 	if (battery->design_capacity == battery->capacity_now)
 		return 1;
 
-	
+	/* we don't do any sort of metric based on percentages */
 	return 0;
 }
 
@@ -198,7 +186,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
 	struct acpi_battery *battery = to_acpi_battery(psy);
 
 	if (acpi_battery_present(battery)) {
-		
+		/* run battery update only if it is present */
 		acpi_battery_get_state(battery);
 	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
 		return -ENODEV;
@@ -317,9 +305,12 @@ inline char *acpi_battery_units(struct acpi_battery *battery)
 }
 #endif
 
+/* --------------------------------------------------------------------------
+                               Battery Management
+   -------------------------------------------------------------------------- */
 struct acpi_offsets {
-	size_t offset;		
-	u8 mode;		
+	size_t offset;		/* offset inside struct acpi_sbs_battery */
+	u8 mode;		/* int or string? */
 };
 
 static struct acpi_offsets state_offsets[] = {
@@ -389,7 +380,7 @@ static int extract_package(struct acpi_battery *battery,
 					sizeof(u64));
 				ptr[sizeof(u64)] = 0;
 			} else
-				*ptr = 0; 
+				*ptr = 0; /* don't have value */
 		} else {
 			int *x = (int *)((u8 *)battery + offsets[i].offset);
 			*x = (element->type == ACPI_TYPE_INTEGER) ?
@@ -438,21 +429,6 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
 	kfree(buffer.pointer);
 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
 		battery->full_charge_capacity = battery->design_capacity;
-	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-	    battery->power_unit && battery->design_voltage) {
-		battery->design_capacity = battery->design_capacity *
-		    10000 / battery->design_voltage;
-		battery->full_charge_capacity = battery->full_charge_capacity *
-		    10000 / battery->design_voltage;
-		battery->design_capacity_warning =
-		    battery->design_capacity_warning *
-		    10000 / battery->design_voltage;
-		/* Curiously, design_capacity_low, unlike the rest of them,
-		   is correct.  */
-		/* capacity_granularity_* equal 1 on the systems tested, so
-		   it's impossible to tell if they would need an adjustment
-		   or not if their values were higher.  */
-	}
 	return result;
 }
 
@@ -485,6 +461,10 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
 	battery->update_time = jiffies;
 	kfree(buffer.pointer);
 
+	/* For buggy DSDTs that report negative 16-bit values for either
+	 * charging or discharging current and/or report 0 as 65536
+	 * due to bad math.
+	 */
 	if (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA &&
 		battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
 		(s16)(battery->rate_now) < 0) {
@@ -497,11 +477,6 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
 		battery->capacity_now = (battery->capacity_now *
 				battery->full_charge_capacity) / 100;
-	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-	    battery->power_unit && battery->design_voltage) {
-		battery->capacity_now = battery->capacity_now *
-		    10000 / battery->design_voltage;
-	}
 	return result;
 }
 
@@ -534,7 +509,7 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
 	acpi_status status = AE_OK;
 	acpi_handle handle = NULL;
 
-	
+	/* See if alarms are supported, and if so, set default */
 	status = acpi_get_handle(battery->device->handle, "_BTP", &handle);
 	if (ACPI_FAILURE(status)) {
 		clear_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags);
@@ -611,24 +586,18 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
 	mutex_unlock(&battery->sysfs_lock);
 }
 
-static void find_battery(const struct dmi_header *dm, void *private)
-{
-	struct acpi_battery *battery = (struct acpi_battery *)private;
-	/* Note: the hardcoded offsets below have been extracted from
-	   the source code of dmidecode.  */
-	if (dm->type == DMI_ENTRY_PORTABLE_BATTERY && dm->length >= 8) {
-		const u8 *dmi_data = (const u8 *)(dm + 1);
-		int dmi_capacity = get_unaligned((const u16 *)(dmi_data + 6));
-		if (dm->length >= 18)
-			dmi_capacity *= dmi_data[17];
-		if (battery->design_capacity * battery->design_voltage / 1000
-		    != dmi_capacity &&
-		    battery->design_capacity * 10 == dmi_capacity)
-			set_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-				&battery->flags);
-	}
-}
-
+/*
+ * According to the ACPI spec, some kinds of primary batteries can
+ * report percentage battery remaining capacity directly to OS.
+ * In this case, it reports the Last Full Charged Capacity == 100
+ * and BatteryPresentRate == 0xFFFFFFFF.
+ *
+ * Now we found some battery reports percentage remaining capacity
+ * even if it's rechargeable.
+ * https://bugzilla.kernel.org/show_bug.cgi?id=15979
+ *
+ * Handle this correctly so that they won't break userspace.
+ */
 static void acpi_battery_quirks(struct acpi_battery *battery)
 {
 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
@@ -641,32 +610,6 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
 		battery->full_charge_capacity = battery->design_capacity;
 		battery->capacity_now = (battery->capacity_now *
 				battery->full_charge_capacity) / 100;
-	}
-
-	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
-		return ;
-
-	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
-		const char *s;
-		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
-		if (s && !strnicmp(s, "ThinkPad", 8)) {
-			dmi_walk(find_battery, battery);
-			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-				     &battery->flags) &&
-			    battery->design_voltage) {
-				battery->design_capacity =
-				    battery->design_capacity *
-				    10000 / battery->design_voltage;
-				battery->full_charge_capacity =
-				    battery->full_charge_capacity *
-				    10000 / battery->design_voltage;
-				battery->design_capacity_warning =
-				    battery->design_capacity_warning *
-				    10000 / battery->design_voltage;
-				battery->capacity_now = battery->capacity_now *
-				    10000 / battery->design_voltage;
-			}
-		}
 	}
 }
 
@@ -704,11 +647,14 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
 		return;
 
 	acpi_battery_get_info(battery);
-	
+	/* The battery may have changed its reporting units. */
 	sysfs_remove_battery(battery);
 	sysfs_add_battery(battery);
 }
 
+/* --------------------------------------------------------------------------
+                              FS Interface (/proc)
+   -------------------------------------------------------------------------- */
 
 #ifdef CONFIG_ACPI_PROCFS_POWER
 static struct proc_dir_entry *acpi_battery_dir;
@@ -979,6 +925,9 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
 
 #endif
 
+/* --------------------------------------------------------------------------
+                                 Driver Interface
+   -------------------------------------------------------------------------- */
 
 static void acpi_battery_notify(struct acpi_device *device, u32 event)
 {
@@ -996,7 +945,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
 	acpi_bus_generate_netlink_event(device->pnp.device_class,
 					dev_name(&device->dev), event,
 					acpi_battery_present(battery));
-	
+	/* acpi_battery_update could remove power_supply object */
 	if (old && battery->bat.dev)
 		power_supply_changed(&battery->bat);
 }
@@ -1086,6 +1035,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
 	return 0;
 }
 
+/* this is needed to learn about changes made in suspended state */
 static int acpi_battery_resume(struct acpi_device *device)
 {
 	struct acpi_battery *battery;

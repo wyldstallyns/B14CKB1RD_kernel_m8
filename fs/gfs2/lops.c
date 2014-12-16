@@ -30,6 +30,13 @@
 #include "util.h"
 #include "trace_gfs2.h"
 
+/**
+ * gfs2_pin - Pin a buffer in memory
+ * @sdp: The superblock
+ * @bh: The buffer to be pinned
+ *
+ * The log lock must be held when calling this function
+ */
 static void gfs2_pin(struct gfs2_sbd *sdp, struct buffer_head *bh)
 {
 	struct gfs2_bufdata *bd;
@@ -77,6 +84,14 @@ static void maybe_release_space(struct gfs2_bufdata *bd)
 	rgd->rd_free_clone = rgd->rd_free;
 }
 
+/**
+ * gfs2_unpin - Unpin a buffer
+ * @sdp: the filesystem the buffer belongs to
+ * @bh: The buffer to unpin
+ * @ai:
+ * @flags: The inode dirty flags
+ *
+ */
 
 static void gfs2_unpin(struct gfs2_sbd *sdp, struct buffer_head *bh,
 		       struct gfs2_ail *ai)
@@ -129,6 +144,12 @@ static inline __be64 *bh_ptr_end(struct buffer_head *bh)
 	return (__force __be64 *)(bh->b_data + bh->b_size);
 }
 
+/**
+ * gfs2_log_write_endio - End of I/O for a log buffer
+ * @bh: The buffer head
+ * @uptodate: I/O Status
+ *
+ */
 
 static void gfs2_log_write_endio(struct buffer_head *bh, int uptodate)
 {
@@ -140,6 +161,12 @@ static void gfs2_log_write_endio(struct buffer_head *bh, int uptodate)
 		wake_up(&sdp->sd_log_flush_wait);
 }
 
+/**
+ * gfs2_log_get_buf - Get and initialize a buffer to use for log control data
+ * @sdp: The GFS2 superblock
+ *
+ * tReturns: the buffer_head
+ */
 
 static struct buffer_head *gfs2_log_get_buf(struct gfs2_sbd *sdp)
 {
@@ -159,6 +186,12 @@ static struct buffer_head *gfs2_log_get_buf(struct gfs2_sbd *sdp)
 	return bh;
 }
 
+/**
+ * gfs2_fake_write_endio - 
+ * @bh: The buffer head
+ * @uptodate: The I/O Status
+ *
+ */
 
 static void gfs2_fake_write_endio(struct buffer_head *bh, int uptodate)
 {
@@ -174,6 +207,13 @@ static void gfs2_fake_write_endio(struct buffer_head *bh, int uptodate)
 		wake_up(&sdp->sd_log_flush_wait);
 }
 
+/**
+ * gfs2_log_fake_buf - Build a fake buffer head to write metadata buffer to log
+ * @sdp: the filesystem
+ * @data: the data the buffer_head should point to
+ *
+ * Returns: the log buffer descriptor
+ */
 
 static struct buffer_head *gfs2_log_fake_buf(struct gfs2_sbd *sdp,
 				      struct buffer_head *real)
@@ -218,14 +258,16 @@ static void buf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 	struct gfs2_meta_header *mh;
 	struct gfs2_trans *tr;
 
+	lock_buffer(bd->bd_bh);
+	gfs2_log_lock(sdp);
 	if (!list_empty(&bd->bd_list_tr))
-		return;
+		goto out;
 	tr = current->journal_info;
 	tr->tr_touched = 1;
 	tr->tr_num_buf++;
 	list_add(&bd->bd_list_tr, &tr->tr_list_buf);
 	if (!list_empty(&le->le_list))
-		return;
+		goto out;
 	set_bit(GLF_LFLUSH, &bd->bd_gl->gl_flags);
 	set_bit(GLF_DIRTY, &bd->bd_gl->gl_flags);
 	gfs2_meta_check(sdp, bd->bd_bh);
@@ -236,6 +278,9 @@ static void buf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 	sdp->sd_log_num_buf++;
 	list_add(&le->le_list, &sdp->sd_log_le_buf);
 	tr->tr_num_buf_new++;
+out:
+	gfs2_log_unlock(sdp);
+	unlock_buffer(bd->bd_bh);
 }
 
 static void buf_lo_before_commit(struct gfs2_sbd *sdp)
@@ -250,7 +295,7 @@ static void buf_lo_before_commit(struct gfs2_sbd *sdp)
 	__be64 *ptr;
 
 	limit = buf_limit(sdp);
-	
+	/* for 4k blocks, limit = 503 */
 
 	gfs2_log_lock(sdp);
 	total = sdp->sd_log_num_buf;
@@ -543,6 +588,22 @@ static void revoke_lo_after_scan(struct gfs2_jdesc *jd, int error, int pass)
 	gfs2_revoke_clean(sdp);
 }
 
+/**
+ * databuf_lo_add - Add a databuf to the transaction.
+ *
+ * This is used in two distinct cases:
+ * i) In ordered write mode
+ *    We put the data buffer on a list so that we can ensure that its
+ *    synced to disk at the right time
+ * ii) In journaled data mode
+ *    We need to journal the data block in the same way as metadata in
+ *    the functions above. The difference is that here we have a tag
+ *    which is two __be64's being the block number (as per meta data)
+ *    and a flag which says whether the data block needs escaping or
+ *    not. This means we need a new log entry for each 251 or so data
+ *    blocks, which isn't an enormous overhead but twice as much as
+ *    for normal metadata blocks.
+ */
 static void databuf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 {
 	struct gfs2_bufdata *bd = container_of(le, struct gfs2_bufdata, bd_le);
@@ -550,9 +611,11 @@ static void databuf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 	struct address_space *mapping = bd->bd_bh->b_page->mapping;
 	struct gfs2_inode *ip = GFS2_I(mapping->host);
 
+	lock_buffer(bd->bd_bh);
+	gfs2_log_lock(sdp);
 	if (tr) {
 		if (!list_empty(&bd->bd_list_tr))
-			return;
+			goto out;
 		tr->tr_touched = 1;
 		if (gfs2_is_jdata(ip)) {
 			tr->tr_num_buf++;
@@ -560,7 +623,7 @@ static void databuf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 		}
 	}
 	if (!list_empty(&le->le_list))
-		return;
+		goto out;
 
 	set_bit(GLF_LFLUSH, &bd->bd_gl->gl_flags);
 	set_bit(GLF_DIRTY, &bd->bd_gl->gl_flags);
@@ -572,6 +635,9 @@ static void databuf_lo_add(struct gfs2_sbd *sdp, struct gfs2_log_element *le)
 	} else {
 		list_add_tail(&le->le_list, &sdp->sd_log_le_ordered);
 	}
+out:
+	gfs2_log_unlock(sdp);
+	unlock_buffer(bd->bd_bh);
 }
 
 static void gfs2_check_magic(struct buffer_head *bh)
@@ -640,6 +706,10 @@ static void gfs2_write_blocks(struct gfs2_sbd *sdp, struct buffer_head *bh,
 	brelse(bh);
 }
 
+/**
+ * databuf_lo_before_commit - Scan the data buffers, writing as we go
+ *
+ */
 
 static void databuf_lo_before_commit(struct gfs2_sbd *sdp)
 {
@@ -709,7 +779,7 @@ static int databuf_lo_scan_elements(struct gfs2_jdesc *jd, unsigned int start,
 		bh_ip = gfs2_meta_new(gl, blkno);
 		memcpy(bh_ip->b_data, bh_log->b_data, bh_log->b_size);
 
-		
+		/* Unescape */
 		if (esc) {
 			__be32 *eptr = (__be32 *)bh_ip->b_data;
 			*eptr = cpu_to_be32(GFS2_MAGIC);
@@ -725,6 +795,7 @@ static int databuf_lo_scan_elements(struct gfs2_jdesc *jd, unsigned int start,
 	return error;
 }
 
+/* FIXME: sort out accounting for log blocks etc. */
 
 static void databuf_lo_after_scan(struct gfs2_jdesc *jd, int error, int pass)
 {
@@ -738,7 +809,7 @@ static void databuf_lo_after_scan(struct gfs2_jdesc *jd, int error, int pass)
 	if (pass != 1)
 		return;
 
-	
+	/* data sync? */
 	gfs2_meta_sync(ip->i_gl);
 
 	fs_info(sdp, "jid=%u: Replayed %u of %u data blocks\n",

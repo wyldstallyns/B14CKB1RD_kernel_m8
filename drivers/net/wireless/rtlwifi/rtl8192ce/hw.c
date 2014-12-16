@@ -897,7 +897,7 @@ int rtl92ce_hw_init(struct ieee80211_hw *hw)
 	struct rtl_phy *rtlphy = &(rtlpriv->phy);
 	struct rtl_pci *rtlpci = rtl_pcidev(rtl_pcipriv(hw));
 	struct rtl_ps_ctl *ppsc = rtl_psc(rtl_priv(hw));
-	static bool iqk_initialized; 
+	static bool iqk_initialized; /* initialized to false */
 	bool rtstatus = true;
 	bool is92c;
 	int err;
@@ -995,16 +995,8 @@ static enum version_8192c _rtl92ce_read_chip_version(struct ieee80211_hw *hw)
 		version = (value32 & TYPE_ID) ? VERSION_A_CHIP_92C :
 			   VERSION_A_CHIP_88C;
 	} else {
-		version = (enum version_8192c) (CHIP_VER_B |
-				((value32 & TYPE_ID) ? CHIP_92C_BITMASK : 0) |
-				((value32 & VENDOR_ID) ? CHIP_VENDOR_UMC : 0));
-		if ((!IS_CHIP_VENDOR_UMC(version)) && (value32 &
-		     CHIP_VER_RTL_MASK)) {
-			version = (enum version_8192c)(version |
-				   ((((value32 & CHIP_VER_RTL_MASK) == BIT(12))
-				   ? CHIP_VENDOR_UMC_B_CUT : CHIP_UNKNOWN) |
-				   CHIP_VENDOR_UMC));
-		}
+		version = (value32 & TYPE_ID) ? VERSION_B_CHIP_92C :
+			   VERSION_B_CHIP_88C;
 	}
 
 	switch (version) {
@@ -1151,6 +1143,7 @@ int rtl92ce_set_network_type(struct ieee80211_hw *hw, enum nl80211_iftype type)
 	return 0;
 }
 
+/* don't set REG_EDCA_BE_PARAM here because mac80211 will send pkt when scan */
 void rtl92ce_set_qos(struct ieee80211_hw *hw, int aci)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
@@ -1160,7 +1153,7 @@ void rtl92ce_set_qos(struct ieee80211_hw *hw, int aci)
 		rtl_write_dword(rtlpriv, REG_EDCA_BK_PARAM, 0xa44f);
 		break;
 	case AC0_BE:
-		
+		/* rtl_write_dword(rtlpriv, REG_EDCA_BE_PARAM, u4b_ac_param); */
 		break;
 	case AC2_VI:
 		rtl_write_dword(rtlpriv, REG_EDCA_VI_PARAM, 0x5e4322);
@@ -1265,6 +1258,10 @@ void rtl92ce_interrupt_recognized(struct ieee80211_hw *hw,
 	*p_inta = rtl_read_dword(rtlpriv, ISR) & rtlpci->irq_mask[0];
 	rtl_write_dword(rtlpriv, ISR, *p_inta);
 
+	/*
+	 * *p_intb = rtl_read_dword(rtlpriv, REG_HISRE) & rtlpci->irq_mask[1];
+	 * rtl_write_dword(rtlpriv, ISR + 4, *p_intb);
+	 */
 }
 
 void rtl92ce_set_beacon_related_registers(struct ieee80211_hw *hw)
@@ -1275,7 +1272,7 @@ void rtl92ce_set_beacon_related_registers(struct ieee80211_hw *hw)
 	u16 bcn_interval, atim_window;
 
 	bcn_interval = mac->beacon_interval;
-	atim_window = 2;	
+	atim_window = 2;	/*FIX MERGE */
 	rtl92ce_disable_interrupt(hw);
 	rtl_write_word(rtlpriv, REG_ATIMWND, atim_window);
 	rtl_write_word(rtlpriv, REG_BCN_INTERVAL, bcn_interval);
@@ -1600,7 +1597,7 @@ static void _rtl92ce_read_adapter_info(struct ieee80211_hw *hw)
 	RT_TRACE(rtlpriv, COMP_INIT, DBG_LOUD,
 		 "EEPROM Customer ID: 0x%2x\n", rtlefuse->eeprom_oemid);
 
-	
+	/* set channel paln to world wide 13 */
 	rtlefuse->channel_plan = COUNTRY_CODE_WORLD_WIDE_13;
 
 	if (rtlhal->oem_id == RT_CID_DEFAULT) {
@@ -2230,11 +2227,11 @@ void rtl8192ce_bt_reg_init(struct ieee80211_hw *hw)
 {
 	struct rtl_pci_priv *rtlpcipriv = rtl_pcipriv(hw);
 
-	
+	/* 0:Low, 1:High, 2:From Efuse. */
 	rtlpcipriv->bt_coexist.reg_bt_iso = 2;
-	
+	/* 0:Idle, 1:None-SCO, 2:SCO, 3:From Counter. */
 	rtlpcipriv->bt_coexist.reg_bt_sco = 3;
-	
+	/* 0:Disable BT control A-MPDU, 1:Enable BT control A-MPDU. */
 	rtlpcipriv->bt_coexist.reg_bt_sco = 0;
 }
 
@@ -2267,7 +2264,7 @@ void rtl8192ce_bt_hw_init(struct ieee80211_hw *hw)
 		rtl_write_dword(rtlpriv, REG_BT_COEX_TABLE+8, 0xffbd0040);
 		rtl_write_dword(rtlpriv, REG_BT_COEX_TABLE+0xc, 0x40000010);
 
-		
+		/* Config to 1T1R. */
 		if (rtlphy->rf_type == RF_1T1R) {
 			u1_tmp = rtl_read_byte(rtlpriv, ROFDM0_TRXPATHENABLE);
 			u1_tmp &= ~(BIT_OFFSET_LEN_MASK_32(1, 1));

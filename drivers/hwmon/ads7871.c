@@ -21,26 +21,38 @@
  *	},
  */
 
-#define REG_LS_BYTE	0 
-#define REG_MS_BYTE	1 
-#define REG_PGA_VALID	2 
-#define REG_AD_CONTROL	3 
-#define REG_GAIN_MUX	4 
-#define REG_IO_STATE	5 
-#define REG_IO_CONTROL	6 
-#define REG_OSC_CONTROL	7 
-#define REG_SER_CONTROL 24 
-#define REG_ID		31 
+/*From figure 18 in the datasheet*/
+/*Register addresses*/
+#define REG_LS_BYTE	0 /*A/D Output Data, LS Byte*/
+#define REG_MS_BYTE	1 /*A/D Output Data, MS Byte*/
+#define REG_PGA_VALID	2 /*PGA Valid Register*/
+#define REG_AD_CONTROL	3 /*A/D Control Register*/
+#define REG_GAIN_MUX	4 /*Gain/Mux Register*/
+#define REG_IO_STATE	5 /*Digital I/O State Register*/
+#define REG_IO_CONTROL	6 /*Digital I/O Control Register*/
+#define REG_OSC_CONTROL	7 /*Rev/Oscillator Control Register*/
+#define REG_SER_CONTROL 24 /*Serial Interface Control Register*/
+#define REG_ID		31 /*ID Register*/
 
+/*
+ * From figure 17 in the datasheet
+ * These bits get ORed with the address to form
+ * the instruction byte
+ */
+/*Instruction Bit masks*/
 #define INST_MODE_bm	(1<<7)
 #define INST_READ_bm	(1<<6)
 #define INST_16BIT_bm	(1<<5)
 
+/*From figure 18 in the datasheet*/
+/*bit masks for Rev/Oscillator Control Register*/
 #define MUX_CNV_bv	7
 #define MUX_CNV_bm	(1<<MUX_CNV_bv)
-#define MUX_M3_bm	(1<<3) 
-#define MUX_G_bv	4 
+#define MUX_M3_bm	(1<<3) /*M3 selects single ended*/
+#define MUX_G_bv	4 /*allows for reg = (gain << MUX_G_bv) | ...*/
 
+/*From figure 18 in the datasheet*/
+/*bit masks for Rev/Oscillator Control Register*/
 #define OSC_OSCR_bm	(1<<5)
 #define OSC_OSCE_bm	(1<<4)
 #define OSC_REFE_bm	(1<<3)
@@ -95,13 +107,21 @@ static ssize_t show_voltage(struct device *dev,
 	uint8_t channel, mux_cnv;
 
 	channel = attr->index;
-	
-	
+	/*
+	 * TODO: add support for conversions
+	 * other than single ended with a gain of 1
+	 */
+	/*MUX_M3_bm forces single ended*/
+	/*This is also where the gain of the PGA would be set*/
 	ads7871_write_reg8(spi, REG_GAIN_MUX,
 		(MUX_CNV_bm | MUX_M3_bm | channel));
 
 	ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
 	mux_cnv = ((ret & MUX_CNV_bm)>>MUX_CNV_bv);
+	/*
+	 * on 400MHz arm9 platform the conversion
+	 * is already done when we do this test
+	 */
 	while ((i < 2) && mux_cnv) {
 		i++;
 		ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
@@ -111,18 +131,12 @@ static ssize_t show_voltage(struct device *dev,
 
 	if (mux_cnv == 0) {
 		val = ads7871_read_reg16(spi, REG_LS_BYTE);
-		
+		/*result in volts*10000 = (val/8192)*2.5*10000*/
 		val = ((val>>2) * 25000) / 8192;
 		return sprintf(buf, "%d\n", val);
 	} else {
 		return -1;
 	}
-}
-
-static ssize_t ads7871_show_name(struct device *dev,
-				 struct device_attribute *devattr, char *buf)
-{
-	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
 }
 
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_voltage, NULL, 0);
@@ -134,8 +148,6 @@ static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_voltage, NULL, 5);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_voltage, NULL, 6);
 static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_voltage, NULL, 7);
 
-static DEVICE_ATTR(name, S_IRUGO, ads7871_show_name, NULL);
-
 static struct attribute *ads7871_attributes[] = {
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
@@ -145,7 +157,6 @@ static struct attribute *ads7871_attributes[] = {
 	&sensor_dev_attr_in5_input.dev_attr.attr,
 	&sensor_dev_attr_in6_input.dev_attr.attr,
 	&sensor_dev_attr_in7_input.dev_attr.attr,
-	&dev_attr_name.attr,
 	NULL
 };
 
@@ -161,7 +172,7 @@ static int __devinit ads7871_probe(struct spi_device *spi)
 
 	dev_dbg(&spi->dev, "probe\n");
 
-	
+	/* Configure the SPI bus */
 	spi->mode = (SPI_MODE_0);
 	spi->bits_per_word = 8;
 	spi_setup(spi);
@@ -174,6 +185,10 @@ static int __devinit ads7871_probe(struct spi_device *spi)
 	ret = ads7871_read_reg8(spi, REG_OSC_CONTROL);
 
 	dev_dbg(&spi->dev, "REG_OSC_CONTROL write:%x, read:%x\n", val, ret);
+	/*
+	 * because there is no other error checking on an SPI bus
+	 * we need to make sure we really have a chip
+	 */
 	if (val != ret) {
 		err = -ENODEV;
 		goto exit;

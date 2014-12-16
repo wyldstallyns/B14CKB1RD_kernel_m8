@@ -1,7 +1,7 @@
 #ifndef _ASM_CRIS_IO_H
 #define _ASM_CRIS_IO_H
 
-#include <asm/page.h>   
+#include <asm/page.h>   /* for __va, __pa */
 #include <arch/io.h>
 #include <linux/kernel.h>
 
@@ -19,6 +19,9 @@ extern struct cris_io_operations *cris_iops;
 #define cris_iops ((struct cris_io_operations*)NULL)
 #endif
 
+/*
+ * Change virtual addresses to physical addresses and vv.
+ */
 
 static inline unsigned long virt_to_phys(volatile void * address)
 {
@@ -42,9 +45,18 @@ extern void iounmap(volatile void * __iomem addr);
 
 extern void __iomem * ioremap_nocache(unsigned long offset, unsigned long size);
 
+/*
+ * IO bus memory addresses are also 1:1 with the physical address
+ */
 #define virt_to_bus virt_to_phys
 #define bus_to_virt phys_to_virt
 
+/*
+ * readX/writeX() are used to access memory mapped devices. On some
+ * architectures the memory mapped IO stuff needs to be accessed
+ * differently. On the CRIS architecture, we just read/write the
+ * memory location directly.
+ */
 #ifdef CONFIG_PCI
 #define PCI_SPACE(x) ((((unsigned)(x)) & 0x10000000) == 0x10000000)
 #else
@@ -110,6 +122,9 @@ static inline void writel(unsigned int b, volatile void __iomem *addr)
 #define memcpy_toio(a,b,c)	memcpy((void *)(a),(b),(c))
 
 
+/* I/O port access. Normally there is no I/O space on CRIS but when
+ * Cardbus/PCI is enabled the request is passed through the bridge.
+ */
 
 #define IO_SPACE_LIMIT 0xffff
 #define inb(port) (cris_iops ? cris_iops->read_io(port,NULL,1,1) : 0)
@@ -118,42 +133,22 @@ static inline void writel(unsigned int b, volatile void __iomem *addr)
 #define insb(port,addr,count) (cris_iops ? cris_iops->read_io(port,addr,1,count) : 0)
 #define insw(port,addr,count) (cris_iops ? cris_iops->read_io(port,addr,2,count) : 0)
 #define insl(port,addr,count) (cris_iops ? cris_iops->read_io(port,addr,4,count) : 0)
-static inline void outb(unsigned char data, unsigned int port)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *) &data, 1, 1);
-}
-static inline void outw(unsigned short data, unsigned int port)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *) &data, 2, 1);
-}
-static inline void outl(unsigned int data, unsigned int port)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *) &data, 4, 1);
-}
-static inline void outsb(unsigned int port, const void *addr,
-			 unsigned long count)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *)addr, 1, count);
-}
-static inline void outsw(unsigned int port, const void *addr,
-			 unsigned long count)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *)addr, 2, count);
-}
-static inline void outsl(unsigned int port, const void *addr,
-			 unsigned long count)
-{
-	if (cris_iops)
-		cris_iops->write_io(port, (void *)addr, 4, count);
-}
+#define outb(data,port) if (cris_iops) cris_iops->write_io(port,(void*)(unsigned)data,1,1)
+#define outw(data,port) if (cris_iops) cris_iops->write_io(port,(void*)(unsigned)data,2,1)
+#define outl(data,port) if (cris_iops) cris_iops->write_io(port,(void*)(unsigned)data,4,1)
+#define outsb(port,addr,count) if(cris_iops) cris_iops->write_io(port,(void*)addr,1,count)
+#define outsw(port,addr,count) if(cris_iops) cris_iops->write_io(port,(void*)addr,2,count)
+#define outsl(port,addr,count) if(cris_iops) cris_iops->write_io(port,(void*)addr,3,count)
 
+/*
+ * Convert a physical pointer to a virtual kernel pointer for /dev/mem
+ * access
+ */
 #define xlate_dev_mem_ptr(p)	__va(p)
 
+/*
+ * Convert a virtual cached pointer to an uncached pointer
+ */
 #define xlate_dev_kmem_ptr(p)	p
 
 #endif

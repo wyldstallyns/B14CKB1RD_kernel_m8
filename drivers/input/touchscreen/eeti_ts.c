@@ -48,7 +48,7 @@ struct eeti_ts_priv {
 	struct input_dev *input;
 	struct work_struct work;
 	struct mutex mutex;
-	int irq_gpio, irq, irq_active_high;
+	int irq, irq_active_high;
 };
 
 #define EETI_TS_BITDEPTH	(11)
@@ -62,7 +62,7 @@ struct eeti_ts_priv {
 
 static inline int eeti_ts_irq_active(struct eeti_ts_priv *priv)
 {
-	return gpio_get_value(priv->irq_gpio) == priv->irq_active_high;
+	return gpio_get_value(irq_to_gpio(priv->irq)) == priv->irq_active_high;
 }
 
 static void eeti_ts_read(struct work_struct *work)
@@ -83,7 +83,7 @@ static void eeti_ts_read(struct work_struct *work)
 		goto out;
 	}
 
-	
+	/* drop non-report packets */
 	if (!(buf[0] & 0x80))
 		goto out;
 
@@ -92,7 +92,7 @@ static void eeti_ts_read(struct work_struct *work)
 	x = buf[2] | (buf[1] << 8);
 	y = buf[4] | (buf[3] << 8);
 
-	
+	/* fix the range to 11 bits */
 	x >>= res - EETI_TS_BITDEPTH;
 	y >>= res - EETI_TS_BITDEPTH;
 
@@ -118,7 +118,7 @@ static irqreturn_t eeti_ts_isr(int irq, void *dev_id)
 {
 	struct eeti_ts_priv *priv = dev_id;
 
-	 
+	 /* postpone I2C transactions as we are atomic */
 	schedule_work(&priv->work);
 
 	return IRQ_HANDLED;
@@ -128,7 +128,7 @@ static void eeti_ts_start(struct eeti_ts_priv *priv)
 {
 	enable_irq(priv->irq);
 
-	
+	/* Read the events once to arm the IRQ */
 	eeti_ts_read(&priv->work);
 }
 
@@ -157,12 +157,18 @@ static void eeti_ts_close(struct input_dev *dev)
 static int __devinit eeti_ts_probe(struct i2c_client *client,
 				   const struct i2c_device_id *idp)
 {
-	struct eeti_ts_platform_data *pdata = client->dev.platform_data;
+	struct eeti_ts_platform_data *pdata;
 	struct eeti_ts_priv *priv;
 	struct input_dev *input;
 	unsigned int irq_flags;
 	int err = -ENOMEM;
 
+	/*
+	 * In contrast to what's described in the datasheet, there seems
+	 * to be no way of probing the presence of that device using I2C
+	 * commands. So we need to blindly believe it is there, and wait
+	 * for interrupts to occur.
+	 */
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
@@ -193,12 +199,9 @@ static int __devinit eeti_ts_probe(struct i2c_client *client,
 
 	priv->client = client;
 	priv->input = input;
-	priv->irq_gpio = pdata->irq_gpio;
-	priv->irq = gpio_to_irq(pdata->irq_gpio);
+	priv->irq = client->irq;
 
-	err = gpio_request_one(pdata->irq_gpio, GPIOF_IN, client->name);
-	if (err < 0)
-		goto err1;
+	pdata = client->dev.platform_data;
 
 	if (pdata)
 		priv->irq_active_high = pdata->irq_active_high;
@@ -212,25 +215,27 @@ static int __devinit eeti_ts_probe(struct i2c_client *client,
 
 	err = input_register_device(input);
 	if (err)
-		goto err2;
+		goto err1;
 
 	err = request_irq(priv->irq, eeti_ts_isr, irq_flags,
 			  client->name, priv);
 	if (err) {
 		dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
-		goto err3;
+		goto err2;
 	}
 
+	/*
+	 * Disable the device for now. It will be enabled once the
+	 * input device is opened.
+	 */
 	eeti_ts_stop(priv);
 
 	device_init_wakeup(&client->dev, 0);
 	return 0;
 
-err3:
-	input_unregister_device(input);
-	input = NULL;  /* so we don't try to free it below */
 err2:
-	gpio_free(pdata->irq_gpio);
+	input_unregister_device(input);
+	input = NULL; /* so we dont try to free it below */
 err1:
 	input_free_device(input);
 	kfree(priv);
@@ -243,6 +248,10 @@ static int __devexit eeti_ts_remove(struct i2c_client *client)
 	struct eeti_ts_priv *priv = i2c_get_clientdata(client);
 
 	free_irq(priv->irq, priv);
+	/*
+	 * eeti_ts_stop() leaves IRQ disabled. We need to re-enable it
+	 * so that device still works if we reload the driver.
+	 */
 	enable_irq(priv->irq);
 
 	input_unregister_device(priv->input);

@@ -50,7 +50,6 @@ static inline void disable_cpufreq(void) { }
 #define CPUFREQ_POLICY_POWERSAVE	(1)
 #define CPUFREQ_POLICY_PERFORMANCE	(2)
 
-#define MIN_CPU_UTIL_NOTIFY   40
 
 struct cpufreq_governor;
 
@@ -82,7 +81,6 @@ struct cpufreq_policy {
 	unsigned int		min;    
 	unsigned int		max;    
 	unsigned int		cur;    
-	unsigned int		util;
 	unsigned int		policy; 
 	struct cpufreq_governor	*governor; 
 
@@ -216,11 +214,6 @@ int cpufreq_unregister_driver(struct cpufreq_driver *driver_data);
 
 void cpufreq_notify_transition(struct cpufreq_freqs *freqs, unsigned int state);
 
-void cpufreq_notify_utilization(struct cpufreq_policy *policy,
-	unsigned int load);
-
-
-
 static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy, unsigned int min, unsigned int max)
 {
 	if (policy->min < min)
@@ -299,38 +292,27 @@ static inline unsigned int cpufreq_quick_get_max(unsigned int cpu)
 
 
 
-/******************************************************************************
-*			CPUFREQ DEFAULT GOVERNOR										  *
-*******************************************************************************
-	Performance governor is fallback governor if any other gov failed to 
-	auto load due to latency restrictions
-*/
+
 #ifdef CONFIG_CPU_FREQ_GOV_PERFORMANCE
 extern struct cpufreq_governor cpufreq_gov_performance;
 #endif
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_performance)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_WHEATLEY)
-extern struct cpufreq_governor cpufreq_gov_wheatley;
-#define CPUFREQ_DEFAULT_GOVERNOR  (&cpufreq_gov_wheatley)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE)
+extern struct cpufreq_governor cpufreq_gov_powersave;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_powersave)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE)
+extern struct cpufreq_governor cpufreq_gov_userspace;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_userspace)
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND)
 extern struct cpufreq_governor cpufreq_gov_ondemand;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_ondemand)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE)
+extern struct cpufreq_governor cpufreq_gov_conservative;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_conservative)
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE)
 extern struct cpufreq_governor cpufreq_gov_interactive;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_interactive)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_INTELLIACTIVE)
-extern struct cpufreq_governor cpufreq_gov_intelliactive;
-#define CPUFREQ_DEFAULT_GOVERNOR        (&cpufreq_gov_intelliactive)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SMARTMAX)
-extern struct cpufreq_governor cpufreq_gov_smartmax;
-#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_smartmax)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_OPTIMAX)
-extern struct cpufreq_governor cpufreq_gov_optimax;
-#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_optimax)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_DANCEDANCE)
-extern struct cpufreq_governor cpufreq_gov_dancedance;
-#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_dancedance)
 #endif
 
 
