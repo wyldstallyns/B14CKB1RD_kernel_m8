@@ -35,8 +35,6 @@ on early-init
     write /sys/block/mmcblk1/bdi/read_ahead_kb 512
 
 on init
-    export BOOTCLASSPATH ${BOOTCLASSPATH}:/system/framework/htcirlibs.jar
-
     # Set permissions for persist partition
     mkdir /persist 0771 system system
 
@@ -84,6 +82,7 @@ on init
 
 # Vibrator permission
     chown system /sys/devices/virtual/timed_output/vibrator/voltage_level
+    restorecon /sys/devices/virtual/timed_output/vibrator/voltage_level
 
 on fs
     mkdir /devlog 0700 root root
@@ -113,6 +112,8 @@ on post-fs-data
 
     # We will remap this as /mnt/sdcard with the sdcard fuse tool
     mkdir /data/media 0770 media_rw media_rw
+
+    restorecon /data/OTPData.dat
 
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
 
@@ -430,7 +431,7 @@ service iprenew_wlan0 /system/bin/dhcpcd -n
     disabled
     oneshot
 
-service irsc_util /system/bin/logwrapper /system/bin/irsc_util "/etc/sec_config"
+service irsc_util /system/bin/irsc_util "/etc/sec_config"
     class main
     user root
     oneshot
@@ -460,9 +461,9 @@ service map1_del /system/bin/sdptool del 0x1ff17
     oneshot
 
 service mpdecision /system/bin/mpdecision --avg_comp
-   class main
-   user root
-   group system
+    class core
+    user root
+    disabled
 
 service netmgrd /system/bin/netmgrd
     class core
@@ -495,18 +496,6 @@ service qmuxd /system/bin/qmuxd
     user radio
     group radio audio bluetooth gps qcom_diag
 
-service qrngd /system/bin/qrngd -f
-   class main
-   user root
-   group root
-
-service qrngp /system/bin/qrngp
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-
 service qseecomd /system/bin/qseecomd
    class main
    user root
@@ -515,6 +504,11 @@ service qseecomd /system/bin/qseecomd
 service rmt_storage /system/bin/rmt_storage modem_st1 modem_st2 fsc recovery radio_config cdma_record
     class core
     user root
+
+service thermal-engine /system/bin/thermal-engine
+   class main
+   user root
+   group root
 
 service time_daemon /system/bin/time_daemon
    class late_start
@@ -624,30 +618,63 @@ on property:service.bootanim.exit=1
     chmod 664 /sys/devices/system/cpu/cpu3/online
     write /dev/cpuctl/apps/cpu.notify_on_migrate "1"
 
+    write /sys/module/cpu_boost/parameters/boost_ms "20"
+    write /sys/module/cpu_boost/parameters/sync_threshold "1728000"
+    write /sys/module/cpu_boost/parameters/input_boost_freq "1497600"
+    write /sys/module/cpu_boost/parameters/input_boost_ms "40"
+
 on property:init.svc.bootanim=running
+    # Switch to NOOP and performance mode while booting
+    setprop sys.perf.profile 2
     write /sys/block/mmcblk0/queue/scheduler noop
 
 on property:init.svc.bootanim=stopped
     # Switch to ROW and balanced mode after boot for better UX
-    write /sys/class/devfreq/qcom,cpubw.40/governor "cpubw_hwmon"
+    setprop sys.perf.profile 1
+    write /sys/block/mmcblk0/queue/scheduler row
+
+# CM Performance Profiles
+on property:sys.perf.profile=0
+    write /sys/class/devfreq/qcom,cpubw.42/governor "powersave"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor conservative
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
+    start mpdecision
+
+on property:sys.perf.profile=1
+    write /sys/class/devfreq/qcom,cpubw.42/governor "msm_cpufreq"
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "interactive"
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor "interactive"
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor "interactive"
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor "interactive"
+
     write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay "20000 1400000:40000 1700000:20000"
     write /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load 90
     write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 1190400
-    write /sys/devices/system/cpu/cpufreq/interactive/io_is_busy 1
+    write /sys/devices/system/cpu/cpufreq/interactive/io_is_busy 0
     write /sys/devices/system/cpu/cpufreq/interactive/target_loads "85 1500000:90 1800000:70"
-    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time "40000 1700000:80000"
+    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 40000
+    write /sys/devices/system/cpu/cpufreq/interactive/timer_rate 30000
     write /sys/devices/system/cpu/cpufreq/interactive/sampling_down_factor 100000
-
-    write /sys/module/cpu_boost/parameters/boost_ms 20
-    write /sys/module/cpu_boost/parameters/sync_threshold 1190400
-    write /sys/module/cpu_boost/parameters/input_boost_freq 1190400
-    write /sys/module/cpu_boost/parameters/input_boost_ms 40
+    write /sys/devices/system/cpu/cpufreq/interactive/timer_slack 30000
+    write /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load 50
+    write /sys/devices/system/cpu/cpufreq/interactive/sync_freq 1036800
+    write /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq 1190400
 
     write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
-    write /dev/cpuctl/apps/cpu.notify_on_migrate 1
+    start mpdecision
 
-    write /sys/block/mmcblk0/queue/scheduler row
+on property:sys.perf.profile=2
+    stop mpdecision
+    write /sys/devices/system/cpu/cpu0/online 1
+    write /sys/devices/system/cpu/cpu1/online 1
+    write /sys/devices/system/cpu/cpu2/online 1
+    write /sys/devices/system/cpu/cpu3/online 1
+    write /sys/class/devfreq/qcom,cpubw.42/governor "performance"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor performance
