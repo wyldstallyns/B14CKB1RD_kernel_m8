@@ -89,3 +89,55 @@ Patch 3.4.2
         modified:   sound/usb/pcm.c
         modified:   tools/vm/page-types.c
 
+Patch 3.4.3
+        modified:   Makefile
+        modified:   arch/powerpc/kernel/module_32.c
+        modified:   arch/powerpc/kernel/time.c
+        modified:   arch/x86/crypto/aesni-intel_asm.S
+        modified:   arch/x86/include/asm/uv/uv_bau.h
+        modified:   arch/x86/kernel/cpu/mcheck/mce_amd.c
+        modified:   arch/x86/platform/uv/tlb_uv.c
+        modified:   drivers/acpi/video.c
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/ata/libata-core.c
+        modified:   drivers/bcma/driver_chipcommon_pmu.c
+        modified:   drivers/bcma/sprom.c
+        modified:   drivers/char/agp/intel-agp.c
+        modified:   drivers/char/agp/intel-agp.h
+        modified:   drivers/char/hw_random/atmel-rng.c
+        modified:   drivers/gpu/drm/gma500/psb_drv.c
+        modified:   drivers/gpu/drm/i915/intel_ringbuffer.c
+        modified:   drivers/gpu/drm/nouveau/nouveau_connector.c
+        modified:   drivers/gpu/drm/radeon/evergreen_cs.c
+        modified:   drivers/gpu/drm/radeon/radeon_drv.c
+        modified:   drivers/gpu/drm/ttm/ttm_bo.c
+        modified:   drivers/net/can/c_can/c_can.c
+        modified:   drivers/net/can/c_can/c_can.h
+        modified:   drivers/net/usb/sierra_net.c
+        modified:   drivers/net/wireless/iwlwifi/iwl-agn-sta.c
+        modified:   drivers/net/wireless/iwlwifi/iwl-mac80211.c
+        modified:   drivers/net/wireless/iwlwifi/iwl-prph.h
+        modified:   drivers/net/wireless/iwlwifi/iwl-trans-pcie.c
+        modified:   drivers/net/wireless/rt2x00/rt2800usb.c
+        modified:   drivers/net/wireless/rt2x00/rt2x00.h
+        modified:   drivers/net/wireless/rt2x00/rt2x00mac.c
+        modified:   drivers/net/wireless/rt2x00/rt2x00queue.c
+        modified:   fs/btrfs/inode.c
+        modified:   fs/fuse/dir.c
+        modified:   fs/fuse/fuse_i.h
+        modified:   fs/fuse/inode.c
+        modified:   include/linux/libata.h
+        modified:   include/linux/moduleparam.h
+        modified:   init/main.c
+        modified:   kernel/sched/core.c
+        modified:   kernel/time/timekeeping.c
+        modified:   lib/btree.c
+        modified:   net/mac80211/iface.c
+        modified:   net/mac80211/offchannel.c
+        modified:   net/mac80211/sta_info.c
+        modified:   net/mac80211/util.c
+        modified:   net/wireless/util.c
+        modified:   sound/pci/hda/patch_realtek.c
+        modified:   sound/soc/codecs/wm8994.c
+
+
