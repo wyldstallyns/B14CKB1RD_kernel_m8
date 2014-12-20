@@ -413,4 +413,45 @@ Patch 3.4.5
 	modified:   sound/soc/codecs/wm2200.c
 	modified:   tools/hv/hv_kvp_daemon.c
 
+Patch 3.4.6
+	modified:   Makefile
+	modified:   arch/arm/plat-samsung/adc.c
+	modified:   drivers/acpi/acpica/nspredef.c
+	modified:   drivers/acpi/processor_core.c
+	modified:   drivers/clk/clk.c
+	modified:   drivers/hid/hid-apple.c
+	modified:   drivers/hid/hid-core.c
+	modified:   drivers/hid/hid-ids.h
+	modified:   drivers/hwmon/it87.c
+	modified:   drivers/input/joystick/xpad.c
+	modified:   drivers/input/mouse/bcm5974.c
+	modified:   drivers/md/raid1.c
+	modified:   drivers/media/dvb/dvb-core/dvbdev.c
+	modified:   drivers/media/video/cx231xx/cx231xx-audio.c
+	modified:   drivers/media/video/cx231xx/cx231xx-vbi.c
+	modified:   drivers/mtd/nand/nandsim.c
+	modified:   drivers/net/bonding/bond_debugfs.c
+	modified:   drivers/net/bonding/bond_main.c
+	modified:   drivers/net/ethernet/intel/e1000e/82571.c
+	modified:   drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+	modified:   drivers/net/wireless/iwlegacy/4965-mac.c
+	modified:   drivers/net/wireless/iwlegacy/common.c
+	modified:   drivers/net/wireless/rt2x00/rt2x00usb.c
+	modified:   drivers/platform/x86/intel_ips.c
+	modified:   drivers/rpmsg/virtio_rpmsg_bus.c
+	modified:   fs/buffer.c
+	modified:   fs/fifo.c
+	modified:   fs/locks.c
+	modified:   include/linux/Kbuild
+	modified:   include/linux/hrtimer.h
+	modified:   include/linux/sched.h
+	modified:   kernel/hrtimer.c
+	modified:   kernel/sched/core.c
+	modified:   kernel/sched/idle_task.c
+	modified:   kernel/sched/sched.h
+	modified:   kernel/time/tick-sched.c
+	modified:   kernel/time/timekeeping.c
+	modified:   net/mac80211/mlme.c
+	modified:   net/wireless/util.c
+
 
