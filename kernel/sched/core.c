@@ -1709,6 +1709,9 @@ static long calc_load_fold_active(struct rq *this_rq)
 	return delta;
 }
 
+/*
+ * a1 = a0 * e + a * (1 - e)
+ */
 static unsigned long
 calc_load(unsigned long load, unsigned long exp, unsigned long active)
 {
@@ -1817,10 +1820,17 @@ void get_avenrun(unsigned long *loads, unsigned long offset, int shift)
 
 void calc_global_load(unsigned long ticks)
 {
-	long active;
+	long active, delta;
 
 	if (time_before(jiffies, calc_load_update + 10))
 		return;
+
+	/*
+	 * Fold the 'old' idle-delta to include all NO_HZ cpus.
+	 */
+	delta = calc_load_fold_idle();
+	if (delta)
+		atomic_long_add(delta, &calc_load_tasks);
 
 	active = atomic_long_read(&calc_load_tasks);
 	active = active > 0 ? active * FIXED_1 : 0;
@@ -1842,7 +1852,6 @@ static void calc_load_account_active(struct rq *this_rq)
 		return;
 
 	delta  = calc_load_fold_active(this_rq);
-	delta += calc_load_fold_idle();
 	if (delta)
 		atomic_long_add(delta, &calc_load_tasks);
 

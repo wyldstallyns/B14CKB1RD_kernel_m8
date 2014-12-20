@@ -646,6 +646,7 @@ static inline int hrtimer_enqueue_reprogram(struct hrtimer *timer,
 	return base->cpu_base->hres_active && hrtimer_reprogram(timer, base);
 }
 
+
 static inline ktime_t hrtimer_update_base(struct hrtimer_cpu_base *base)
 {
 	ktime_t *offs_real = &base->clock_base[HRTIMER_BASE_REALTIME].offset;
