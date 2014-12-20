@@ -140,4 +140,71 @@ Patch 3.4.3
         modified:   sound/pci/hda/patch_realtek.c
         modified:   sound/soc/codecs/wm8994.c
 
+Patch 3.4.4
+modified:   Makefile
+	modified:   arch/arm/mach-imx/crm-regs-imx5.h
+	modified:   arch/arm/mach-imx/hotplug.c
+	modified:   arch/arm/mach-imx/mach-mx21ads.c
+	modified:   arch/powerpc/include/asm/hw_irq.h
+	modified:   arch/x86/xen/enlighten.c
+	modified:   drivers/char/hw_random/atmel-rng.c
+	modified:   drivers/edac/i7core_edac.c
+	modified:   drivers/edac/sb_edac.c
+	modified:   drivers/gpu/drm/i915/intel_dp.c
+	modified:   drivers/gpu/drm/radeon/evergreen.c
+	modified:   drivers/gpu/drm/radeon/evergreend.h
+	modified:   drivers/gpu/drm/radeon/r600.c
+	modified:   drivers/gpu/drm/radeon/r600d.h
+	modified:   drivers/gpu/drm/radeon/rv770.c
+	modified:   drivers/gpu/drm/radeon/rv770d.h
+	modified:   drivers/gpu/drm/sis/sis_drv.c
+	modified:   drivers/gpu/drm/udl/udl_drv.c
+	modified:   drivers/gpu/drm/via/via_map.c
+	modified:   drivers/net/ethernet/intel/e1000e/82571.c
+	modified:   drivers/net/ethernet/intel/e1000e/netdev.c
+	modified:   drivers/net/wireless/iwlwifi/iwl-6000.c
+	modified:   drivers/net/wireless/iwlwifi/iwl-eeprom.c
+	modified:   drivers/net/wireless/iwlwifi/iwl-trans-pcie-int.h
+	modified:   drivers/net/wireless/iwlwifi/iwl-trans-pcie-tx.c
+	modified:   drivers/net/wireless/iwlwifi/iwl-trans-pcie.c
+	modified:   drivers/pci/pci.c
+	modified:   drivers/pci/quirks.c
+	modified:   drivers/remoteproc/omap_remoteproc.c
+	modified:   drivers/remoteproc/remoteproc_core.c
+	modified:   drivers/scsi/mpt2sas/mpt2sas_base.c
+	modified:   drivers/target/target_core_alua.c
+	modified:   drivers/tty/hvc/hvc_xen.c
+	modified:   drivers/usb/class/cdc-acm.c
+	modified:   drivers/usb/class/cdc-wdm.c
+	modified:   drivers/usb/core/hcd-pci.c
+	modified:   drivers/usb/core/message.c
+	modified:   drivers/usb/host/ehci-hcd.c
+	modified:   drivers/usb/host/ehci-pci.c
+	modified:   drivers/usb/host/xhci.c
+	modified:   drivers/usb/musb/davinci.c
+	modified:   drivers/usb/musb/davinci.h
+	modified:   drivers/usb/musb/musb_gadget.c
+	modified:   drivers/usb/serial/cp210x.c
+	modified:   drivers/usb/serial/ftdi_sio.c
+	modified:   drivers/usb/serial/ftdi_sio_ids.h
+	modified:   drivers/usb/serial/mct_u232.c
+	modified:   drivers/usb/serial/mos7840.c
+	modified:   drivers/usb/serial/option.c
+	modified:   drivers/usb/serial/qcserial.c
+	modified:   drivers/usb/serial/sierra.c
+	modified:   drivers/usb/storage/unusual_devs.h
+	modified:   fs/hfsplus/ioctl.c
+	modified:   fs/hfsplus/wrapper.c
+	modified:   fs/nfs/nfs4proc.c
+	modified:   fs/nfsd/nfs4state.c
+	modified:   include/linux/pci.h
+	modified:   include/linux/swapops.h
+	modified:   include/linux/usb/hcd.h
+	modified:   kernel/panic.c
+	modified:   kernel/time/ntp.c
+	modified:   mm/swapfile.c
+	modified:   net/9p/trans_virtio.c
+	modified:   net/sunrpc/rpc_pipe.c
+	modified:   net/sunrpc/svc.c
+	modified:   sound/soc/codecs/wm8904.c
 
