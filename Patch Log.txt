@@ -454,4 +454,31 @@ Patch 3.4.6
 	modified:   net/mac80211/mlme.c
 	modified:   net/wireless/util.c
 
+Patch 3.4.7
+        modified:   Makefile
+        modified:   arch/arm/plat-s5p/clock.c
+        modified:   arch/mips/include/asm/thread_info.h
+        modified:   arch/mips/kernel/vmlinux.lds.S
+        modified:   drivers/hid/hid-core.c
+        modified:   drivers/hid/hid-ids.h
+        modified:   drivers/hid/hid-input.c
+        modified:   drivers/hid/hid-multitouch.c
+        modified:   drivers/hid/usbhid/hid-quirks.c
+        modified:   drivers/md/dm-raid1.c
+        modified:   drivers/md/dm-region-hash.c
+        modified:   drivers/md/dm-thin.c
+        modified:   drivers/md/md.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/target/target_core_cdb.c
+        modified:   drivers/target/target_core_pr.c
+        modified:   drivers/target/tcm_fc/tfc_cmd.c
+        modified:   fs/cifs/cifssmb.c
+        modified:   fs/cifs/connect.c
+        modified:   fs/cifs/readdir.c
+        modified:   fs/exofs/ore.c
+        modified:   fs/exofs/ore_raid.c
+        modified:   fs/ext4/ioctl.c
+        modified:   fs/nfs/objlayout/objio_osd.c
+        modified:   fs/ubifs/sb.c
+        modified:   kernel/time/ntp.c
 
