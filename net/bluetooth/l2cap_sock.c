@@ -404,6 +404,7 @@ static int l2cap_sock_getname(struct socket *sock, struct sockaddr *addr, int *l
 
 	BT_DBG("sock %p, sk %p", sock, sk);
 
+	memset(la, 0, sizeof(struct sockaddr_l2));
 	addr->sa_family = AF_BLUETOOTH;
 	*len = sizeof(struct sockaddr_l2);
 
@@ -762,8 +763,11 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
 				break;
 			}
 
-			if (smp_conn_security(conn, sec.level))
-				break;
+			if (smp_conn_security(conn, sec.level)) 
+		/*	if (smp_conn_security(conn->hcon, sec.level)) */
+				break;  /* remove if compiles good */
+			sk->sk_state = BT_CONFIG;
+
 
 			err = 0;
 			sk->sk_state = BT_CONFIG;
