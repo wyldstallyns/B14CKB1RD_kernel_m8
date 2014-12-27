@@ -2978,15 +2978,10 @@ struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
 	unsigned int cpu;
 	size_t namelen;
 
-<<<<<<< HEAD
-	/* determine namelen, allocate wq and format name */
-=======
 	/* see the comment above the definition of WQ_POWER_EFFICIENT */
 	if ((flags & WQ_POWER_EFFICIENT) && wq_power_efficient)
 		flags |= WQ_UNBOUND;
 
-	
->>>>>>> cc1d713... [LINARO] workqueues: Introduce new flag WQ_POWER_EFFICIENT for power oriented workqueues
 	va_start(args, lock_name);
 	va_copy(args1, args);
 	namelen = vsnprintf(NULL, 0, fmt, args) + 1;
