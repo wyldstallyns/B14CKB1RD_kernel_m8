@@ -3068,11 +3068,11 @@ static u32 xhci_td_remainder(unsigned int remainder)
 }
 
 /*
- * For xHCI 1.0 host controllers, TD size is the number of max packet sized
- * packets remaining in the TD (*not* including this TRB).
+ * For xHCI 1.0 host controllers, TD size is the number of packets remaining in
+ * the TD (*not* including this TRB).
  *
  * Total TD packet count = total_packet_count =
- *     DIV_ROUND_UP(TD size in bytes / wMaxPacketSize)
+ *     roundup(TD size in bytes / wMaxPacketSize)
  *
  * Packets transferred up to and including this TRB = packets_transferred =
  *     rounddown(total bytes transferred including this TRB / wMaxPacketSize)
@@ -3080,16 +3080,15 @@ static u32 xhci_td_remainder(unsigned int remainder)
  * TD size = total_packet_count - packets_transferred
  *
  * It must fit in bits 21:17, so it can't be bigger than 31.
- * The last TRB in a TD must have the TD size set to zero.
  */
+
 static u32 xhci_v1_0_td_remainder(int running_total, int trb_buff_len,
-		unsigned int total_packet_count, struct urb *urb,
-		unsigned int num_trbs_left)
+		unsigned int total_packet_count, struct urb *urb)
 {
 	int packets_transferred;
 
 	/* One TRB with a zero-length data packet. */
-	if (num_trbs_left == 0 || (running_total == 0 && trb_buff_len == 0))
+	if (running_total == 0 && trb_buff_len == 0)
 		return 0;
 
 	/* All the TRB queueing functions don't count the current TRB in
@@ -3098,9 +3097,7 @@ static u32 xhci_v1_0_td_remainder(int running_total, int trb_buff_len,
 	packets_transferred = (running_total + trb_buff_len) /
 		usb_endpoint_maxp(&urb->ep->desc);
 
-	if ((total_packet_count - packets_transferred) > 31)
-		return 31 << 17;
-	return (total_packet_count - packets_transferred) << 17;
+	return xhci_td_remainder(total_packet_count - packets_transferred);
 }
 
 static int queue_bulk_sg_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
@@ -3127,7 +3124,7 @@ static int queue_bulk_sg_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 
 	num_trbs = count_sg_trbs_needed(xhci, urb);
 	num_sgs = urb->num_mapped_sgs;
-	total_packet_count = DIV_ROUND_UP(urb->transfer_buffer_length,
+	total_packet_count = roundup(urb->transfer_buffer_length,
 			usb_endpoint_maxp(&urb->ep->desc));
 
 	trb_buff_len = prepare_transfer(xhci, xhci->devs[slot_id],
@@ -3210,8 +3207,7 @@ static int queue_bulk_sg_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 					running_total);
 		} else {
 			remainder = xhci_v1_0_td_remainder(running_total,
-					trb_buff_len, total_packet_count, urb,
-					num_trbs - 1);
+					trb_buff_len, total_packet_count, urb);
 		}
 		length_field = TRB_LEN(trb_buff_len) |
 			remainder |
@@ -3319,7 +3315,7 @@ int xhci_queue_bulk_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 	start_cycle = ep_ring->cycle_state;
 
 	running_total = 0;
-	total_packet_count = DIV_ROUND_UP(urb->transfer_buffer_length,
+	total_packet_count = roundup(urb->transfer_buffer_length,
 			usb_endpoint_maxp(&urb->ep->desc));
 	/* How much data is in the first TRB? */
 	addr = (u64) urb->transfer_dma;
@@ -3365,8 +3361,7 @@ int xhci_queue_bulk_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 					running_total);
 		} else {
 			remainder = xhci_v1_0_td_remainder(running_total,
-					trb_buff_len, total_packet_count, urb,
-					num_trbs - 1);
+					trb_buff_len, total_packet_count, urb);
 		}
 		length_field = TRB_LEN(trb_buff_len) |
 			remainder |
@@ -3773,7 +3768,7 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		addr = start_addr + urb->iso_frame_desc[i].offset;
 		td_len = urb->iso_frame_desc[i].length;
 		td_remain_len = td_len;
-		total_packet_count = DIV_ROUND_UP(td_len,
+		total_packet_count = roundup(td_len,
 				usb_endpoint_maxp(&urb->ep->desc));
 		/* A zero-length transfer still involves at least one packet. */
 		if (total_packet_count == 0)
@@ -3852,8 +3847,7 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 			} else {
 				remainder = xhci_v1_0_td_remainder(
 						running_total, trb_buff_len,
-						total_packet_count, urb,
-						(trbs_per_td - j - 1));
+						total_packet_count, urb);
 			}
 			length_field = TRB_LEN(trb_buff_len) |
 				remainder |
