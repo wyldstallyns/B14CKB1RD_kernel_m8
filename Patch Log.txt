@@ -1799,7 +1799,7 @@ Patch 3.4.27
         modified:   include/target/target_core_base.h
         modified:   sound/usb/quirks.c
 
-Patch 3.4.28
+Patch 3.4.27
 	modified:   Makefile
 	modified:   arch/s390/include/asm/timex.h
 	modified:   arch/s390/kernel/time.c
