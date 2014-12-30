@@ -1829,3 +1829,32 @@ Patch 3.4.27
 	modified:   include/target/target_core_base.h
 	modified:   sound/usb/quirks.c
 
+Patch 3.4.28
+        modified:   Makefile
+        modified:   drivers/acpi/processor_idle.c
+        modified:   drivers/ata/ahci.c
+        modified:   drivers/dma/ioat/dma_v3.c
+        modified:   drivers/firmware/dmi_scan.c
+        modified:   drivers/gpu/drm/i915/i915_gem_execbuffer.c
+        modified:   drivers/gpu/drm/i915/i915_reg.h
+        modified:   drivers/gpu/drm/i915/intel_display.c
+        modified:   drivers/pci/hotplug/pciehp.h
+        modified:   drivers/pci/hotplug/pciehp_core.c
+        modified:   drivers/pci/hotplug/pciehp_ctrl.c
+        modified:   drivers/pci/hotplug/pciehp_hpc.c
+        modified:   drivers/pci/hotplug/shpchp.h
+        modified:   drivers/pci/hotplug/shpchp_core.c
+        modified:   drivers/pci/hotplug/shpchp_ctrl.c
+        modified:   drivers/pci/pcie/aer/aerdrv_core.c
+        modified:   drivers/pci/pcie/aspm.c
+        modified:   drivers/scsi/sd.c
+        modified:   drivers/usb/dwc3/gadget.c
+        modified:   drivers/usb/host/uhci-hcd.c
+        modified:   include/linux/sched.h
+        modified:   kernel/ptrace.c
+        modified:   kernel/sched/core.c
+        modified:   kernel/trace/ftrace.c
+        modified:   security/integrity/evm/evm_crypto.c
+        modified:   sound/usb/endpoint.c
+
+
