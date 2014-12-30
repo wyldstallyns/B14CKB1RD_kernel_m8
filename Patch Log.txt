@@ -1623,3 +1623,63 @@ Patch 3.4.24
         modified:   tools/perf/builtin-test.c
 
 
+Patch 3.4.27
+        modified:   Makefile
+        modified:   arch/s390/include/asm/timex.h
+        modified:   arch/s390/kernel/time.c
+        modified:   arch/s390/kvm/interrupt.c
+        modified:   arch/sh/include/asm/elf.h
+        modified:   arch/x86/kernel/entry_32.S
+        modified:   arch/x86/kernel/setup.c
+        modified:   drivers/block/drbd/drbd_req.c
+        modified:   drivers/iommu/intel-iommu.c
+        modified:   drivers/net/ethernet/intel/igb/igb_main.c
+        modified:   drivers/net/ethernet/realtek/r8169.c
+        modified:   drivers/staging/vt6656/bssdb.h
+        modified:   drivers/staging/vt6656/int.h
+        modified:   drivers/staging/vt6656/iocmd.h
+        modified:   drivers/staging/vt6656/iowpa.h
+        modified:   drivers/staging/wlan-ng/prism2mgmt.c
+        modified:   drivers/target/target_core_device.c
+        modified:   drivers/target/target_core_fabric_configfs.c
+        modified:   drivers/target/target_core_tpg.c
+        modified:   drivers/target/target_core_transport.c
+        modified:   drivers/target/tcm_fc/tfc_sess.c
+        modified:   drivers/tty/serial/8250/8250_dw.c
+        modified:   drivers/tty/serial/ifx6x60.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/xen/grant-table.c
+        modified:   fs/ext4/inode.c
+        modified:   include/target/target_core_base.h
+        modified:   sound/usb/quirks.c
+
+Patch 3.4.28
+	modified:   Makefile
+	modified:   arch/s390/include/asm/timex.h
+	modified:   arch/s390/kernel/time.c
+	modified:   arch/s390/kvm/interrupt.c
+	modified:   arch/sh/include/asm/elf.h
+	modified:   arch/x86/kernel/entry_32.S
+	modified:   arch/x86/kernel/setup.c
+	modified:   drivers/block/drbd/drbd_req.c
+	modified:   drivers/iommu/intel-iommu.c
+	modified:   drivers/net/ethernet/intel/igb/igb_main.c
+	modified:   drivers/net/ethernet/realtek/r8169.c
+	modified:   drivers/staging/vt6656/bssdb.h
+	modified:   drivers/staging/vt6656/int.h
+	modified:   drivers/staging/vt6656/iocmd.h
+	modified:   drivers/staging/vt6656/iowpa.h
+	modified:   drivers/staging/wlan-ng/prism2mgmt.c
+	modified:   drivers/target/target_core_device.c
+	modified:   drivers/target/target_core_fabric_configfs.c
+	modified:   drivers/target/target_core_tpg.c
+	modified:   drivers/target/target_core_transport.c
+	modified:   drivers/target/tcm_fc/tfc_sess.c
+	modified:   drivers/tty/serial/8250/8250_dw.c
+	modified:   drivers/tty/serial/ifx6x60.c
+	modified:   drivers/usb/serial/option.c
+	modified:   drivers/xen/grant-table.c
+	modified:   fs/ext4/inode.c
+	modified:   include/target/target_core_base.h
+	modified:   sound/usb/quirks.c
+
