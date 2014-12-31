@@ -1891,3 +1891,16 @@ Patch 3.4.30
         modified:   fs/nilfs2/ioctl.c
         modified:   include/linux/usb/ch9.h
         modified:   lib/digsig.c
+
+Patch 3.4.32
+	modified:   Makefile
+	modified:   arch/s390/kernel/time.c
+	modified:   arch/x86/include/asm/pgtable.h
+	modified:   arch/x86/kernel/apic/x2apic_phys.c
+	modified:   arch/x86/mm/fault.c
+	modified:   arch/x86/mm/init_64.c
+	modified:   arch/x86/platform/efi/efi.c
+	modified:   arch/x86/xen/xen-asm_32.S
+	modified:   drivers/net/ethernet/intel/igb/igb_main.c
+	modified:   drivers/pci/remove.c
+
