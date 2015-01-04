@@ -151,7 +151,6 @@ static void tick_nohz_update_jiffies(ktime_t now)
 	tick_do_update_jiffies64(now);
 	local_irq_restore(flags);
 
-	/* calc_load_exit_idle(); */
 	touch_softlockup_watchdog();
 }
 
@@ -281,7 +280,7 @@ EXPORT_SYMBOL_GPL(get_cpu_iowait_time_us);
 static void tick_nohz_stop_sched_tick(struct tick_sched *ts)
 {
 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies;
-	unsigned long rcu_delta_jiffies;
+	/* unsigned long rcu_delta_jiffies; */
 	ktime_t last_update, expires, now;
 	struct clock_event_device *dev = __get_cpu_var(tick_cpu_device).evtdev;
 	u64 time_delta;
@@ -413,7 +412,7 @@ static void tick_nohz_stop_sched_tick(struct tick_sched *ts)
 		 */
 		if (!ts->tick_stopped) {
 			select_nohz_load_balancer(1);
-		   /*	calc_load_enter_idle();   to get it to compile*/
+		/*	calc_load_enter_idle();   to get it to compile*/
 
 			ts->idle_tick = hrtimer_get_expires(&ts->sched_timer);
 			ts->tick_stopped = 1;
@@ -506,7 +505,7 @@ void tick_nohz_idle_enter(void)
  */
 void tick_nohz_irq_exit(void)
 {
-	/* unsigned long flags; added from G2 */
+	unsigned long flags; /* added from G2 */
 	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
 
 	if (!ts->inidle)
@@ -604,7 +603,7 @@ void tick_nohz_idle_exit(void)
 		account_idle_ticks(ticks);
 #endif
 
-   /*	calc_load_exit_idle(); 	 to get it to compile*/
+	/* calc_load_exit_idle(); 	to get it to compile*/
 	touch_softlockup_watchdog();
 	/*
 	 * Cancel the scheduled timer and restore the tick

@@ -506,17 +506,13 @@ void tick_nohz_idle_enter(void)
  */
 void tick_nohz_irq_exit(void)
 {
-	unsigned long flags;
+	/* unsigned long flags; added from G2 */
 	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
 
 	if (!ts->inidle)
 		return;
-		
-	local_irq_save(flags);
-		
-	tick_nohz_stop_sched_tick(ts);
 
-	local_irq_restore(flags);
+	tick_nohz_stop_sched_tick(ts);
 }
 
 /**
