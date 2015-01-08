@@ -2109,3 +2109,46 @@ Patch 3.4.42
 	modified:   virt/kvm/ioapic.c
 	modified:   virt/kvm/kvm_main.c
 
+Patch 3.4.43
+        modified:   Makefile
+        modified:   arch/sparc/include/asm/pgtable_64.h
+        modified:   arch/sparc/include/asm/switch_to_64.h
+        modified:   arch/sparc/include/asm/tlbflush_64.h
+        modified:   arch/sparc/kernel/smp_64.c
+        modified:   arch/sparc/mm/tlb.c
+        modified:   arch/sparc/mm/tsb.c
+        modified:   arch/sparc/mm/ultra.S
+        modified:   drivers/net/bonding/bond_main.c
+        modified:   drivers/net/ethernet/atheros/atl1e/atl1e.h
+        modified:   drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+        modified:   drivers/tty/tty_io.c
+        modified:   fs/aio.c
+        modified:   include/linux/netdevice.h
+        modified:   include/linux/skbuff.h
+        modified:   include/linux/socket.h
+        modified:   include/net/scm.h
+        modified:   net/atm/common.c
+        modified:   net/ax25/af_ax25.c
+        modified:   net/bluetooth/af_bluetooth.c
+        modified:   net/bluetooth/rfcomm/sock.c
+        modified:   net/caif/caif_socket.c
+        modified:   net/core/dev.c
+        modified:   net/core/dev_addr_lists.c
+        modified:   net/core/sock.c
+        modified:   net/ipv4/esp4.c
+        modified:   net/ipv4/ip_fragment.c
+        modified:   net/ipv4/tcp_input.c
+        modified:   net/ipv4/tcp_output.c
+        modified:   net/ipv6/addrconf.c
+        modified:   net/ipv6/reassembly.c
+        modified:   net/irda/af_irda.c
+        modified:   net/iucv/af_iucv.c
+        modified:   net/llc/af_llc.c
+        modified:   net/netrom/af_netrom.c
+        modified:   net/nfc/llcp/sock.c
+        modified:   net/rose/af_rose.c
+        modified:   net/sched/sch_cbq.c
+        modified:   net/sctp/auth.c
+        modified:   net/tipc/socket.c
+        modified:   net/unix/af_unix.c
+
