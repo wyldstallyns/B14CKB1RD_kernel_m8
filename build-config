@@ -1,6 +1,6 @@
 TOOLCHAINDIR=~/toolchain
 
-TOOLCHAIN=arm-eabi-4.10-sm
+TOOLCHAIN=4.8-linaro
 
 CROSS_COMPILE=$TOOLCHAINDIR/$TOOLCHAIN/bin/arm-eabi-
 
@@ -53,6 +53,3 @@ ui_print("Version $VERSION");
 EOF`
 
 
-MAIN=3
-PATCHLEVEL=4
-SUBLEVEL=51
