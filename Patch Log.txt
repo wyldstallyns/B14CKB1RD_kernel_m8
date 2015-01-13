@@ -2360,4 +2360,109 @@ Patch 3.4.48
 	modified:   net/mac80211/iface.c
 	modified:   tools/perf/scripts/python/net_dropmonitor.py
 
+Patch 3.4.49
+        modified:   Makefile
+        modified:   arch/powerpc/platforms/pseries/eeh_pseries.c
+        modified:   drivers/acpi/video.c
+        modified:   drivers/gpu/drm/drm_irq.c
+        modified:   drivers/gpu/drm/gma500/framebuffer.c
+        modified:   drivers/gpu/drm/i915/intel_lvds.c
+        modified:   drivers/gpu/drm/i915/intel_sdvo.c
+        modified:   drivers/gpu/drm/radeon/atombios_encoders.c
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/ni.c
+        modified:   drivers/gpu/drm/radeon/r100.c
+        modified:   drivers/gpu/drm/radeon/r300.c
+        modified:   drivers/gpu/drm/radeon/r420.c
+        modified:   drivers/gpu/drm/radeon/r520.c
+        modified:   drivers/gpu/drm/radeon/r600.c
+        modified:   drivers/gpu/drm/radeon/rs400.c
+        modified:   drivers/gpu/drm/radeon/rs600.c
+        modified:   drivers/gpu/drm/radeon/rs690.c
+        modified:   drivers/gpu/drm/radeon/rv515.c
+        modified:   drivers/gpu/drm/radeon/rv770.c
+        modified:   drivers/gpu/drm/radeon/si.c
+        modified:   drivers/hwmon/adm1021.c
+        modified:   drivers/usb/host/ehci-sched.c
+        modified:   drivers/usb/serial/ark3116.c
+        modified:   drivers/usb/serial/cypress_m8.c
+        modified:   drivers/usb/serial/cypress_m8.h
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/iuu_phoenix.c
+        modified:   drivers/usb/serial/keyspan.c
+        modified:   drivers/usb/serial/mos7720.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/visor.c
+        modified:   drivers/usb/serial/whiteheat.c
+        modified:   drivers/xen/xen-pciback/pciback_ops.c
+        modified:   include/linux/ftrace.h
+        modified:   kernel/trace/ftrace.c
+        modified:   kernel/trace/trace_stack.c
+        modified:   sound/usb/mixer.c
+        modified:   sound/usb/quirks-table.h
+
+Patch 3.4.50
+        modified:   Makefile
+        modified:   arch/powerpc/include/asm/exception-64s.h
+        modified:   arch/powerpc/kernel/irq.c
+        modified:   arch/powerpc/kernel/process.c
+        modified:   arch/x86/kernel/relocate_kernel_64.S
+        modified:   drivers/block/cciss.c
+        modified:   drivers/gpu/drm/gma500/cdv_intel_display.c
+        modified:   drivers/gpu/drm/gma500/psb_intel_display.c
+        modified:   drivers/gpu/drm/i915/intel_sdvo.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/md/raid10.c
+        modified:   drivers/net/wireless/ath/ath9k/Kconfig
+        modified:   drivers/net/wireless/ath/ath9k/Makefile
+        modified:   drivers/net/wireless/ath/ath9k/init.c
+        modified:   drivers/net/wireless/ath/ath9k/rc.h
+        modified:   drivers/net/wireless/b43/main.c
+        modified:   drivers/rtc/rtc-twl.c
+        modified:   fs/ceph/locks.c
+        modified:   fs/ceph/mds_client.c
+        modified:   fs/ceph/super.c
+        modified:   fs/ceph/super.h
+        modified:   include/linux/ceph/auth.h
+        modified:   include/linux/cpu.h
+        modified:   include/linux/swapops.h
+        modified:   kernel/cpu.c
+        modified:   mm/hugetlb.c
+        modified:   net/ceph/auth.c
+        modified:   net/ceph/auth_x.c
+        modified:   net/ceph/auth_x.h
+        modified:   net/ceph/messenger.c
+        modified:   net/ceph/mon_client.c
+        modified:   net/ceph/osd_client.c
+
+Patch 3.4.51
+        modified:   Makefile
+        modified:   arch/tile/lib/exports.c
+        modified:   arch/x86/kvm/x86.c
+        modified:   drivers/clk/clk.c
+        modified:   drivers/input/touchscreen/cyttsp_core.c
+        modified:   drivers/net/bonding/bond_alb.c
+        modified:   drivers/net/bonding/bonding.h
+        modified:   drivers/net/ethernet/freescale/gianfar_ptp.c
+        modified:   drivers/net/ethernet/realtek/8139cp.c
+        modified:   drivers/net/ethernet/realtek/r8169.c
+        modified:   drivers/net/team/team_mode_roundrobin.c
+        modified:   drivers/target/iscsi/iscsi_target_erl0.c
+        modified:   drivers/usb/serial/ti_usb_3410_5052.h
+        modified:   fs/notify/inotify/inotify_user.c
+        modified:   include/linux/rculist_nulls.h
+        modified:   include/linux/socket.h
+        modified:   net/compat.c
+        modified:   net/ipv4/ip_gre.c
+        modified:   net/ipv4/ipip.c
+        modified:   net/ipv4/tcp.c
+        modified:   net/ipv4/tcp_output.c
+        modified:   net/ipv6/addrconf.c
+        modified:   net/ipv6/ip6_output.c
+        modified:   net/netlabel/netlabel_domainhash.c
+        modified:   net/sctp/socket.c
+        modified:   net/socket.c
+        modified:   sound/usb/card.c
+        modified:   sound/usb/mixer.c
+
 
