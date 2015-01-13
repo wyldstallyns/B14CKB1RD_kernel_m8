@@ -41,6 +41,10 @@ extern void set_gpu_clk(unsigned int);
 #define INIT_UDELAY		200
 #define MAX_UDELAY		2000
 
+
+/* Gboost thanks to JTrefzger */
+int graphics_boost = 4;
+
 struct clk_pair {
 	const char *name;
 	uint map;
@@ -180,6 +184,9 @@ void kgsl_pwrctrl_pwrlevel_change(struct kgsl_device *device,
 
 
 	trace_kgsl_pwrlevel(device, pwr->active_pwrlevel, pwrlevel->gpu_freq);
+	
+	/* Gboost thanks to JTrefzger */
+	graphics_boost = pwr->active_pwrlevel;
 }
 
 EXPORT_SYMBOL(kgsl_pwrctrl_pwrlevel_change);
