@@ -2494,10 +2494,8 @@ Patch 3.4.53
         modified:   fs/hpfs/super.c
         modified:   fs/nfsd/nfs4xdr.c
         modified:   kernel/time/tick-sched.c
-		modified:   net/ceph/auth_none.c
-<<<<<<< HEAD
-=======
-		
+	modified:   net/ceph/auth_none.c
+
 Patch 3.4.54
         modified:   Makefile
         modified:   arch/arm/kernel/perf_event.c
@@ -2524,4 +2522,4 @@ Patch 3.4.54
         modified:   kernel/irq/manage.c
         modified:   kernel/timer.c
 
->>>>>>> a956d79... Patch 3.4.54
+
