@@ -2465,4 +2465,120 @@ Patch 3.4.51
         modified:   sound/usb/card.c
         modified:   sound/usb/mixer.c
 
+Patch 3.4.52
+        modified:   Makefile
+        modified:   arch/arm/include/asm/cacheflush.h
+        modified:   arch/arm/mm/flush.c
+        modified:   arch/arm/mm/nommu.c
+        modified:   drivers/net/wan/dlci.c
+        modified:   drivers/tty/serial/pch_uart.c
+        modified:   fs/ubifs/dir.c
+        modified:   include/linux/perf_event.h
+        modified:   kernel/events/core.c
+        modified:   kernel/events/hw_breakpoint.c
+        modified:   kernel/events/internal.h
+        modified:   net/bluetooth/l2cap_core.c
+
+Patch 3.4.53
+        modified:   MAINTAINERS
+        modified:   Makefile
+        modified:   block/genhd.c
+        modified:   crypto/algapi.c
+        modified:   drivers/block/nbd.c
+        modified:   drivers/cdrom/cdrom.c
+        modified:   drivers/power/charger-manager.c
+        modified:   drivers/scsi/osd/osd_uld.c
+        modified:   drivers/scsi/sd.c
+        modified:   drivers/tty/serial/8250/8250_pci.c
+        modified:   fs/hpfs/map.c
+        modified:   fs/hpfs/super.c
+        modified:   fs/nfsd/nfs4xdr.c
+        modified:   kernel/time/tick-sched.c
+	modified:   net/ceph/auth_none.c
+
+Patch 3.4.54
+        modified:   Makefile
+        modified:   arch/arm/kernel/perf_event.c
+        modified:   arch/x86/xen/time.c
+        modified:   drivers/acpi/ec.c
+        modified:   drivers/ata/ahci.c
+        modified:   drivers/ata/libahci.c
+        modified:   drivers/dma/pl330.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192cu/rf.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
+        modified:   drivers/pci/quirks.c
+        modified:   drivers/pcmcia/at91_cf.c
+        modified:   drivers/rtc/rtc-rv3029c2.c
+        modified:   drivers/usb/host/xhci-mem.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcserial.c
+        modified:   fs/cifs/cifs_unicode.h
+        modified:   fs/cifs/cifsencrypt.c
+        modified:   fs/cifs/inode.c
+        modified:   fs/ext3/namei.c
+        modified:   fs/ext4/inode.c
+        modified:   fs/ext4/namei.c
+        modified:   fs/ocfs2/xattr.c
+        modified:   kernel/irq/manage.c
+        modified:   kernel/timer.c
+
+<<<<<<< HEAD
+=======
+Patch 3.4.55
+	modified:   Makefile
+	modified:   arch/sparc/kernel/asm-offsets.c
+	modified:   arch/sparc/mm/hypersparc.S
+	modified:   arch/sparc/mm/init_64.c
+	modified:   arch/sparc/mm/swift.S
+	modified:   arch/sparc/mm/tlb.c
+	modified:   arch/sparc/mm/tsunami.S
+	modified:   arch/sparc/mm/viking.S
+	modified:   drivers/ata/ata_piix.c
+	modified:   drivers/ata/libata-pmp.c
+	modified:   drivers/iommu/amd_iommu.c
+	modified:   drivers/net/dummy.c
+	modified:   drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+	modified:   drivers/net/ethernet/renesas/sh_eth.c
+	modified:   drivers/net/ethernet/renesas/sh_eth.h
+	modified:   drivers/net/ethernet/sun/sunvnet.c
+	modified:   drivers/net/ifb.c
+	modified:   drivers/net/macvtap.c
+	modified:   drivers/net/wireless/ath/ath9k/calib.c
+	modified:   drivers/net/wireless/rt2x00/rt2800lib.c
+	modified:   drivers/net/wireless/rt2x00/rt61pci.c
+	modified:   drivers/net/wireless/rt2x00/rt73usb.c
+	modified:   drivers/s390/scsi/zfcp_fsf.c
+	modified:   drivers/s390/scsi/zfcp_scsi.c
+	modified:   drivers/scsi/bnx2fc/bnx2fc_io.c
+	modified:   drivers/scsi/megaraid/megaraid_sas_base.c
+	modified:   drivers/scsi/mpt2sas/mpt2sas_scsih.c
+	modified:   drivers/usb/serial/cp210x.c
+	modified:   drivers/usb/serial/option.c
+	modified:   fs/ext3/inode.c
+	modified:   fs/lockd/svclock.c
+	modified:   include/linux/if_pppox.h
+	modified:   include/net/addrconf.h
+	modified:   include/net/udp.h
+	modified:   kernel/events/core.c
+	modified:   kernel/hrtimer.c
+	modified:   kernel/time/tick-broadcast.c
+	modified:   kernel/trace/trace.c
+	modified:   kernel/trace/trace_syscalls.c
+	modified:   net/8021q/vlan_dev.c
+	modified:   net/9p/trans_common.c
+	modified:   net/bridge/br_multicast.c
+	modified:   net/core/neighbour.c
+	modified:   net/ipv4/tcp_ipv4.c
+	modified:   net/ipv4/udp.c
+	modified:   net/ipv6/addrconf.c
+	modified:   net/ipv6/ip6_output.c
+	modified:   net/ipv6/mcast.c
+	modified:   net/ipv6/route.c
+	modified:   net/key/af_key.c
+	modified:   net/l2tp/l2tp_ppp.c
+	modified:   net/x25/af_x25.c
+	modified:   sound/soc/codecs/sgtl5000.h
+	modified:   sound/usb/6fire/pcm.c
+
+>>>>>>> bea972a... Patch 3.4.55
 
