@@ -65,6 +65,7 @@ nfc.                    u:object_r:nfc_prop:s0
 #line 1 "device/qcom/sepolicy/common/property_contexts"
 wc_transport.              u:object_r:bluetooth_prop:s0
 usb_uicc.                  u:object_r:uicc_prop:s0
+sys.ims.                   u:object_r:qcom_ims_prop:s0
 #line 1 "device/htc/m8/sepolicy/property_contexts"
 oc.cpu_ctrl		u:object_r:powerctl_prop:s0
 #line 1 "vendor/vanir/sepolicy/property_contexts"
