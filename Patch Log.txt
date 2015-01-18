@@ -2874,4 +2874,25 @@ Patch 3.4.57
 	modified:   net/sched/sch_cbq.c
 	modified:   net/sctp/outqueue.c
 
+Patch 3.4.58
+	modified:   Makefile
+	modified:   build-config
+	modified:   drivers/char/virtio_console.c
+	modified:   drivers/hwmon/adt7470.c
+	modified:   drivers/scsi/megaraid/megaraid_sas_base.c
+	modified:   drivers/scsi/nsp32.c
+	modified:   drivers/scsi/scsi.c
+	modified:   export
+	modified:   fs/cifs/cifsencrypt.c
+	modified:   fs/cifs/cifsglob.h
+	modified:   fs/cifs/connect.c
+	modified:   fs/cifs/sess.c
+	modified:   fs/dcache.c
+	modified:   fs/debugfs/inode.c
+	modified:   fs/ext4/ialloc.c
+	modified:   fs/ext4/super.c
+	modified:   include/linux/ftrace_event.h
+	modified:   kernel/trace/trace.c
+	modified:   tools/perf/util/map.c
+
 
