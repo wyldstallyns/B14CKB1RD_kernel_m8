@@ -2895,4 +2895,40 @@ Patch 3.4.58
 	modified:   kernel/trace/trace.c
 	modified:   tools/perf/util/map.c
 
+Patch 3.4.59
+        modified:   Makefile
+        modified:   arch/alpha/Makefile
+        modified:   arch/cris/arch-v10/lib/Makefile
+        modified:   arch/cris/include/asm/posix_types.h
+        modified:   arch/cris/kernel/vmlinux.lds.S
+        modified:   arch/frv/include/asm/thread_info.h
+        modified:   arch/frv/kernel/process.c
+        modified:   arch/m68k/emu/natfeat.c
+        modified:   arch/m68k/include/asm/div64.h
+        modified:   arch/microblaze/configs/mmu_defconfig
+        modified:   arch/microblaze/configs/nommu_defconfig
+        modified:   arch/mips/Kconfig
+        modified:   arch/mips/include/asm/io.h
+        modified:   arch/mips/include/asm/page.h
+        modified:   arch/powerpc/mm/numa.c
+        modified:   arch/sparc/lib/Makefile
+        modified:   arch/xtensa/kernel/Makefile
+        modified:   arch/xtensa/kernel/vmlinux.lds.S
+        modified:   arch/xtensa/mm/init.c
+        modified:   drivers/gpu/drm/i915/intel_lvds.c
+        modified:   drivers/hid/hid-microsoft.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/md/raid10.c
+        modified:   drivers/net/can/usb/peak_usb/pcan_usb.c
+        modified:   drivers/net/wireless/iwlegacy/4965-mac.c
+        modified:   drivers/net/wireless/iwlegacy/common.c
+        modified:   drivers/usb/core/quirks.c
+        modified:   drivers/usb/serial/mos7720.c
+        modified:   fs/proc/task_mmu.c
+        modified:   include/linux/hugetlb.h
+        modified:   kernel/futex.c
+        modified:   mm/hugetlb.c
+        modified:   mm/nommu.c
+        modified:   net/key/af_key.c
+        modified:   sound/oss/Kconfig
 
