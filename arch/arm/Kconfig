@@ -12,14 +12,15 @@ config ARM
 	select GENERIC_ATOMIC64 if (CPU_V6 || !CPU_32v6K || !AEABI)
 	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL
-	select HAVE_ARCH_KGDB
+	#select HAVE_ARCH_KGDB
 	select HAVE_KPROBES if !XIP_KERNEL
 	select HAVE_KRETPROBES if (HAVE_KPROBES)
-	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
-	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
-	select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
-	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
+	#select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
+	#select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
+	#select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
+	#select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+	select HAVE_EFFICIENT_UNALIGNED_ACCESS
 	select HAVE_GENERIC_DMA_COHERENT
 	select HAVE_KERNEL_GZIP
 	select HAVE_KERNEL_LZ4
@@ -161,10 +162,9 @@ config ARM_TICKET_LOCKS
 
 config RWSEM_GENERIC_SPINLOCK
 	bool
-	default y
 
 config RWSEM_XCHGADD_ALGORITHM
-	bool
+	def_bool y
 
 config ARCH_HAS_ILOG2_U32
 	bool
@@ -1729,7 +1729,7 @@ config HZ
 	default OMAP_32K_TIMER_HZ if ARCH_OMAP && OMAP_32K_TIMER
 	default AT91_TIMER_HZ if ARCH_AT91
 	default SHMOBILE_TIMER_HZ if ARCH_SHMOBILE
-	default 100
+	default 240
 
 config THUMB2_KERNEL
 	bool "Compile the kernel in Thumb-2 mode (EXPERIMENTAL)"
@@ -1998,6 +1998,19 @@ config UACCESS_WITH_MEMCPY
 
 	  However, if the CPU data cache is using a write-allocate mode,
 	  this option is unlikely to provide any performance gain.
+
+config ARM_PLD_64BYTE
+	bool "Use 64-bit preload size for kernel memory copy"
+	depends on CPU_V7
+	help
+	  Config preload size for memcpy, selecting this for Cortex-A15
+
+config USE_LDRDSTRD_OVER_LDMSTM
+	bool "Use 64-bit access instructions to optimize memory copy"
+	depends on CPU_V7
+	help
+	  Cortex-A15 perform better when use LDRD/STRD to access memory.
+	  Selecting this to optimize memory copy routines.
 
 config SECCOMP
 	bool

@@ -33,13 +33,13 @@ ifeq ($(CONFIG_MMU),)
 MMUEXT		:= -nommu
 endif
 
-ifeq ($(CONFIG_FRAME_POINTER),y)
-KBUILD_CFLAGS	+=-fno-omit-frame-pointer -mapcs -mno-sched-prolog
-endif
-
 ifeq ($(CONFIG_CC_STACKPROTECTOR),y)
 KBUILD_CFLAGS	+=-fstack-protector
 endif
+
+# ARM gcc developers unfortunately broke -fconserve-stack. It misaligns
+# variables on the stack
+KBUILD_CFLAGS += $(call cc-option,-fno-conserve-stack)
 
 ifeq ($(CONFIG_CPU_BIG_ENDIAN),y)
 KBUILD_CPPFLAGS	+= -mbig-endian
@@ -270,6 +270,7 @@ endif
 # If we have a machine-specific directory, then include it in the build.
 core-y				+= arch/arm/kernel/ arch/arm/mm/ arch/arm/common/
 core-y				+= arch/arm/net/
+core-y				+= arch/arm/crypto/
 core-y				+= $(machdirs) $(platdirs)
 
 drivers-$(CONFIG_OPROFILE)      += arch/arm/oprofile/

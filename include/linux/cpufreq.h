@@ -169,8 +169,9 @@ int lock_policy_rwsem_write(int cpu);
 void unlock_policy_rwsem_write(int cpu);
 
 
-#define CPUFREQ_RELATION_L 0  
-#define CPUFREQ_RELATION_H 1  
+#define CPUFREQ_RELATION_L 0  /* lowest frequency at or above target */
+#define CPUFREQ_RELATION_H 1  /* highest frequency below or at target */
+#define CPUFREQ_RELATION_C 2
 
 struct freq_attr;
 
@@ -227,6 +228,13 @@ static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy, u
 	if (policy->min > policy->max)
 		policy->min = policy->max;
 	return;
+}
+
+static inline void
+cpufreq_verify_within_cpu_limits(struct cpufreq_policy *policy)
+{
+	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
+			policy->cpuinfo.max_freq);
 }
 
 struct freq_attr {
