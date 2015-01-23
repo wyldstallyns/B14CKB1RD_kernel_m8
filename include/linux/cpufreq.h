@@ -63,7 +63,9 @@ static inline void disable_cpufreq(void) { }
  * cent / per mille means.
  * Maximum transition latency is in nanoseconds - if it's unknown,
  * CPUFREQ_ETERNAL shall be used.
- */
+/* Minimum frequency cutoff to notify the userspace about cpu utilization
+ * changes */
+#define MIN_CPU_UTIL_NOTIFY   40
 
 struct cpufreq_governor;
 
@@ -89,21 +91,18 @@ struct cpufreq_real_policy {
 struct cpufreq_policy {
 	cpumask_var_t		cpus;	/* CPUs requiring sw coordination */
 	cpumask_var_t		related_cpus; /* CPUs with any coordination */
-	unsigned int		shared_type; /* ANY or ALL affected CPUs
-						should set cpufreq */
+	unsigned int		shared_type; /* ANY or ALL affected CPUs should set cpufreq */
 	unsigned int		cpu;    /* cpu nr of registered CPU */
 	struct cpufreq_cpuinfo	cpuinfo;/* see above */
 
 	unsigned int		min;    /* in kHz */
 	unsigned int		max;    /* in kHz */
-	unsigned int		cur;    /* in kHz, only needed if cpufreq
-					 * governors are used */
+	unsigned int		cur;    /* in kHz, only needed if cpufreq governors are used */
 	unsigned int		policy; /* see above */
 	struct cpufreq_governor	*governor; /* see below */
 
-	struct work_struct	update; /* if update_policy() needs to be
-					 * called, but you're in IRQ context */
-
+	struct work_struct	update; /* if update_policy() needs to be called, but you're in IRQ context */
+	unsigned int            util;  /* CPU utilization at max frequency */
 	struct cpufreq_real_policy	user_policy;
 
 	struct kobject		kobj;
@@ -258,6 +257,9 @@ int cpufreq_unregister_driver(struct cpufreq_driver *driver_data);
 
 
 void cpufreq_notify_transition(struct cpufreq_freqs *freqs, unsigned int state);
+
+void cpufreq_notify_utilization(struct cpufreq_policy *policy,
+		unsigned int load);
 
 static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy, unsigned int min, unsigned int max)
 {
