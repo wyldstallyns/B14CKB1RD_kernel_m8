@@ -49,17 +49,17 @@ struct row_queue_params {
 };
 
 static const struct row_queue_params row_queues_def[] = {
-	{true, 10, true, 0},	
-	{false, 1, false, 0},	
 	{true, 100, true, 0},	
-	{false, 1, false, 3 * HZ},	
-	{false, 1, false, 3 * HZ},	
-	{false, 1, false, 0},	
-	{false, 1, false, 3 * HZ}	
+	{false, 5, false, 0},	
+	{true, 75, true, 0},	
+	{false, 4, false, 3 * HZ},	
+	{false, 4, false, 3 * HZ},	
+	{false, 3, false, 0},	
+	{false, 2, false, 3 * HZ}	
 };
 
-#define ROW_IDLE_TIME_MSEC 5
-#define ROW_READ_FREQ_MSEC 5
+#define ROW_IDLE_TIME_MSEC 10
+#define ROW_READ_FREQ_MSEC 25
 
 struct rowq_idling_data {
 	ktime_t			last_insert_time;
