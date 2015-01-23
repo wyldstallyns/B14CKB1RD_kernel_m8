@@ -931,6 +931,9 @@ static int get_proximity(struct device *dev, struct device_attribute *attr, char
 }
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_WAKE_GESTURES
+
+static int proximity_flag = 0;
+
 static void sensor_enable(int sensors_id, int enabled)
 {
 	u8 i;
@@ -1330,7 +1333,7 @@ static int active_set(struct device *dev,struct device_attribute *attr,const cha
 #endif
 	int enabled = 0;
 	int sensors_id = 0;
-	
+		
 	u8 data;
 	u8 i;
 	int retry = 0;
