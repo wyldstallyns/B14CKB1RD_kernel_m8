@@ -51,7 +51,6 @@ config PERSISTENT_TRACER
 	depends on HAVE_FUNCTION_TRACER
 	select FUNCTION_TRACER
 	select ANDROID_PERSISTENT_RAM
-	default n
 	help
 	  persistent_trace traces function calls into a persistent ram
 	  buffer that can be decoded and dumped after reboot through
@@ -84,14 +83,6 @@ config ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
 	  Detect oom_adj values written to
 	  /sys/module/lowmemorykiller/parameters/adj and convert them
 	  to oom_score_adj values.
-
-config ANDROID_LMK_ADJ_RBTREE
-	bool "Android Low Memory Killer: Red-Black Tree search"
-	depends on ANDROID_LOW_MEMORY_KILLER
-	default y
-	---help---
-	  Utilize RB Tree for walking the tasklist.. O(log n) vs O(n)
-	  much speedier for long task list!
 
 source "drivers/staging/android/switch/Kconfig"
 

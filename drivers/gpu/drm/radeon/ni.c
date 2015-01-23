@@ -880,18 +880,10 @@ static void cayman_gpu_init(struct radeon_device *rdev)
 	if (rdev->flags & RADEON_IS_IGP)
 		rdev->config.cayman.tile_config |= 1 << 4;
 	else {
-		switch ((mc_arb_ramcfg & NOOFBANK_MASK) >> NOOFBANK_SHIFT) {
-		case 0: /* four banks */
-			rdev->config.cayman.tile_config |= 0 << 4;
-			break;
-		case 1: /* eight banks */
+		if ((mc_arb_ramcfg & NOOFBANK_MASK) >> NOOFBANK_SHIFT)
 			rdev->config.cayman.tile_config |= 1 << 4;
-			break;
-		case 2: /* sixteen banks */
-		default:
-			rdev->config.cayman.tile_config |= 2 << 4;
-			break;
-		}
+		else
+			rdev->config.cayman.tile_config |= 0 << 4;
 	}
 	rdev->config.cayman.tile_config |=
 		((gb_addr_config & PIPE_INTERLEAVE_SIZE_MASK) >> PIPE_INTERLEAVE_SIZE_SHIFT) << 8;
@@ -1601,12 +1593,6 @@ static int cayman_startup(struct radeon_device *rdev)
 	}
 
 	/* Enable IRQ */
-	if (!rdev->irq.installed) {
-		r = radeon_irq_kms_init(rdev);
-		if (r)
-			return r;
-	}
-
 	r = r600_irq_init(rdev);
 	if (r) {
 		DRM_ERROR("radeon: IH init failed (%d).\n", r);
@@ -1734,6 +1720,10 @@ int cayman_init(struct radeon_device *rdev)
 		return r;
 	/* Memory manager */
 	r = radeon_bo_init(rdev);
+	if (r)
+		return r;
+
+	r = radeon_irq_kms_init(rdev);
 	if (r)
 		return r;
 

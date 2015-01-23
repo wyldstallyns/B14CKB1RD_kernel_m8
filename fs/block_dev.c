@@ -527,7 +527,6 @@ struct block_device *bdgrab(struct block_device *bdev)
 	ihold(bdev->bd_inode);
 	return bdev;
 }
-EXPORT_SYMBOL(bdgrab);
 
 long nr_blockdev_pages(void)
 {
@@ -829,7 +828,6 @@ int revalidate_disk(struct gendisk *disk)
 
 	mutex_lock(&bdev->bd_mutex);
 	check_disk_size_change(disk, bdev);
-	bdev->bd_invalidated = 0;
 	mutex_unlock(&bdev->bd_mutex);
 	bdput(bdev);
 	return ret;
@@ -859,9 +857,7 @@ void bd_set_size(struct block_device *bdev, loff_t size)
 {
 	unsigned bsize = bdev_logical_block_size(bdev);
 
-	mutex_lock(&bdev->bd_inode->i_mutex);
-	i_size_write(bdev->bd_inode, size);
-	mutex_unlock(&bdev->bd_inode->i_mutex);
+	bdev->bd_inode->i_size = size;
 	while (bsize < PAGE_CACHE_SIZE) {
 		if (size & bsize)
 			break;

@@ -4,7 +4,6 @@
  *
  * Copyright (C) 2011 Samsung Electronics
  *	MyungJoo Ham <myungjoo.ham@samsung.com>
- * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -78,27 +77,11 @@ int devfreq_get_freq_level(struct devfreq *devfreq, unsigned long freq)
 {
 	int lev;
 
-	if (!devfreq->profile->max_state)
-		return -EINVAL;
+	for (lev = 0; lev < devfreq->profile->max_state; lev++)
+		if (freq == devfreq->profile->freq_table[lev])
+			return lev;
 
-	for (lev = 0; lev < devfreq->profile->max_state; lev++) {
-		if (devfreq->profile->freq_table[lev] >= freq) {
-			/* below minimum frequency? just return zero level */
-			if (lev == 0)
-				return 0;
-
-			/* select high freq if the freq is closer to that */
-			if ((devfreq->profile->freq_table[lev] - freq) <
-			    (freq - devfreq->profile->freq_table[lev - 1]))
-				return lev;
-
-			/* ..otherwise return the low freq */
-			return lev - 1;
-		}
-	}
-
-	/* above max freq */
-	return devfreq->profile->max_state - 1;
+	return -EINVAL;
 }
 EXPORT_SYMBOL(devfreq_get_freq_level);
 
@@ -106,9 +89,6 @@ static int devfreq_update_status(struct devfreq *devfreq, unsigned long freq)
 {
 	int lev, prev_lev;
 	unsigned long cur_time;
-	
-	if (devfreq->suspended)
-		return 0;
 
 	lev = devfreq_get_freq_level(devfreq, freq);
 	if (lev < 0)
@@ -266,6 +246,7 @@ void devfreq_interval_update(struct devfreq *devfreq, unsigned int *delay)
 	unsigned int new_delay = *delay;
 
 	mutex_lock(&devfreq->lock);
+	devfreq->profile->polling_ms = new_delay;
 
 	if (devfreq->stop_polling)
 		goto out;
@@ -472,12 +453,6 @@ int devfreq_suspend_device(struct devfreq *devfreq)
 {
 	if (!devfreq)
 		return -EINVAL;
-	
-	/* Last update before suspend */
-	mutex_lock(&devfreq->lock);
-	devfreq_update_status(devfreq, devfreq->previous_freq);
-	devfreq->suspended = true;
-	mutex_unlock(&devfreq->lock);
 
 	if (!devfreq->governor)
 		return 0;
@@ -491,12 +466,6 @@ int devfreq_resume_device(struct devfreq *devfreq)
 {
 	if (!devfreq)
 		return -EINVAL;
-
-	/* Update the timestamp before resuming */
-	mutex_lock(&devfreq->lock);
-	devfreq->last_stat_updated = jiffies;
-	devfreq->suspended = false;
-	mutex_unlock(&devfreq->lock);
 
 	if (!devfreq->governor)
 		return 0;
@@ -732,7 +701,6 @@ static ssize_t store_polling_interval(struct device *dev,
 	if (ret != 1)
 		return -EINVAL;
 
-	df->profile->polling_ms = value;
 	df->governor->event_handler(df, DEVFREQ_GOV_INTERVAL, &value);
 	ret = count;
 
@@ -815,29 +783,17 @@ static ssize_t show_available_freqs(struct device *d,
 	ssize_t count = 0;
 	unsigned long freq = 0;
 
-	if (df->profile->max_state) {
-		int i;
+	rcu_read_lock();
+	do {
+		opp = opp_find_freq_ceil(dev, &freq);
+		if (IS_ERR(opp))
+			break;
 
-		for (i = 0; i < df->profile->max_state; i++) {
-			freq = df->profile->freq_table[i];
-			count += scnprintf(&buf[count],
-					   (PAGE_SIZE - count - 2), "%lu ",
-					   freq);
-		}
-	} else {
-		rcu_read_lock();
-		do {
-			opp = opp_find_freq_ceil(dev, &freq);
-			if (IS_ERR(opp))
-				break;
-
-			count += scnprintf(&buf[count],
-					   (PAGE_SIZE - count - 2), "%lu ",
-					   freq);
-			freq++;
-		} while (1);
-		rcu_read_unlock();
-	}
+		count += scnprintf(&buf[count], (PAGE_SIZE - count - 2),
+				   "%lu ", freq);
+		freq++;
+	} while (1);
+	rcu_read_unlock();
 
 	
 	if (count)
@@ -855,23 +811,10 @@ static ssize_t show_trans_table(struct device *dev, struct device_attribute *att
 	ssize_t len;
 	int i, j, err;
 	unsigned int max_state = devfreq->profile->max_state;
-	int prev_freq_level;
-	unsigned long prev_freq;
 
-	mutex_lock(&devfreq->lock);
 	err = devfreq_update_status(devfreq, devfreq->previous_freq);
 	if (err)
 		return 0;
-	mutex_unlock(&devfreq->lock);
-	
-	/* round the current frequency */
-	prev_freq_level = devfreq_get_freq_level(devfreq,
-						 devfreq->previous_freq);
-
-	if (prev_freq_level < 0)
-		prev_freq = devfreq->previous_freq;
-	else
-		prev_freq = devfreq->profile->freq_table[prev_freq_level];
 
 	len = sprintf(buf, "   From  :   To\n");
 	len += sprintf(buf + len, "         :");
@@ -882,8 +825,8 @@ static ssize_t show_trans_table(struct device *dev, struct device_attribute *att
 	len += sprintf(buf + len, "   time(ms)\n");
 
 	for (i = 0; i < max_state; i++) {
-		if (devfreq->profile->freq_table[i] == prev_freq &&
-		    !devfreq->suspended) {
+		if (devfreq->profile->freq_table[i]
+					== devfreq->previous_freq) {
 			len += sprintf(buf + len, "*");
 		} else {
 			len += sprintf(buf + len, " ");
@@ -924,10 +867,7 @@ static int __init devfreq_init(void)
 		return PTR_ERR(devfreq_class);
 	}
 
-	devfreq_wq =
-	    alloc_workqueue("devfreq_wq",
-			    WQ_HIGHPRI | WQ_UNBOUND | WQ_FREEZABLE |
-			    WQ_MEM_RECLAIM, 0);
+	devfreq_wq = create_freezable_workqueue("devfreq_wq");
 	if (IS_ERR(devfreq_wq)) {
 		class_destroy(devfreq_class);
 		pr_err("%s: couldn't create workqueue\n", __FILE__);

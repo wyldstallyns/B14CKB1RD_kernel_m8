@@ -274,7 +274,6 @@ static int pppol2tp_sendmsg(struct kiocb *iocb, struct socket *sock, struct msgh
 	l2tp_xmit_skb(session, skb, session->hdr_len);
 
 	sock_put(ps->tunnel_sock);
-	sock_put(sk);
 
 	return error;
 
@@ -1559,8 +1558,7 @@ static const struct proto_ops pppol2tp_ops = {
 
 static const struct pppox_proto pppol2tp_proto = {
 	.create		= pppol2tp_create,
-	.ioctl		= pppol2tp_ioctl,
-	.owner		= THIS_MODULE,
+	.ioctl		= pppol2tp_ioctl
 };
 
 #ifdef CONFIG_L2TP_V3

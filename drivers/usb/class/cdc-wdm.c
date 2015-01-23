@@ -55,15 +55,6 @@ static const struct usb_device_id wdm_ids[] = {
 		.bInterfaceSubClass = 1,
 		.bInterfaceProtocol = 9, /* NOTE: CDC ECM control interface! */
 	},
-	{
-		 /* Vodafone/Huawei K5005 (12d1:14c8) and similar modems */
-		.match_flags        = USB_DEVICE_ID_MATCH_VENDOR |
-				      USB_DEVICE_ID_MATCH_INT_INFO,
-		.idVendor           = HUAWEI_VENDOR_ID,
-		.bInterfaceClass    = USB_CLASS_VENDOR_SPEC,
-		.bInterfaceSubClass = 1,
-		.bInterfaceProtocol = 57, /* NOTE: CDC ECM control interface! */
-	},
 	{ }
 };
 
@@ -81,7 +72,6 @@ MODULE_DEVICE_TABLE (usb, wdm_ids);
 #define WDM_RESPONDING		7
 #define WDM_SUSPENDING		8
 #define WDM_RESETTING		9
-#define WDM_OVERFLOW		10
 
 #define WDM_MAX			16
 
@@ -135,14 +125,12 @@ static struct usb_driver wdm_driver;
 /* return intfdata if we own the interface, else look up intf in the list */
 static struct wdm_device *wdm_find_device(struct usb_interface *intf)
 {
-	struct wdm_device *desc;
+	struct wdm_device *desc = NULL;
 
 	spin_lock(&wdm_device_list_lock);
 	list_for_each_entry(desc, &wdm_device_list, device_list)
 		if (desc->intf == intf)
-			goto found;
-	desc = NULL;
-found:
+			break;
 	spin_unlock(&wdm_device_list_lock);
 
 	return desc;
@@ -150,14 +138,12 @@ found:
 
 static struct wdm_device *wdm_find_device_by_minor(int minor)
 {
-	struct wdm_device *desc;
+	struct wdm_device *desc = NULL;
 
 	spin_lock(&wdm_device_list_lock);
 	list_for_each_entry(desc, &wdm_device_list, device_list)
 		if (desc->intf->minor == minor)
-			goto found;
-	desc = NULL;
-found:
+			break;
 	spin_unlock(&wdm_device_list_lock);
 
 	return desc;
@@ -181,7 +167,6 @@ static void wdm_in_callback(struct urb *urb)
 {
 	struct wdm_device *desc = urb->context;
 	int status = urb->status;
-	int length = urb->actual_length;
 
 	spin_lock(&desc->iuspin);
 	clear_bit(WDM_RESPONDING, &desc->flags);
@@ -212,17 +197,9 @@ static void wdm_in_callback(struct urb *urb)
 	}
 
 	desc->rerr = status;
-	if (length + desc->length > desc->wMaxCommand) {
-		/* The buffer would overflow */
-		set_bit(WDM_OVERFLOW, &desc->flags);
-	} else {
-		/* we may already be in overflow */
-		if (!test_bit(WDM_OVERFLOW, &desc->flags)) {
-			memmove(desc->ubuf + desc->length, desc->inbuf, length);
-			desc->length += length;
-			desc->reslength = length;
-		}
-	}
+	desc->reslength = urb->actual_length;
+	memmove(desc->ubuf + desc->length, desc->inbuf, desc->reslength);
+	desc->length += desc->reslength;
 skip_error:
 	wake_up(&desc->wait);
 
@@ -470,11 +447,6 @@ retry:
 			rv = -ENODEV;
 			goto err;
 		}
-		if (test_bit(WDM_OVERFLOW, &desc->flags)) {
-			clear_bit(WDM_OVERFLOW, &desc->flags);
-			rv = -ENOBUFS;
-			goto err;
-		}
 		i++;
 		if (file->f_flags & O_NONBLOCK) {
 			if (!test_bit(WDM_READ, &desc->flags)) {
@@ -518,10 +490,7 @@ retry:
 			spin_unlock_irq(&desc->iuspin);
 			goto retry;
 		}
-
 		if (!desc->reslength) { /* zero length read */
-			dev_dbg(&desc->intf->dev, "%s: zero length - clearing WDM_READ\n", __func__);
-			clear_bit(WDM_READ, &desc->flags);
 			spin_unlock_irq(&desc->iuspin);
 			goto retry;
 		}
@@ -1026,7 +995,6 @@ static int wdm_post_reset(struct usb_interface *intf)
 	struct wdm_device *desc = wdm_find_device(intf);
 	int rv;
 
-	clear_bit(WDM_OVERFLOW, &desc->flags);
 	clear_bit(WDM_RESETTING, &desc->flags);
 	rv = recover_from_urb_loss(desc);
 	mutex_unlock(&desc->wlock);

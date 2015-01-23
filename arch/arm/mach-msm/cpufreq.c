@@ -34,21 +34,12 @@
 #include <mach/socinfo.h>
 #include <mach/cpufreq.h>
 
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-#include <mach/htc_footprint.h>
-#include <mach/clk-provider.h>
-#endif
-
 #include "acpuclock.h"
 
 #ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
 #include <asm/div64.h>
-#endif
-
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
-static struct cpufreq_frequency_table *dts_freq_table;
 #endif
 
 static DEFINE_MUTEX(l2bw_lock);
@@ -101,13 +92,6 @@ static void update_l2_bw(int *also_cpu)
 		index = max(index, freq_index[cpu]);
 	}
 
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-	if (l2_clk) {
-		set_acpuclk_l2_freq_footprint(FT_PREV_RATE, l2_clk->rate);
-		set_acpuclk_l2_freq_footprint(FT_NEW_RATE, l2_khz[index] * 1000);
-	}
-#endif
-
 	if (l2_clk)
 		rc = clk_set_rate(l2_clk, l2_khz[index] * 1000);
 	if (rc) {
@@ -158,23 +142,12 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq,
 	trace_cpu_frequency_switch_start(freqs.old, freqs.new, policy->cpu);
 	if (is_clk) {
 		unsigned long rate = new_freq * 1000;
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_acpuclk_footprint(policy->cpu, ACPU_ENTER);
-		set_acpuclk_cpu_freq_footprint(FT_PREV_RATE, policy->cpu, policy->cur * 1000);
-		set_acpuclk_cpu_freq_footprint(FT_NEW_RATE, policy->cpu, rate);
-#endif
 		rate = clk_round_rate(cpu_clk[policy->cpu], rate);
 		ret = clk_set_rate(cpu_clk[policy->cpu], rate);
 		if (!ret) {
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_acpuclk_footprint(policy->cpu, ACPU_BEFORE_UPDATE_L2_BW);
-#endif
 			freq_index[policy->cpu] = index;
 			update_l2_bw(NULL);
 		}
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_acpuclk_footprint(policy->cpu, ACPU_LEAVE);
-#endif
 	} else {
 		ret = acpuclk_set_rate(policy->cpu, new_freq, SETRATE_CPUFREQ);
 	}
@@ -368,52 +341,25 @@ static int __cpuinit msm_cpufreq_cpu_callback(struct notifier_block *nfb,
 		}
 		break;
 	case CPU_UP_PREPARE:
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_hotplug_on_footprint(cpu, HOF_ENTER_PREPARE);
-#endif
 		if (is_clk) {
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_hotplug_on_footprint(cpu, HOF_BEFORE_PREPARE_L2);
-#endif
 			rc = clk_prepare(l2_clk);
 			if (rc < 0)
 				return NOTIFY_BAD;
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_hotplug_on_footprint(cpu, HOF_BEFORE_PREPARE_CPU);
-#endif
 			rc = clk_prepare(cpu_clk[cpu]);
 			if (rc < 0)
 				return NOTIFY_BAD;
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_hotplug_on_footprint(cpu, HOF_BEFORE_UPDATE_L2_BW);
-#endif
 			update_l2_bw(&cpu);
 		}
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_hotplug_on_footprint(cpu, HOF_LEAVE);
-#endif
 		break;
 	case CPU_STARTING:
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_hotplug_on_footprint(cpu, HOF_ENTER_ENABLE);
-#endif
 		if (is_clk) {
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_hotplug_on_footprint(cpu, HOF_BEFORE_ENABLE_L2);
-#endif
 			rc = clk_enable(l2_clk);
 			if (rc < 0)
 				return NOTIFY_BAD;
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-			set_hotplug_on_footprint(cpu, HOF_BEFORE_ENABLE_CPU);
-#endif
 			rc = clk_enable(cpu_clk[cpu]);
 			if (rc < 0)
 				return NOTIFY_BAD;
 		}
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-		set_hotplug_on_footprint(cpu, HOF_LEAVE_ENABLE);
-#endif
 		break;
 	default:
 		break;
@@ -539,40 +485,10 @@ static int cpufreq_parse_dt(struct device *dev)
 	freq_table[i].index = i;
 	freq_table[i].frequency = CPUFREQ_TABLE_END;
 
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
-	dts_freq_table =
-		devm_kzalloc(dev, (nf + 1) *
-			sizeof(struct cpufreq_frequency_table),
-			GFP_KERNEL);
-
-	if (!dts_freq_table)
-		return -ENOMEM;
-
-	for (i = 0, j = 0; i < nf; i++, j += 3)
-		dts_freq_table[i].frequency = data[j];
-	dts_freq_table[i].frequency = CPUFREQ_TABLE_END;
-#endif
-
 	devm_kfree(dev, data);
 
 	return 0;
 }
-
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
-bool is_used_by_scaling(unsigned int freq)
-{
-	unsigned int i, cpu_freq;
-
-	for (i = 0; dts_freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
-		cpu_freq = dts_freq_table[i].frequency;
-		if (cpu_freq == CPUFREQ_ENTRY_INVALID)
-			continue;
-		if (freq == cpu_freq)
-			return true;
-	}
-	return false;
-}
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 static int msm_cpufreq_show(struct seq_file *m, void *unused)

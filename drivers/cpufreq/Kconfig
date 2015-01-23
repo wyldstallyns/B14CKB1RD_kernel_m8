@@ -44,11 +44,11 @@ config CPU_FREQ_STAT_DETAILS
 
 choice
 	prompt "Default CPUFreq governor"
-	default CPU_FREQ_DEFAULT_GOV_PERFORMANCE if CPU_FREQ_SA1100 || CPU_FREQ_SA1110
+	default CPU_FREQ_DEFAULT_GOV_USERSPACE if CPU_FREQ_SA1100 || CPU_FREQ_SA1110
 	default CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 	help
-	This option sets which CPUFreq governor shall be loaded at
-	startup. If in doubt, select 'performance'.
+	  This option sets which CPUFreq governor shall be loaded at
+	  startup. If in doubt, select 'performance'.
 
 config CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 	bool "performance"
@@ -93,7 +93,6 @@ config CPU_FREQ_DEFAULT_GOV_ONDEMAND
 	  governor. If unsure have a look at the help section of the
 	  driver. Fallback governor will be the performance governor.
 
-
 config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	bool "interactive"
 	select CPU_FREQ_GOV_INTERACTIVE
@@ -102,7 +101,7 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  you to get a full dynamic cpu frequency capable system by simply
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
-	  
+
 config CPU_FREQ_DEFAULT_GOV_BACON
 	bool "bacon"
 	select CPU_FREQ_GOV_BACON
@@ -115,30 +114,12 @@ config CPU_FREQ_DEFAULT_GOV_BACON
 config CPU_FREQ_DEFAULT_GOV_DANCEDANCE
 	bool "DanceDance"
 	select CPU_FREQ_GOV_DANCEDANCE
-
-
-config CPU_FREQ_DEFAULT_GOV_INTELLIACTIVE
-	bool "intelliactive"
-	select CPU_FREQ_GOV_INTELLIACTIVE
-	help
-	  Use the CPUFreq governor 'intelliactive' as default. This allows
-	  you to get a full dynamic cpu frequency capable system by simply
-	  loading your cpufreq low-level hardware driver, using the
-	  'interactive' governor for latency-sensitive workloads.
-
-config CPU_FREQ_DEFAULT_GOV_INTELLIMM
-        bool "intelliminmax"
-        select CPU_FREQ_GOV_INTELLIMM
-        help
-          Use the CPUFreq governor 'intelliminmax' as default. This is
-          governor will use only 3 different frequencies, idle, UI and max
-
+	
 config CPU_FREQ_DEFAULT_GOV_SMARTMAX
         bool "smartmax"
         select CPU_FREQ_GOV_SMARTMAX
         help
           Use the CPUFreq governor 'smartmax' as default
-		  
 endchoice
 
 config CPU_FREQ_GOV_SMARTMAX
@@ -178,7 +159,7 @@ config CPU_FREQ_GOV_POWERSAVE
 	  module will be called cpufreq_powersave.
 
 	  If in doubt, say Y.
-	  
+
 config CPU_FREQ_GOV_WHEATLEY
 	tristate "'wheatley' cpufreq governor"
 	depends on CPU_FREQ
@@ -201,6 +182,14 @@ config CPU_FREQ_GOV_ONDEMAND
 
 	  If in doubt, say N.
 
+config CPU_FREQ_GOV_ONDEMAND_2_PHASE
+	bool "'2-phase' power-efficiency ondemand algorithm"
+	depends on CPU_FREQ_GOV_ONDEMAND
+	default y if ARCH_MSM_CORTEXMP
+	help
+	  '2-phase' - Enable this to have only 1 simple table when increasing
+	  frequency according to CPU loading.
+
 config CPU_FREQ_GOV_BACON
 	tristate "'bacon' cpufreq policy governor"
 	help
@@ -217,7 +206,7 @@ config CPU_FREQ_GOV_BACON
 	  For details, take a look at linux/Documentation/cpu-freq.
 
 	  If in doubt, say N.
-
+	  
 config CPU_FREQ_GOV_INTERACTIVE
 	tristate "'interactive' cpufreq policy governor"
 	help
@@ -235,36 +224,6 @@ config CPU_FREQ_GOV_INTERACTIVE
 
 	  If in doubt, say N.
 
-	  
-
-config CPU_FREQ_GOV_INTELLIACTIVE
-	tristate "'intelliactive' cpufreq policy governor"
-	help
-	  'intelliactive' - This driver adds a dynamic cpufreq policy governor
-	  designed for latency-sensitive workloads.
-
-	  This governor attempts to reduce the latency of clock
-	  increases so that the system is more responsive to
-	  interactive workloads.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_interactive.
-
-	  For details, take a look at linux/Documentation/cpu-freq.
-
-	  If in doubt, say N.
-
-config CPU_FREQ_GOV_INTELLIMM
-        tristate "'intelliminmax' cpufreq policy governor"
-        help
-          To compile this driver as a module, choose M here: the
-          module will be called cpufreq_interactive.
-
-          For details, take a look at linux/Documentation/cpu-freq.
-
-          If in doubt, say N.
-
-		  
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86

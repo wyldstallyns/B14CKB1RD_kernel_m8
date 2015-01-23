@@ -284,7 +284,6 @@ config ARCH_MSM8974
 	select ARCH_WANT_KMAP_ATOMIC_FLUSH
 	select KRAIT_REGULATOR
 	select ENABLE_VMALLOC_SAVINGS
-	select HAS_MACH_MEMUTILS
 
 config ARCH_APQ8084
 	bool "APQ8084"
@@ -1957,12 +1956,6 @@ config MSM_DEVFREQ_CPUBW
 	  agnostic interface to so that some of the devfreq governors can be
 	  shared across SoCs.
 
-config CPU_VOLTAGE_TABLE
-	bool "Enable CPU Voltage Table via sysfs for adjustements"
-	default y
-	help
-	  DTS based kernel User Votlage Control
-
 config MSM_AVS_HW
 	bool "Enable Adaptive Voltage Scaling (AVS)"
 	default n
@@ -3070,13 +3063,6 @@ config MSM_CPU_PWRCTL
 	  stand alone power collapse operation. Selecting this option
 	  ensures that they are always off.
 
-config FORCE_FAST_CHARGE
-	bool "Increase input current limit to 1100mA when charging via USB"
-	default y
-	help
-	  A simple sysfs interface to increase input current limit to
-	  1100mA when charging via USB.
-
 config MSM_UARTDM_Core_v14
 	bool "Use MSM BLSP based HSUART Core v1.4"
 	depends on SERIAL_MSM_HS
@@ -3188,25 +3174,8 @@ config PROJECT_NAME
 
 endif
 
-config PERFLOCK
-    depends on CPU_FREQ
-    depends on HTC_PNPMGR
-    default n
-    bool "HTC Performance Lock"
-
-config HTC_DEBUG_RBCPR_8226
-    depends on ARCH_MSM8226
-    default n
-    bool "HTC RBCPR debug"
-
 config HTC_MONITOR_SUBSYS_SLEEP_TIME
     default n
     bool "Monitor the sleep time of sub-system"
     help
         Support to monitor the sleep time of sub-system
-
-config HAS_MACH_MEMUTILS
-	default y
-	bool "Motorola MSM memcpy enhancements"
-	help
-	Faster memcpy performance for Krait

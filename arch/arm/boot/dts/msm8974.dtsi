@@ -908,7 +908,7 @@
                 interrupts = <0 97 0>;
                 interrupt-names = "qup_err_intr";
                 qcom,i2c-bus-freq = <384000>;
-                qcom,i2c-src-freq = <19200000>;
+                qcom,i2c-src-freq = <50000000>;
                 qcom,scl-gpio = <&msmgpio 11 0>;
                 qcom,sda-gpio = <&msmgpio 10 0>;
 		qcom,master-id = <86>;
@@ -924,7 +924,7 @@
                 interrupts = <0 98 0>;
                 interrupt-names = "qup_err_intr";
                 qcom,i2c-bus-freq = <384000>;
-                qcom,i2c-src-freq = <19200000>;
+                qcom,i2c-src-freq = <50000000>;
 		qcom,scl-gpio = <&msmgpio 22 0>;
 		qcom,sda-gpio = <&msmgpio 21 0>;
 		qcom,master-id = <86>;
@@ -940,7 +940,7 @@
                 interrupts = <0 100 0>;
                 interrupt-names = "qup_err_intr";
                 qcom,i2c-bus-freq = <384000>;
-                qcom,i2c-src-freq = <19200000>;
+                qcom,i2c-src-freq = <50000000>;
                 qcom,scl-gpio = <&msmgpio 30 0>;
                 qcom,sda-gpio = <&msmgpio 29 0>;
 		qcom,master-id = <86>;
@@ -2324,11 +2324,11 @@
 		compatible = "qcom,msm-thermal";
 		qcom,sensor-id = <5>;
 		qcom,poll-ms = <250>;
-		qcom,limit-temp = <75>;
+		qcom,limit-temp = <60>;
 		qcom,temp-hysteresis = <10>;
 		qcom,freq-step = <2>;
 		qcom,freq-control-mask = <0xf>;
-		qcom,core-limit-temp = <95>;
+		qcom,core-limit-temp = <80>;
 		qcom,core-temp-hysteresis = <10>;
 		qcom,core-control-mask = <0xe>;
 		qcom,hotplug-temp = <110>;

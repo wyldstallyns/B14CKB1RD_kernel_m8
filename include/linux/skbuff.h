@@ -225,11 +225,14 @@ enum {
 	/* device driver is going to provide hardware time stamp */
 	SKBTX_IN_PROGRESS = 1 << 2,
 
+	/* ensure the originating sk reference is available on driver level */
+	SKBTX_DRV_NEEDS_SK_REF = 1 << 3,
+
 	/* device driver supports TX zero-copy buffers */
-	SKBTX_DEV_ZEROCOPY = 1 << 3,
+	SKBTX_DEV_ZEROCOPY = 1 << 4,
 
 	/* generate wifi status information (where possible) */
-	SKBTX_WIFI_STATUS = 1 << 4,
+	SKBTX_WIFI_STATUS = 1 << 5,
 };
 
 /*
@@ -2386,13 +2389,6 @@ static inline void nf_reset(struct sk_buff *skb)
 #ifdef CONFIG_BRIDGE_NETFILTER
 	nf_bridge_put(skb->nf_bridge);
 	skb->nf_bridge = NULL;
-#endif
-}
-
-static inline void nf_reset_trace(struct sk_buff *skb)
-{
-#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
-	skb->nf_trace = 0;
 #endif
 }
 

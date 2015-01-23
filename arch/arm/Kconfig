@@ -12,15 +12,14 @@ config ARM
 	select GENERIC_ATOMIC64 if (CPU_V6 || !CPU_32v6K || !AEABI)
 	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL
-	#select HAVE_ARCH_KGDB
+	select HAVE_ARCH_KGDB
 	select HAVE_KPROBES if !XIP_KERNEL
 	select HAVE_KRETPROBES if (HAVE_KPROBES)
-	#select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
-	#select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
-	#select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
-	#select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
+	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
+	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
+	select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
+	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
-	select HAVE_EFFICIENT_UNALIGNED_ACCESS
 	select HAVE_GENERIC_DMA_COHERENT
 	select HAVE_KERNEL_GZIP
 	select HAVE_KERNEL_LZ4
@@ -162,9 +161,10 @@ config ARM_TICKET_LOCKS
 
 config RWSEM_GENERIC_SPINLOCK
 	bool
+	default y
 
 config RWSEM_XCHGADD_ALGORITHM
-	def_bool y
+	bool
 
 config ARCH_HAS_ILOG2_U32
 	bool
@@ -634,7 +634,6 @@ config ARCH_KIRKWOOD
 	bool "Marvell Kirkwood"
 	select CPU_FEROCEON
 	select PCI
-	select PCI_QUIRKS
 	select ARCH_REQUIRE_GPIOLIB
 	select GENERIC_CLOCKEVENTS
 	select NEED_MACH_IO_H
@@ -1491,16 +1490,6 @@ config KSAPI
           Scorpion processor supported hardware performance counters on a per
           thread basis or AXI counters on an overall system basis.
 
-config ARM_ERRATA_775420
-       bool "ARM errata: A data cache maintenance operation which aborts, might lead to deadlock"
-       depends on CPU_V7
-       help
-	 This option enables the workaround for the 775420 Cortex-A9 (r2p2,
-	 r2p6,r2p8,r2p10,r3p0) erratum. In case a date cache maintenance
-	 operation aborts with MMU exception, it might cause the processor
-	 to deadlock. This workaround puts DSB before executing ISB if
-	 an abort may occur on cache maintenance.
-
 endmenu
 
 source "arch/arm/common/Kconfig"
@@ -1729,7 +1718,7 @@ config HZ
 	default OMAP_32K_TIMER_HZ if ARCH_OMAP && OMAP_32K_TIMER
 	default AT91_TIMER_HZ if ARCH_AT91
 	default SHMOBILE_TIMER_HZ if ARCH_SHMOBILE
-	default 240
+	default 100
 
 config THUMB2_KERNEL
 	bool "Compile the kernel in Thumb-2 mode (EXPERIMENTAL)"
@@ -1999,19 +1988,6 @@ config UACCESS_WITH_MEMCPY
 	  However, if the CPU data cache is using a write-allocate mode,
 	  this option is unlikely to provide any performance gain.
 
-config ARM_PLD_64BYTE
-	bool "Use 64-bit preload size for kernel memory copy"
-	depends on CPU_V7
-	help
-	  Config preload size for memcpy, selecting this for Cortex-A15
-
-config USE_LDRDSTRD_OVER_LDMSTM
-	bool "Use 64-bit access instructions to optimize memory copy"
-	depends on CPU_V7
-	help
-	  Cortex-A15 perform better when use LDRD/STRD to access memory.
-	  Selecting this to optimize memory copy routines.
-
 config SECCOMP
 	bool
 	prompt "Enable seccomp to safely compute untrusted bytecode"
@@ -2276,32 +2252,6 @@ config ATAGS_PROC
 	  Should the atags used to boot the kernel be exported in an "atags"
 	  file in procfs. Useful with kexec.
 
-config KEXEC_HARDBOOT
-	bool "Support hard booting to a kexec kernel"
-	depends on KEXEC
-	help
-	  Allows hard booting (i.e., with a full hardware reboot) to a kernel
-	  previously loaded in memory by kexec.  This works around the problem of
-	  soft-booted kernel hangs due to improper device shutdown and/or
-	  reinitialization.  Support is comprised of two components:
-
-	  First, a "hardboot" flag is added to the kexec syscall to force a hard
-	  reboot in relocate_new_kernel() (which requires machine-specific assembly
-	  code).  This also requires the kexec userspace tool to load the kexec'd
-	  kernel in memory region left untouched by the bootloader (i.e., not
-	  explicitly cleared and not overwritten by the boot kernel).  Just prior
-	  to reboot, the kexec kernel arguments are stashed in a machine-specific
-	  memory page that must also be preserved.  Note that this hardboot page
-	  need not be reserved during regular kernel execution.
-
-	  Second, the zImage decompresor of the boot (bootloader-loaded) kernel is
-	  modified to check the hardboot page for fresh kexec arguments, and if
-	  present, attempts to jump to the kexec'd kernel preserved in memory.
-
-	  Note that hardboot support is only required in the boot kernel and any
-	  kernel capable of performing a hardboot kexec.  It is _not_ required by a
-	  kexec'd kernel.
-
 config CRASH_DUMP
 	bool "Build kdump crash kernel (EXPERIMENTAL)"
 	depends on EXPERIMENTAL
@@ -2336,7 +2286,6 @@ source "drivers/cpufreq/Kconfig"
 config CPU_FREQ_IMX
 	tristate "CPUfreq driver for i.MX CPUs"
 	depends on ARCH_MXC && CPU_FREQ
-	select CPU_FREQ_TABLE
 	help
 	  This enables the CPUfreq driver for i.MX CPUs.
 
@@ -2489,13 +2438,6 @@ config NEON
 	help
 	  Say Y to include support code for NEON, the ARMv7 Advanced SIMD
 	  Extension.
-
-config KERNEL_MODE_NEON
-	bool "Support for NEON in kernel mode"
-	default y
-	depends on NEON
-	help
-	  Say Y to include support for NEON in kernel mode.
 
 endmenu
 

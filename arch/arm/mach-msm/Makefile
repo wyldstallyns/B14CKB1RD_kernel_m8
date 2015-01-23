@@ -309,9 +309,8 @@ obj-$(CONFIG_ARCH_MSM8226) += board-htc-8x26.o htc_acoustic_alsa.o
 obj-$(CONFIG_ARCH_MSM8226) += board-8226-audio.o
 obj-$(CONFIG_MACH_MEM_UL) += board-mem-audio-amp.o
 obj-$(CONFIG_MACH_MEM_UL) += board-mem-gpiomux.o
-obj-$(CONFIG_MACH_A5_UL) += board-afe-audio-amp.o
-obj-$(CONFIG_MACH_A5_DWG) += board-afe-audio-amp.o
-obj-$(CONFIG_MACH_A5_TL) += board-afe-audio-amp.o
+obj-$(CONFIG_MACH_A5) += board-afe-audio-amp.o
+obj-$(CONFIG_MACH_A5) += board-a5-gpiomux.o
 obj-$(CONFIG_ARCH_MSM8226) += board-8226.o board-8226-gpiomux.o
 obj-$(CONFIG_ARCH_MSM8226) += clock-local2.o clock-pll.o clock-8226.o clock-rpm.o clock-voter.o clock-mdss-8974.o
 obj-$(CONFIG_ARCH_MSM8226) += acpuclock-8226.o acpuclock-cortex.o
@@ -455,26 +454,19 @@ obj-$(CONFIG_ARCH_MSM8226) += board-htc-8x26.o htc_acoustic_alsa.o htc_lpm.o
 obj-$(CONFIG_MACH_M8) += board-m8-gpiomux.o board-m8-audio.o
 obj-$(CONFIG_MACH_M8_WHL) += board-m8-gpiomux.o board-m8-audio.o
 obj-$(CONFIG_MACH_M8_WL) += board-m8-gpiomux.o board-m8-audio.o
-obj-$(CONFIG_MACH_A5) += board-a5-gpiomux.o board-afe-audio-amp.o
 
 obj-$(CONFIG_HTC_HEADSET_PMIC) += htc_headset_pmic.o
 obj-$(CONFIG_HTC_HEADSET_GPIO) += htc_headset_gpio.o
 obj-$(CONFIG_HTC_HEADSET_ONE_WIRE) += htc_headset_one_wire.o
 
-obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
-
 ifdef CONFIG_HTC_DEBUG
 obj-y += htc_debug_tools.o
 endif
-obj-$(CONFIG_HTC_DEBUG_FOOTPRINT) += htc_mnemosyne.o
-obj-$(CONFIG_HTC_DEBUG_FOOTPRINT) += htc_footprint.o
 obj-y += smlog.o
 
-obj-$(CONFIG_PERFLOCK) += perflock.o
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_PERFMAP) += perfmap.o
 obj-$(CONFIG_HTC_RPM_CMD) += rpm_htc_cmd.o
 obj-$(CONFIG_HTC_MONITOR) += htc_monitor.o
 
 obj-$(CONFIG_LCD_KCAL) += board_kcal.o kcal_ctrl.o
-obj-$(CONFIG_HAS_MACH_MEMUTILS) += memutils/
