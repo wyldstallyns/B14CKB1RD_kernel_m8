@@ -6,7 +6,6 @@
 #include <linux/dmi.h>
 #include <linux/efi.h>
 #include <linux/bootmem.h>
-#include <linux/random.h>
 #include <asm/dmi.h>
 
 /*
@@ -111,8 +110,6 @@ static int __init dmi_walk_early(void (*decode)(const struct dmi_header *,
 		return -1;
 
 	dmi_table(buf, dmi_len, dmi_num, decode, NULL);
-
-	add_device_randomness(buf, dmi_len);
 
 	dmi_iounmap(buf, dmi_len);
 	return 0;
@@ -432,7 +429,7 @@ void __init dmi_scan_machine(void)
 	char __iomem *p, *q;
 	int rc;
 
-	if (efi_enabled(EFI_CONFIG_TABLES)) {
+	if (efi_enabled) {
 		if (efi.smbios == EFI_INVALID_TABLE_ADDR)
 			goto error;
 

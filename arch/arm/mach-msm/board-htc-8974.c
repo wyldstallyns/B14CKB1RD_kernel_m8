@@ -68,27 +68,14 @@
 #include <linux/qpnp/qpnp-bms.h>
 #endif 
 
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-#include <mach/htc_mnemosyne.h>
-#endif
-
 #include <linux/qpnp/qpnp-adc.h>
 
 #ifdef CONFIG_BT
 #include <mach/htc_bdaddress.h>
 #endif
 
-#ifdef CONFIG_PERFLOCK
-#include <mach/perflock.h>
-#endif
-
 #ifdef CONFIG_HTC_BUILD_EDIAG
 #include <linux/android_ediagpmem.h>
-#endif
-
-#ifdef CONFIG_KEXEC_HARDBOOT
-#include <linux/memblock.h>
-#include <asm/setup.h>
 #endif
 
 #if defined(CONFIG_FB_MSM_MDSS_HDMI_MHL_SII8240_SII8558) && defined(CONFIG_HTC_MHL_DETECTION)
@@ -654,9 +641,6 @@ static void __init htc_8974_early_memory(void)
 }
 
 #if defined(CONFIG_HTC_BATT_8960)
-#ifdef CONFIG_HTC_PNPMGR
-extern int pnpmgr_battery_charging_enabled(int charging_enabled);
-#endif 
 static int critical_alarm_voltage_mv[] = {3000, 3200, 3400};
 
 static struct htc_battery_platform_data htc_battery_pdev_data = {
@@ -746,9 +730,6 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 						pm8941_batt_lower_alarm_threshold_set,
 	.igauge.check_soc_for_sw_ocv = pm8941_check_soc_for_sw_ocv,
 	
-#ifdef CONFIG_HTC_PNPMGR
-	.notify_pnpmgr_charging_enabled = pnpmgr_battery_charging_enabled,
-#endif 
 };
 static struct platform_device htc_battery_pdev = {
 	.name = "htc_battery",
@@ -864,32 +845,9 @@ static void __init htc_8974_map_io(void)
 
 void __init htc_8974_init_early(void)
 {
-#ifdef CONFIG_KEXEC_HARDBOOT
-	// Reserve space for hardboot page - just after ram_console,
-	// at the start of second memory bank
-	int ret;
-	phys_addr_t start;
-	struct membank* bank;
-
-	if (meminfo.nr_banks < 2) {
-		pr_err("%s: not enough membank\n", __func__);
-		return;
-	}
 	
-	bank = &meminfo.bank[1];
-	start = bank->start + SZ_1M + HTC_8974_PERSISTENT_RAM_SIZE;
-	ret = memblock_remove(start, SZ_1M);
-	if(!ret)
-		pr_info("Hardboot page reserved at 0x%X\n", start);
-	else
-		pr_err("Failed to reserve space for hardboot page at 0x%X!\n", start);
-#endif
-
 	persistent_ram_early_init(&htc_8974_persistent_ram);
 
-#ifdef CONFIG_HTC_DEBUG_FOOTPRINT
-	mnemosyne_early_init((unsigned int)HTC_DEBUG_FOOTPRINT_PHYS, (unsigned int)HTC_DEBUG_FOOTPRINT_BASE);
-#endif
 }
 
 void __init htc_8974_init(void)
@@ -914,9 +872,6 @@ void __init htc_8974_init(void)
 #endif
 #ifdef CONFIG_BT
 	bt_export_bd_address();
-#endif
-#ifdef CONFIG_PERFLOCK
-	platform_device_register(&msm8974_device_perf_lock);
 #endif
 #ifdef CONFIG_HTC_POWER_DEBUG
 	htc_monitor_init();

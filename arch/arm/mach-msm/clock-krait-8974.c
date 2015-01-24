@@ -21,10 +21,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/of.h>
 #include <linux/cpumask.h>
-
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
 #include <linux/cpufreq.h>
-#endif
 
 #include <asm/cputype.h>
 
@@ -37,10 +34,6 @@
 
 #ifdef CONFIG_HTC_POWER_DEBUG
 #include <linux/debugfs.h>
-#endif
-
-#ifdef CONFIG_PERFLOCK
-#include <mach/perflock.h>
 #endif
 
 DEFINE_FIXED_DIV_CLK(hfpll_src_clk, 1, NULL);
@@ -656,73 +649,69 @@ module_param_string(table_name, table_name, sizeof(table_name), S_IRUGO);
 static unsigned int pvs_config_ver;
 module_param(pvs_config_ver, uint, S_IRUGO);
 
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
+#ifdef CONFIG_MSM_CPU_VOLTAGE_CONTROL
+#define CPU_VDD_MAX	1200
+#define CPU_VDD_MIN	600
 
-#define CPU_VDD_MIN	 600
-#define CPU_VDD_MAX	1450
+extern int use_for_scaling(unsigned int freq);
+static unsigned int cnt;
 
-extern bool is_used_by_scaling(unsigned int freq);
-
-ssize_t show_UV_mV_table(struct cpufreq_policy *policy, char *buf)
+ssize_t show_UV_mV_table(struct cpufreq_policy *policy,
+			 char *buf)
 {
 	int i, freq, len = 0;
-	/* use only master core 0 */
-	int num_levels = cpu_clk[0]->vdd_class->num_levels;
-
-	/* sanity checks */
-	if (num_levels < 0)
-		return -EINVAL;
+	unsigned int cpu = 0;
+	unsigned int num_levels = cpu_clk[cpu]->vdd_class->num_levels;
 
 	if (!buf)
 		return -EINVAL;
 
-	/* format UV_mv table */
 	for (i = 0; i < num_levels; i++) {
-		/* show only those used in scaling */
-		if (!is_used_by_scaling(freq = cpu_clk[0]->fmax[i] / 1000))
+		freq = use_for_scaling(cpu_clk[cpu]->fmax[i] / 1000);
+		if (freq < 0)
 			continue;
 
 		len += sprintf(buf + len, "%dmhz: %u mV\n", freq / 1000,
-			       cpu_clk[0]->vdd_class->vdd_uv[i] / 1000);
+			       cpu_clk[cpu]->vdd_class->vdd_uv[i] / 1000);
 	}
+
 	return len;
 }
 
-ssize_t store_UV_mV_table(struct cpufreq_policy *policy, char *buf,
-				size_t count)
+ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
+			  char *buf, size_t count)
 {
 	int i, j;
 	int ret = 0;
-	unsigned int val;
-	char size_cur[8];
-	/* use only master core 0 */
-	int num_levels = cpu_clk[0]->vdd_class->num_levels;
+	unsigned int val, cpu = 0;
+	unsigned int num_levels = cpu_clk[cpu]->vdd_class->num_levels;
+	char size_cur[4];
 
-	/* sanity checks */
-	if (num_levels < 0)
-		return -1;
+	if (cnt) {
+		cnt = 0;
+		return -EINVAL;
+	}
 
 	for (i = 0; i < num_levels; i++) {
-		if (!is_used_by_scaling(cpu_clk[0]->fmax[i] / 1000))
+		if (use_for_scaling(cpu_clk[cpu]->fmax[i] / 1000) < 0)
 			continue;
 
 		ret = sscanf(buf, "%u", &val);
 		if (!ret)
 			return -EINVAL;
 
-		/* bounds check */
-		val = min( max((unsigned int)val, (unsigned int)CPU_VDD_MIN),
-			(unsigned int)CPU_VDD_MAX);
+		if (val > CPU_VDD_MAX)
+			val = CPU_VDD_MAX;
+		else if (val < CPU_VDD_MIN)
+			val = CPU_VDD_MIN;
 
-		/* apply it to all available cores */
 		for (j = 0; j < NR_CPUS; j++)
 			cpu_clk[j]->vdd_class->vdd_uv[i] = val * 1000;
 
-		/* Non-standard sysfs interface: advance buf */
 		ret = sscanf(buf, "%s", size_cur);
-		buf += strlen(size_cur) + 1;
+		cnt = strlen(size_cur);
+		buf += cnt + 1;
 	}
-	pr_warn("faux123: user voltage table modified!\n");
 
 	return ret;
 }
@@ -912,39 +901,6 @@ static int clock_krait_8974_driver_probe(struct platform_device *pdev)
 
 	return 0;
 }
-
-#ifdef CONFIG_PERFLOCK
-unsigned msm8974_perf_acpu_table[] = {
-        652800000,  
-        883200000,  
-        1036800000, 
-        1190400000, 
-        1958400000, 
-};
-
-static struct perflock_data msm8974_floor_data = {
-        .perf_acpu_table = msm8974_perf_acpu_table,
-        .table_size = ARRAY_SIZE(msm8974_perf_acpu_table),
-};
-
-static struct perflock_data msm8974_cpufreq_ceiling_data = {
-        .perf_acpu_table = msm8974_perf_acpu_table,
-        .table_size = ARRAY_SIZE(msm8974_perf_acpu_table),
-};
-
-static struct perflock_pdata perflock_pdata = {
-        .perf_floor = &msm8974_floor_data,
-        .perf_ceiling = &msm8974_cpufreq_ceiling_data,
-};
-
-struct platform_device msm8974_device_perf_lock = {
-        .name = "perf_lock",
-        .id = -1,
-        .dev = {
-        .platform_data = &perflock_pdata,
-    },
-};
-#endif
 
 static struct of_device_id match_table[] = {
 	{ .compatible = "qcom,clock-krait-8974" },

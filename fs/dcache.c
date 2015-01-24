@@ -705,7 +705,7 @@ static struct dentry *try_to_ascend(struct dentry *old, int locked, unsigned seq
 	spin_lock(&new->d_lock);
 
 	if (new != old->d_parent ||
-		 (old->d_flags & DCACHE_DENTRY_KILLED) ||
+		 (old->d_flags & DCACHE_DISCONNECTED) ||
 		 (!locked && read_seqretry(&rename_lock, seq))) {
 		spin_unlock(&new->d_lock);
 		new = NULL;
@@ -776,8 +776,6 @@ positive:
 	return 1;
 
 rename_retry:
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;
@@ -847,8 +845,6 @@ out:
 rename_retry:
 	if (found)
 		return found;
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;
@@ -859,10 +855,8 @@ void shrink_dcache_parent(struct dentry * parent)
 	LIST_HEAD(dispose);
 	int found;
 
-	while ((found = select_parent(parent, &dispose)) != 0) {
+	while ((found = select_parent(parent, &dispose)) != 0)
 		shrink_dentry_list(&dispose);
-		cond_resched();
-	}
 }
 EXPORT_SYMBOL(shrink_dcache_parent);
 
@@ -2097,8 +2091,6 @@ resume:
 	return;
 
 rename_retry:
-	if (locked)
-		goto again;
 	locked = 1;
 	write_seqlock(&rename_lock);
 	goto again;

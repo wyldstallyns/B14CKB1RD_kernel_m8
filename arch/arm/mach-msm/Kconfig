@@ -1957,11 +1957,11 @@ config MSM_DEVFREQ_CPUBW
 	  agnostic interface to so that some of the devfreq governors can be
 	  shared across SoCs.
 
-config CPU_VOLTAGE_TABLE
-	bool "Enable CPU Voltage Table via sysfs for adjustements"
+config MSM_CPU_VOLTAGE_CONTROL
+	bool "Userspace CPU Voltage Control"
 	default y
 	help
-	  DTS based kernel User Votlage Control
+	  This enables userspace CPU Voltage Control.
 
 config MSM_AVS_HW
 	bool "Enable Adaptive Voltage Scaling (AVS)"
@@ -3187,17 +3187,6 @@ config PROJECT_NAME
           Support for Project Name
 
 endif
-
-config PERFLOCK
-    depends on CPU_FREQ
-    depends on HTC_PNPMGR
-    default n
-    bool "HTC Performance Lock"
-
-config HTC_DEBUG_RBCPR_8226
-    depends on ARCH_MSM8226
-    default n
-    bool "HTC RBCPR debug"
 
 config HTC_MONITOR_SUBSYS_SLEEP_TIME
     default n

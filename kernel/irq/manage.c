@@ -450,9 +450,9 @@ int can_request_irq(unsigned int irq, unsigned long irqflags)
 		return 0;
 
 	if (irq_settings_can_request(desc)) {
-		if (!desc->action ||
-		    irqflags & desc->action->flags & IRQF_SHARED)
-			canrequest = 1;
+		if (desc->action)
+			if (irqflags & desc->action->flags & IRQF_SHARED)
+				canrequest =1;
 	}
 	irq_put_desc_unlock(desc, flags);
 	return canrequest;
@@ -641,6 +641,8 @@ static int irq_thread(void *data)
 	sched_setscheduler(current, SCHED_FIFO, &param);
 	current->irq_thread = 1;
 
+	irq_thread_check_affinity(desc, action);
+
 	while (!irq_wait_for_interrupt(action)) {
 		irqreturn_t action_ret;
 
@@ -713,6 +715,9 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 		return -ENOSYS;
 	if (!try_module_get(desc->owner))
 		return -ENODEV;
+	if (new->flags & IRQF_SAMPLE_RANDOM) {
+		rand_initialize_irq(irq);
+	}
 
 	nested = irq_settings_is_nested_thread(desc);
 	if (nested) {

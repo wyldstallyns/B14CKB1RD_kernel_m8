@@ -1,6 +1,6 @@
 TOOLCHAINDIR=~/toolchain
 
-TOOLCHAIN=4.8-linaro
+TOOLCHAIN=linaro-arm-eabi-4.10
 
 CROSS_COMPILE=$TOOLCHAINDIR/$TOOLCHAIN/bin/arm-eabi-
 
