@@ -171,7 +171,6 @@ config DEFAULT_IOSCHED
 	default "sio" if DEFAULT_SIO
 	default "zen" if DEFAULT_ZEN
 	
-
 endmenu
 
 endif
