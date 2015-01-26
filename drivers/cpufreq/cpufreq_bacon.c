@@ -566,6 +566,7 @@ static void cpufreq_interactive_idle_start(void)
 			}
 		}
 	}
+
 exit:
 	up_read(&pcpu->enable_sem);
 }
