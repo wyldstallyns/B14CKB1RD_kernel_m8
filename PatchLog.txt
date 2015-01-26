@@ -572,4 +572,70 @@ Patch 3.4.8
 	modified:   sound/soc/soc-dapm.c
 	modified:   sound/usb/clock.c
 
+Patch 3.4.9
+        modified:   MAINTAINERS
+        modified:   Makefile
+        modified:   arch/arm/boot/dts/imx53-ard.dts
+        modified:   arch/arm/configs/mxs_defconfig
+        modified:   arch/arm/include/asm/cacheflush.h
+        modified:   arch/arm/kernel/process.c
+        modified:   arch/arm/mach-pxa/raumfeld.c
+        modified:   arch/arm/vfp/vfphw.S
+        modified:   arch/ia64/include/asm/atomic.h
+        modified:   arch/ia64/kernel/irq_ia64.c
+        modified:   arch/x86/kernel/alternative.c
+        modified:   arch/x86/kernel/microcode_core.c
+        modified:   drivers/acpi/processor_driver.c
+        modified:   drivers/char/mspec.c
+        modified:   drivers/char/random.c
+        modified:   drivers/firmware/dmi_scan.c
+        modified:   drivers/firmware/pcdp.c
+        modified:   drivers/hid/hid-chicony.c
+        modified:   drivers/hid/hid-core.c
+        modified:   drivers/hid/hid-cypress.c
+        modified:   drivers/hid/hid-ids.h
+        modified:   drivers/hid/hid-multitouch.c
+        modified:   drivers/input/tablet/wacom_wac.c
+        modified:   drivers/input/touchscreen/eeti_ts.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/media/rc/ene_ir.c
+        modified:   drivers/mfd/ab3100-core.c
+        modified:   drivers/mfd/ezx-pcap.c
+        modified:   drivers/mfd/wm831x-otp.c
+        modified:   drivers/net/ethernet/intel/e1000e/82571.c
+        modified:   drivers/net/tun.c
+        modified:   drivers/net/wireless/ath/ath9k/hw.c
+        modified:   drivers/net/wireless/ath/ath9k/hw.h
+        modified:   drivers/net/wireless/ath/ath9k/pci.c
+        modified:   drivers/net/wireless/iwlwifi/iwl-agn-rs.c
+        modified:   drivers/net/wireless/rt2x00/rt61pci.c
+        modified:   drivers/platform/x86/asus-wmi.c
+        modified:   drivers/rtc/rtc-wm831x.c
+        modified:   drivers/target/target_core_cdb.c
+        modified:   drivers/video/smscufx.c
+        modified:   fs/exofs/ore.c
+        modified:   fs/nilfs2/ioctl.c
+        modified:   fs/nilfs2/super.c
+        modified:   fs/nilfs2/the_nilfs.c
+        modified:   fs/nilfs2/the_nilfs.h
+        modified:   include/linux/input/eeti_ts.h
+        modified:   include/linux/irqdesc.h
+        modified:   include/linux/mfd/ezx-pcap.h
+        modified:   include/linux/random.h
+        modified:   kernel/irq/handle.c
+        modified:   kernel/irq/manage.c
+        modified:   mm/hugetlb.c
+        modified:   mm/memory-failure.c
+        modified:   mm/mmu_notifier.c
+        modified:   net/core/dev.c
+        modified:   net/core/rtnetlink.c
+        modified:   net/mac80211/mesh.c
+        modified:   net/sunrpc/clnt.c
+        modified:   net/sunrpc/rpcb_clnt.c
+        modified:   net/wireless/core.c
+        modified:   net/wireless/core.h
+        modified:   net/wireless/util.c
+        modified:   sound/pci/hda/patch_conexant.c
+        modified:   sound/pci/hda/patch_realtek.c
+
 

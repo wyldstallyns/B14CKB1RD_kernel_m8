@@ -932,7 +932,6 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 		 */
 		rand_initialize_irq(irq);
 	}
-
 	/*
 	 * Check whether the interrupt nests into another interrupt
 	 * thread.
