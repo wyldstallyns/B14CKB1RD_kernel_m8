@@ -638,4 +638,35 @@ Patch 3.4.9
         modified:   sound/pci/hda/patch_conexant.c
         modified:   sound/pci/hda/patch_realtek.c
 
+Patch 3.4.10
+        modified:   Makefile
+        modified:   arch/s390/kernel/compat_linux.c
+        modified:   arch/s390/kernel/compat_wrapper.S
+        modified:   arch/x86/xen/p2m.c
+        modified:   drivers/dma/imx-dma.c
+        modified:   drivers/gpu/drm/i915/intel_display.c
+        modified:   drivers/gpu/drm/i915/intel_dp.c
+        modified:   drivers/gpu/drm/i915/intel_ringbuffer.c
+        modified:   drivers/gpu/drm/nouveau/nvd0_display.c
+        modified:   drivers/gpu/drm/radeon/atombios_crtc.c
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/ni.c
+        modified:   drivers/gpu/drm/radeon/radeon_asic.h
+        modified:   drivers/gpu/drm/radeon/radeon_legacy_crtc.c
+        modified:   drivers/gpu/drm/radeon/radeon_mode.h
+        modified:   drivers/gpu/drm/radeon/rv515.c
+        modified:   drivers/infiniband/ulp/srp/ib_srp.c
+        modified:   drivers/net/wireless/rt2x00/rt2800usb.c
+        modified:   drivers/tty/serial/pmac_zilog.c
+        modified:   drivers/usb/host/pci-quirks.c
+        modified:   drivers/usb/host/pci-quirks.h
+        modified:   drivers/usb/host/xhci-pci.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   drivers/usb/serial/mos7840.c
+        modified:   drivers/usb/serial/option.c
+        modified:   fs/ext4/extents.c
+        modified:   fs/fuse/file.c
+        modified:   include/drm/drm_pciids.h
+        modified:   include/linux/usb.h
+
 
