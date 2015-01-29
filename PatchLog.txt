@@ -956,3 +956,55 @@ Patch 3.4.12
         modified:   sound/soc/samsung/dma.c
         modified:   sound/soc/tegra/tegra_alc5632.c
 
+Patch 3.4.13
+        modified:   Makefile
+        modified:   arch/arm/plat-omap/include/plat/omap-serial.h
+        modified:   arch/x86/kernel/alternative.c
+        modified:   drivers/char/ttyprintk.c
+        modified:   drivers/firmware/efivars.c
+        modified:   drivers/infiniband/ulp/ipoib/ipoib_main.c
+        modified:   drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+        modified:   drivers/infiniband/ulp/srp/ib_srp.c
+        modified:   drivers/md/dm-table.c
+        modified:   drivers/md/dm-verity.c
+        modified:   drivers/md/dm.c
+        modified:   drivers/mtd/ubi/build.c
+        modified:   drivers/net/can/mscan/mpc5xxx_can.c
+        modified:   drivers/net/wireless/ath/ath9k/pci.c
+        modified:   drivers/net/wireless/b43legacy/main.c
+        modified:   drivers/remoteproc/Kconfig
+        modified:   drivers/remoteproc/remoteproc_core.c
+        modified:   drivers/scsi/device_handler/scsi_dh_alua.c
+        modified:   drivers/scsi/hpsa.c
+        modified:   drivers/scsi/ibmvscsi/ibmvscsi.c
+        modified:   drivers/scsi/isci/init.c
+        modified:   drivers/scsi/isci/probe_roms.c
+        modified:   drivers/scsi/scsi_sysfs.c
+        modified:   drivers/staging/comedi/comedi_fops.c
+        modified:   drivers/staging/comedi/drivers/jr3_pci.c
+        modified:   drivers/staging/comedi/drivers/s626.c
+        modified:   drivers/staging/rtl8712/rtl8712_recv.c
+        modified:   drivers/staging/speakup/speakup_soft.c
+        modified:   drivers/tty/n_gsm.c
+        modified:   drivers/tty/n_tty.c
+        modified:   drivers/tty/serial/8250/8250_pci.c
+        modified:   drivers/tty/serial/amba-pl011.c
+        modified:   drivers/tty/serial/omap-serial.c
+        modified:   drivers/tty/vt/keyboard.c
+        modified:   drivers/usb/gadget/dummy_hcd.c
+        modified:   drivers/usb/host/xhci-mem.c
+        modified:   drivers/usb/host/xhci-pci.c
+        modified:   drivers/usb/host/xhci-ring.c
+        modified:   drivers/usb/host/xhci.c
+        modified:   drivers/usb/host/xhci.h
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcaux.c
+        modified:   fs/binfmt_elf.c
+        modified:   fs/dcache.c
+        modified:   include/linux/pci_ids.h
+        modified:   security/yama/yama_lsm.c
+        modified:   tools/hv/hv_kvp_daemon.c
+
+
