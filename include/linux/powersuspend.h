@@ -10,7 +10,7 @@
  *
  *  v1.2 - make kernel / userspace mode switchable
  *
- *  v1.3 - add a hook in display pannel driver as alternative kernel trigger
+ *  v1.3 - add a hook in display panel driver as alternative kernel trigger
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -45,7 +45,7 @@ void register_power_suspend(struct power_suspend *handler);
 void unregister_power_suspend(struct power_suspend *handler);
 
 void set_power_suspend_state_autosleep_hook(int new_state);
-void set_power_suspend_state_pannel_hook(int new_state);
+void set_power_suspend_state_panel_hook(int new_state);
 
 #endif
 
