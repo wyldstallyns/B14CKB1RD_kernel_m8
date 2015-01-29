@@ -496,7 +496,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	}
 
 #ifdef CONFIG_POWERSUSPEND
-	set_power_suspend_state_panel_hook(POWER_SUSPEND_INACTIVE);
+	set_power_suspend_state_pannel_hook(POWER_SUSPEND_INACTIVE);
 #endif
 
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
@@ -550,7 +550,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		led_trigger_event(bl_led_i2c_trigger, 0); 
 
 #ifdef CONFIG_POWERSUSPEND
-	set_power_suspend_state_panel_hook(POWER_SUSPEND_ACTIVE);
+	set_power_suspend_state_pannel_hook(POWER_SUSPEND_ACTIVE);
 #endif
 
 	PR_DISP_INFO("%s:-\n", __func__);
