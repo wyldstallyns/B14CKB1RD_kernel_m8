@@ -1122,4 +1122,76 @@ Patch 3.4.14
         modified:   tools/perf/Makefile
         modified:   tools/power/cpupower/Makefile
 
+Patch 3.4.15
+	modified:   Makefile
+	modified:   arch/arm/Kconfig
+	modified:   arch/arm/include/asm/vfpmacros.h
+	modified:   arch/arm/mm/cache-v7.S
+	modified:   arch/mips/kernel/kgdb.c
+	modified:   arch/x86/xen/enlighten.c
+	modified:   block/blk-core.c
+	modified:   drivers/acpi/ec.c
+	modified:   drivers/char/tpm/tpm.c
+	modified:   drivers/firewire/core-cdev.c
+	modified:   drivers/gpu/drm/i915/intel_display.c
+	modified:   drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+	modified:   drivers/md/raid10.c
+	modified:   drivers/net/ethernet/intel/e1000e/e1000.h
+	modified:   drivers/net/ethernet/intel/e1000e/netdev.c
+	modified:   drivers/net/wireless/ath/ath9k/beacon.c
+	modified:   drivers/net/wireless/ath/ath9k/main.c
+	modified:   drivers/net/wireless/ath/ath9k/xmit.c
+	modified:   drivers/scsi/hpsa.c
+	modified:   drivers/scsi/hpsa.h
+	modified:   drivers/scsi/hpsa_cmd.h
+	modified:   drivers/scsi/scsi_debug.c
+	modified:   drivers/scsi/storvsc_drv.c
+	modified:   drivers/target/iscsi/iscsi_target.c
+	modified:   drivers/target/iscsi/iscsi_target_core.h
+	modified:   drivers/target/iscsi/iscsi_target_tpg.c
+	modified:   drivers/target/target_core_configfs.c
+	modified:   drivers/tty/vt/vt.c
+	modified:   drivers/usb/class/cdc-acm.c
+	modified:   drivers/usb/gadget/at91_udc.c
+	modified:   drivers/video/udlfb.c
+	modified:   drivers/video/via/via_clock.c
+	modified:   fs/autofs4/root.c
+	modified:   fs/ceph/export.c
+	modified:   fs/ecryptfs/ecryptfs_kernel.h
+	modified:   fs/ecryptfs/file.c
+	modified:   fs/ecryptfs/inode.c
+	modified:   fs/ecryptfs/main.c
+	modified:   fs/ecryptfs/mmap.c
+	modified:   fs/gfs2/export.c
+	modified:   fs/isofs/export.c
+	modified:   fs/jbd/commit.c
+	modified:   fs/jbd/transaction.c
+	modified:   fs/lockd/mon.c
+	modified:   fs/nfsd/nfs4idmap.c
+	modified:   fs/nfsd/nfs4state.c
+	modified:   fs/reiserfs/inode.c
+	modified:   fs/xfs/xfs_export.c
+	modified:   include/linux/netfilter/ipset/ip_set_timeout.h
+	modified:   include/net/ip_vs.h
+	modified:   include/net/netfilter/nf_conntrack_ecache.h
+	modified:   kernel/debug/kdb/kdb_io.c
+	modified:   kernel/module.c
+	modified:   kernel/timer.c
+	modified:   mm/shmem.c
+	modified:   net/core/pktgen.c
+	modified:   net/ipv4/netfilter/nf_nat_sip.c
+	modified:   net/netfilter/ipvs/ip_vs_ctl.c
+	modified:   net/netfilter/xt_hashlimit.c
+	modified:   net/netfilter/xt_limit.c
+	modified:   net/netfilter/xt_set.c
+	modified:   net/sunrpc/xprtsock.c
+	modified:   sound/pci/ac97/ac97_codec.c
+	modified:   sound/pci/emu10k1/emu10k1_main.c
+	modified:   sound/pci/hda/patch_cirrus.c
+	modified:   sound/pci/hda/patch_realtek.c
+	modified:   sound/soc/codecs/wm2200.c
+	modified:   sound/soc/omap/omap-abe-twl6040.c
+	modified:   sound/soc/sh/fsi.c
+
+
 
