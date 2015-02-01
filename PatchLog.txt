@@ -1292,4 +1292,26 @@ Patch 3.4.17
 	modified:   sound/pci/hda/patch_realtek.c
 	modified:   usr/gen_init_cpio.c
 
+Patch 3.4.18
+        modified:   Makefile
+        modified:   arch/arm/mach-exynos/common.c
+        modified:   arch/arm/mach-s3c24xx/s3c2416.c
+        modified:   arch/arm/mach-s3c24xx/s3c2443.c
+        modified:   arch/arm/mach-s5p64x0/common.c
+        modified:   arch/arm/mach-s5pc100/common.c
+        modified:   arch/arm/mach-s5pv210/common.c
+        modified:   drivers/block/floppy.c
+        modified:   drivers/gpio/gpio-timberdale.c
+        modified:   drivers/gpio/gpiolib.c
+        modified:   drivers/gpu/drm/nouveau/nouveau_drv.c
+        modified:   drivers/gpu/drm/nouveau/nouveau_state.c
+        modified:   drivers/gpu/drm/nouveau/nv04_dac.c
+        modified:   drivers/gpu/drm/nouveau/nv04_dfp.c
+        modified:   drivers/gpu/drm/nouveau/nv04_tv.c
+        modified:   drivers/hid/hid-microsoft.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/net/wireless/b43/main.c
+        modified:   drivers/target/target_core_transport.c
+        modified:   fs/ext4/ialloc.c
+
 
