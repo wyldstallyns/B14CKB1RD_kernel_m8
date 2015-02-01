@@ -1239,4 +1239,57 @@ Patch 3.4.16
 	modified:   net/sunrpc/xprtrdma/transport.c
 	modified:   net/sunrpc/xprtsock.c
 
+Patch 3.4.17
+	modified:   Documentation/devicetree/bindings/arm/atmel-at91.txt
+	modified:   Makefile
+	modified:   arch/arm/mach-at91/at91rm9200_devices.c
+	modified:   arch/arm/mach-at91/at91sam9260_devices.c
+	modified:   arch/arm/mach-at91/at91sam9261_devices.c
+	modified:   arch/arm/mach-at91/at91sam9263_devices.c
+	modified:   arch/arm/mach-at91/at91sam9rl_devices.c
+	modified:   arch/arm/mach-at91/setup.c
+	modified:   arch/arm/mach-exynos/common.c
+	modified:   arch/arm/mach-s3c24xx/s3c2416.c
+	modified:   arch/arm/mach-s3c24xx/s3c2443.c
+	modified:   arch/arm/mach-s5p64x0/common.c
+	modified:   arch/arm/mach-s5pc100/common.c
+	modified:   arch/arm/mach-s5pv210/common.c
+	modified:   arch/x86/include/asm/efi.h
+	modified:   arch/x86/kernel/e820.c
+	modified:   arch/x86/kernel/setup.c
+	modified:   arch/x86/mm/init.c
+	modified:   arch/x86/platform/efi/efi.c
+	modified:   drivers/bcma/main.c
+	modified:   drivers/cpufreq/powernow-k8.c
+	modified:   drivers/dma/imx-dma.c
+	modified:   drivers/dma/sirf-dma.c
+	modified:   drivers/gpu/drm/i915/intel_lvds.c
+	modified:   drivers/gpu/drm/radeon/evergreen_cs.c
+	modified:   drivers/hv/channel.c
+	modified:   drivers/net/wireless/ath/ath9k/ar9003_2p2_initvals.h
+	modified:   drivers/rtc/rtc-imxdi.c
+	modified:   drivers/staging/comedi/drivers/amplc_pc236.c
+	modified:   drivers/usb/core/hub.c
+	modified:   drivers/usb/host/pci-quirks.c
+	modified:   drivers/usb/host/xhci-ring.c
+	modified:   drivers/usb/serial/mos7840.c
+	modified:   drivers/usb/serial/opticon.c
+	modified:   drivers/usb/serial/sierra.c
+	modified:   drivers/usb/serial/whiteheat.c
+	modified:   drivers/usb/storage/unusual_devs.h
+	modified:   drivers/vhost/net.c
+	modified:   fs/compat_ioctl.c
+	modified:   fs/exec.c
+	modified:   fs/sysfs/dir.c
+	modified:   include/drm/drm_pciids.h
+	modified:   include/linux/efi.h
+	modified:   include/linux/memblock.h
+	modified:   init/main.c
+	modified:   mm/memblock.c
+	modified:   mm/rmap.c
+	modified:   net/mac80211/wpa.c
+	modified:   net/sunrpc/xprtsock.c
+	modified:   sound/pci/hda/patch_realtek.c
+	modified:   usr/gen_init_cpio.c
+
 
