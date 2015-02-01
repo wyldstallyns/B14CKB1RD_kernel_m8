@@ -1193,5 +1193,50 @@ Patch 3.4.15
 	modified:   sound/soc/omap/omap-abe-twl6040.c
 	modified:   sound/soc/sh/fsi.c
 
+Patch 3.4.16
+	modified:   Makefile
+	modified:   arch/s390/boot/compressed/vmlinux.lds.S
+	modified:   arch/s390/kernel/vmlinux.lds.S
+	modified:   arch/sparc/kernel/perf_event.c
+	modified:   arch/sparc/kernel/sys_sparc_64.c
+	modified:   arch/sparc/kernel/syscalls.S
+	modified:   arch/sparc/mm/init_64.c
+	modified:   arch/tile/Makefile
+	modified:   arch/x86/kernel/entry_32.S
+	modified:   arch/x86/kernel/entry_64.S
+	modified:   arch/x86/kernel/setup.c
+	modified:   arch/x86/oprofile/nmi_int.c
+	modified:   drivers/edac/amd64_edac.c
+	modified:   drivers/infiniband/core/cma.c
+	modified:   drivers/infiniband/core/netlink.c
+	modified:   drivers/iommu/tegra-smmu.c
+	modified:   drivers/media/video/au0828/au0828-video.c
+	modified:   drivers/mtd/nand/nand_base.c
+	modified:   drivers/net/ethernet/marvell/skge.c
+	modified:   drivers/pcmcia/pxa2xx_sharpsl.c
+	modified:   drivers/pinctrl/pinctrl-tegra.c
+	modified:   drivers/pinctrl/pinctrl-tegra30.c
+	modified:   drivers/usb/class/cdc-acm.c
+	modified:   drivers/usb/serial/option.c
+	modified:   fs/ext4/extents.c
+	modified:   fs/ext4/mballoc.c
+	modified:   fs/lockd/clntxdr.c
+	modified:   fs/lockd/svcproc.c
+	modified:   fs/proc/stat.c
+	modified:   include/linux/if_vlan.h
+	modified:   include/linux/mtd/nand.h
+	modified:   include/linux/netlink.h
+	modified:   include/linux/sunrpc/xprt.h
+	modified:   include/rdma/rdma_netlink.h
+	modified:   kernel/cgroup.c
+	modified:   net/8021q/vlan_core.c
+	modified:   net/core/dev.c
+	modified:   net/core/neighbour.c
+	modified:   net/netlink/af_netlink.c
+	modified:   net/rds/send.c
+	modified:   net/sunrpc/cache.c
+	modified:   net/sunrpc/xprt.c
+	modified:   net/sunrpc/xprtrdma/transport.c
+	modified:   net/sunrpc/xprtsock.c
 
 
