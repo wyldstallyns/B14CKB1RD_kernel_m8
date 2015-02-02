@@ -1463,4 +1463,63 @@ Patch 3.4.20
         modified:   sound/soc/codecs/wm8978.c
         modified:   sound/soc/soc-dapm.c
 
+Patch 3.4.21
+        modified:   Documentation/dvb/get_dvb_firmware
+        modified:   Makefile
+        modified:   arch/arm/plat-omap/counter_32k.c
+        modified:   arch/parisc/kernel/signal32.c
+        modified:   arch/parisc/kernel/sys_parisc.c
+        modified:   arch/powerpc/platforms/pseries/eeh_driver.c
+        modified:   arch/sparc/kernel/signal_64.c
+        modified:   arch/x86/boot/compressed/eboot.c
+        modified:   arch/x86/include/asm/ptrace.h
+        modified:   arch/x86/kernel/microcode_amd.c
+        modified:   arch/x86/kernel/ptrace.c
+        modified:   arch/x86/kvm/cpuid.h
+        modified:   arch/x86/kvm/x86.c
+        modified:   block/scsi_ioctl.c
+        modified:   drivers/ata/sata_svw.c
+        modified:   drivers/base/power/qos.c
+        modified:   drivers/block/nvme.c
+        modified:   drivers/gpu/drm/radeon/radeon_agp.c
+        modified:   drivers/isdn/gigaset/bas-gigaset.c
+        modified:   drivers/leds/leds-lp5521.c
+        modified:   drivers/md/dm.c
+        modified:   drivers/md/md.c
+        modified:   drivers/md/raid10.c
+        modified:   drivers/mmc/host/sdhci-s3c.c
+        modified:   drivers/mtd/devices/slram.c
+        modified:   drivers/mtd/ofpart.c
+        modified:   drivers/net/can/usb/peak_usb/pcan_usb.c
+        modified:   drivers/net/can/usb/peak_usb/pcan_usb_pro.c
+        modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+        modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+        modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+        modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+        modified:   drivers/net/wireless/ipw2x00/ipw2200.c
+        modified:   drivers/net/wireless/iwlwifi/iwl-6000.c
+        modified:   drivers/net/wireless/mwifiex/cmdevt.c
+        modified:   drivers/net/wireless/mwifiex/sdio.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192se/phy.c
+        modified:   drivers/nfc/pn533.c
+        modified:   drivers/scsi/aha152x.c
+        modified:   drivers/scsi/isci/request.c
+        modified:   drivers/scsi/mvsas/mv_sas.c
+        modified:   drivers/usb/serial/mct_u232.c
+        modified:   fs/jbd/transaction.c
+        modified:   fs/jffs2/file.c
+        modified:   include/drm/drm_pciids.h
+        modified:   kernel/futex.c
+        modified:   kernel/time/timekeeping.c
+        modified:   kernel/watchdog.c
+        modified:   lib/mpi/longlong.h
+        modified:   net/can/bcm.c
+        modified:   net/mac80211/ibss.c
+        modified:   net/nfc/llcp/llcp.c
+        modified:   sound/pci/hda/patch_cirrus.c
+        modified:   sound/pci/hda/patch_realtek.c
+        modified:   sound/usb/caiaq/device.c
+        modified:   sound/usb/midi.c
+
 
