@@ -1526,3 +1526,30 @@ Patch 3.4.22
 	modified:   Makefile
         modified:   arch/x86/kernel/ptrace.c
 
+Patch 3.4.23
+        modified:   Makefile
+        modified:   arch/arm/Kconfig
+        modified:   arch/arm/mach-dove/include/mach/pm.h
+        modified:   arch/arm/mach-dove/irq.c
+        modified:   arch/arm/mach-kirkwood/pcie.c
+        modified:   arch/x86/include/asm/fpu-internal.h
+        modified:   arch/x86/kernel/smpboot.c
+        modified:   drivers/acpi/processor_driver.c
+        modified:   drivers/edac/i7300_edac.c
+        modified:   drivers/gpu/drm/i915/intel_lvds.c
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/evergreen_reg.h
+        modified:   drivers/gpu/drm/radeon/evergreend.h
+        modified:   drivers/gpu/drm/radeon/radeon_asic.h
+        modified:   drivers/md/raid10.c
+        modified:   drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+        modified:   fs/nfs/blocklayout/blocklayout.c
+        modified:   fs/nfs/blocklayout/blocklayout.h
+        modified:   kernel/sched/auto_group.c
+        modified:   kernel/sched/auto_group.h
+        modified:   kernel/workqueue.c
+        modified:   mm/memory-failure.c
+        modified:   mm/sparse.c
+        modified:   scripts/package/buildtar
+
+
