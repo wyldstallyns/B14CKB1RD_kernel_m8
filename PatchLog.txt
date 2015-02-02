@@ -1314,4 +1314,69 @@ Patch 3.4.18
         modified:   drivers/target/target_core_transport.c
         modified:   fs/ext4/ialloc.c
 
+Patch 3.4.19
+        modified:   Makefile
+        modified:   arch/x86/xen/mmu.c
+        modified:   drivers/gpu/drm/drm_fops.c
+        modified:   drivers/gpu/drm/i915/intel_drv.h
+        modified:   drivers/gpu/drm/i915/intel_sdvo.c
+        modified:   drivers/gpu/drm/i915/intel_sdvo_regs.h
+        modified:   drivers/gpu/drm/radeon/evergreen_cs.c
+        modified:   drivers/gpu/drm/radeon/evergreend.h
+        modified:   drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+        modified:   drivers/gpu/drm/radeon/si.c
+        modified:   drivers/gpu/drm/radeon/sid.h
+        modified:   drivers/gpu/drm/udl/udl_drv.h
+        modified:   drivers/gpu/drm/udl/udl_fb.c
+        modified:   drivers/gpu/drm/udl/udl_transfer.c
+        modified:   drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
+        modified:   drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+        modified:   drivers/hwmon/w83627ehf.c
+        modified:   drivers/input/touchscreen/tsc40.c
+        modified:   drivers/net/ethernet/nxp/lpc_eth.c
+        modified:   drivers/net/wireless/ath/ath9k/xmit.c
+        modified:   drivers/net/wireless/rt2x00/rt2800lib.c
+        modified:   drivers/target/iscsi/iscsi_target.c
+        modified:   drivers/target/iscsi/iscsi_target_core.h
+        modified:   drivers/target/iscsi/iscsi_target_login.c
+        modified:   drivers/target/iscsi/iscsi_target_util.c
+        modified:   drivers/target/iscsi/iscsi_target_util.h
+        modified:   drivers/target/target_core_configfs.c
+        modified:   drivers/target/target_core_device.c
+        modified:   drivers/target/target_core_tmr.c
+        modified:   drivers/usb/serial/mos7840.c
+        modified:   drivers/xen/gntdev.c
+        modified:   fs/nfs/dir.c
+        modified:   fs/nfs/dns_resolve.c
+        modified:   fs/nfs/internal.h
+        modified:   fs/nfs/mount_clnt.c
+        modified:   fs/nfs/namespace.c
+        modified:   fs/nfs/nfs4namespace.c
+        modified:   fs/nfs/nfs4proc.c
+        modified:   fs/nfs/super.c
+        modified:   fs/nfsd/export.c
+        modified:   fs/xfs/xfs_log_recover.c
+        modified:   include/linux/sunrpc/cache.h
+        modified:   include/trace/events/xen.h
+        modified:   kernel/futex.c
+        modified:   net/ipv4/inet_diag.c
+        modified:   net/ipv4/tcp_illinois.c
+        modified:   net/ipv6/ndisc.c
+        modified:   net/ipv6/route.c
+        modified:   net/l2tp/l2tp_eth.c
+        modified:   net/mac80211/ibss.c
+        modified:   net/mac80211/rx.c
+        modified:   net/mac80211/util.c
+        modified:   net/sctp/sm_sideeffect.c
+        modified:   net/wireless/core.c
+        modified:   net/wireless/util.c
+        modified:   sound/usb/card.c
+        modified:   sound/usb/card.h
+        modified:   sound/usb/endpoint.c
+        modified:   sound/usb/mixer.c
+        modified:   sound/usb/mixer_quirks.c
+        modified:   sound/usb/pcm.c
+        modified:   sound/usb/proc.c
+        modified:   sound/usb/usbaudio.h
+
 
