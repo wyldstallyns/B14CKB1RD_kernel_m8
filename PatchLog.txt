@@ -1522,4 +1522,7 @@ Patch 3.4.21
         modified:   sound/usb/caiaq/device.c
         modified:   sound/usb/midi.c
 
+Patch 3.4.22
+	modified:   Makefile
+        modified:   arch/x86/kernel/ptrace.c
 
