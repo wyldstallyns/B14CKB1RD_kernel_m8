@@ -1463,8 +1463,6 @@ Patch 3.4.20
         modified:   sound/soc/codecs/wm8978.c
         modified:   sound/soc/soc-dapm.c
 
-<<<<<<< HEAD
-=======
 Patch 3.4.21
         modified:   Documentation/dvb/get_dvb_firmware
         modified:   Makefile
