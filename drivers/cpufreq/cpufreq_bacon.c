@@ -371,15 +371,6 @@ static unsigned int choose_freq(
 	return freq;
 }
 
-static unsigned int calc_freq(struct cpufreq_interactive_cpuinfo *pcpu, 
-	unsigned int load)
-{
-	unsigned int max = pcpu->policy->cpuinfo.max_freq;
-	unsigned int min = pcpu->policy->cpuinfo.min_freq;
-
-	return min + load * (max - min) / 100;
-}
-
 static u64 update_load(int cpu)
 {
 	struct cpufreq_interactive_cpuinfo *pcpu = &per_cpu(cpuinfo, cpu);
@@ -449,7 +440,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 		if (pcpu->policy->cur < this_hispeed_freq) {
 			new_freq = this_hispeed_freq;
 		} else {
-			new_freq = calc_freq(pcpu, cpu_load);
+			new_freq = choose_freq(pcpu, loadadjfreq);
 
 			if (new_freq < this_hispeed_freq)
 				new_freq = this_hispeed_freq;
@@ -457,7 +448,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 	} else if (cpu_load <= DOWN_LOW_LOAD_THRESHOLD) {
 		new_freq = pcpu->policy->cpuinfo.min_freq;
 	} else {
-		new_freq = calc_freq(pcpu, cpu_load);
+		new_freq = choose_freq(pcpu, loadadjfreq);
 	}
 
 	if (pcpu->policy->cur >= this_hispeed_freq &&
