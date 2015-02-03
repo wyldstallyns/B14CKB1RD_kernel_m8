@@ -113,6 +113,11 @@ static unsigned int input_boost_duration;
 static unsigned int touch_poke_freq = 810000;
 static bool touch_poke = true;
 
+/* when called via register_early_suspend, cpufreq has already
+   called lock_policy_rwsem_write.
+*/
+static bool registering_early_suspend = false;
+
 /*
  * should ramp_up steps during boost be possible
  */
@@ -185,7 +190,7 @@ enum {
 #if SMARTMAX_DEBUG
 static unsigned long debug_mask = SMARTMAX_DEBUG_LOAD|SMARTMAX_DEBUG_JUMPS|SMARTMAX_DEBUG_ALG|SMARTMAX_DEBUG_BOOST|SMARTMAX_DEBUG_INPUT|SMARTMAX_DEBUG_SUSPEND;
 #else
-static unsigned long debug_mask;
+static unsigned long debug_mask = SMARTMAX_DEBUG_SUSPEND;
 #endif
 
 /*
@@ -1174,7 +1179,9 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 				return rc;
 			}
 #ifdef CONFIG_HAS_EARLYSUSPEND
+			registering_early_suspend = true;
 			register_early_suspend(&smartmax_early_suspend_handler);
+			registering_early_suspend = false;
 #endif
 			latency = new_policy->cpuinfo.transition_latency / 1000;
 			if (latency == 0)
