@@ -2376,6 +2376,10 @@ static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
 	int i;
 	unsigned long balanced = 0;
 	bool all_zones_ok = true;
+	
+	/* If kswapd has been running too long, just sleep */
+	if (need_resched())
+		return false;
 
 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
 	if (remaining)
