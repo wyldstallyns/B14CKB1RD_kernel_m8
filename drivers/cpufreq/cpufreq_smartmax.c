@@ -113,11 +113,6 @@ static unsigned int input_boost_duration;
 static unsigned int touch_poke_freq = 1497600;
 static bool touch_poke = true;
 
-/* when called via register_early_suspend, cpufreq has already
-   called lock_policy_rwsem_write.
-*/
-static bool registering_early_suspend = false;
-
 /*
  * should ramp_up steps during boost be possible
  */
@@ -190,7 +185,7 @@ enum {
 #if SMARTMAX_DEBUG
 static unsigned long debug_mask = SMARTMAX_DEBUG_LOAD|SMARTMAX_DEBUG_JUMPS|SMARTMAX_DEBUG_ALG|SMARTMAX_DEBUG_BOOST|SMARTMAX_DEBUG_INPUT|SMARTMAX_DEBUG_SUSPEND;
 #else
-static unsigned long debug_mask = SMARTMAX_DEBUG_SUSPEND;
+static unsigned long debug_mask;
 #endif
 
 /*
@@ -954,7 +949,6 @@ define_global_rw_attr(boost_freq);
 define_global_rw_attr(boost_duration);
 define_global_rw_attr(io_is_busy);
 define_global_rw_attr(ignore_nice);
-define_global_rw_attr(registering_early_suspend);
 define_global_rw_attr(ramp_up_during_boost);
 define_global_rw_attr(awake_ideal_freq);
 define_global_rw_attr(suspend_ideal_freq);
@@ -974,8 +968,7 @@ static struct attribute * smartmax_attributes[] = {
 	&boost_duration_attr.attr, 
 	&io_is_busy_attr.attr,
 	&ignore_nice_attr.attr, 
-	&registering_early_suspend_boost_attr.attr,
-	&ramp_up_during_boost_attr.attr,
+	&ramp_up_during_boost_attr.attr, 
 	&awake_ideal_freq_attr.attr,
 	&suspend_ideal_freq_attr.attr,		
 	NULL , };
@@ -1181,9 +1174,7 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 				return rc;
 			}
 #ifdef CONFIG_HAS_EARLYSUSPEND
-			registering_early_suspend = true;
 			register_early_suspend(&smartmax_early_suspend_handler);
-			registering_early_suspend = false;
 #endif
 			latency = new_policy->cpuinfo.transition_latency / 1000;
 			if (latency == 0)
