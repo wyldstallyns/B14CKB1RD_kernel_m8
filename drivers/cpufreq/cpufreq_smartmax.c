@@ -34,10 +34,15 @@
 #include <linux/workqueue.h>
 #include <linux/moduleparam.h>
 #include <linux/jiffies.h>
+#include <linux/earlysuspend.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/kernel_stat.h>
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
+#endif
 
 /******************** Tunable parameters: ********************/
 
@@ -109,6 +114,11 @@ static unsigned int input_boost_duration;
 static unsigned int touch_poke_freq;
 static bool touch_poke = true;
 
+/* when called via register_early_suspend, cpufreq has already
+   called lock_policy_rwsem_write.
+*/
+static bool registering_early_suspend = false;
+
 /*
  * should ramp_up steps during boost be possible
  */
@@ -170,7 +180,7 @@ enum {
  * Combination of the above debug flags.
  */
 //static unsigned long debug_mask = SMARTMAX_DEBUG_LOAD|SMARTMAX_DEBUG_JUMPS|SMARTMAX_DEBUG_ALG|SMARTMAX_DEBUG_BOOST|SMARTMAX_DEBUG_INPUT|SMARTMAX_DEBUG_SUSPEND;
-static unsigned long debug_mask;
+static unsigned long debug_mask = SMARTMAX_DEBUG_SUSPEND;
 
 #define SMARTMAX_STAT 0
 #if SMARTMAX_STAT
@@ -192,6 +202,10 @@ static bool boost_running = false;
 static unsigned int ideal_freq;
 static bool is_suspended = false;
 static unsigned int min_sampling_rate;
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+static struct early_suspend smartmax_early_suspend_handler;
+#endif
 
 #define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
@@ -217,11 +231,11 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *policy,
 static
 #endif
 struct cpufreq_governor cpufreq_gov_smartmax = { 
-    .name = "smartmax", 
-    .governor = cpufreq_governor_smartmax, 
-    .max_transition_latency = TRANSITION_LATENCY_LIMIT, 
-    .owner = THIS_MODULE,
-    };
+	.name = "smartmax", 
+	.governor = cpufreq_governor_smartmax, 
+	.max_transition_latency = TRANSITION_LATENCY_LIMIT, 
+	.owner = THIS_MODULE,
+};
 
 static inline cputime64_t get_cpu_iowait_time(unsigned int cpu, cputime64_t *wall) {
 	cputime64_t iowait_time = get_cpu_iowait_time_us(cpu, wall);
@@ -247,9 +261,14 @@ inline static void smartmax_update_min_max_allcpus(void) {
 	for_each_online_cpu(cpu)
 	{
 		struct smartmax_info_s *this_smartmax = &per_cpu(smartmax_info, cpu);
-		if (this_smartmax->cur_policy){
-			if (lock_policy_rwsem_write(cpu) < 0)
-				continue;
+
+		// If called via register_early_suspend, cpufreq_governor_smartmax
+		// already called smartmsx_update_min_max and cpufreq.c already locked.
+		if (!registering_early_suspend && this_smartmax->cur_policy) {
+			if (lock_policy_rwsem_write(cpu) < 0) {
+				dprintk(SMARTMAX_DEBUG_SUSPEND, "%s: warn: did not lock_policy_rwsem_write(cpu%d)\n", __func__, cpu);              
+ 				continue;
+			}
 
 			smartmax_update_min_max(this_smartmax, this_smartmax->cur_policy);
 			
@@ -1001,15 +1020,15 @@ static int cpufreq_smartmax_boost_task(void *data) {
 		if (!policy)
 			continue;
 
-        if (lock_policy_rwsem_write(0) < 0)
-        	continue;
+		if (lock_policy_rwsem_write(0) < 0)
+			continue;
 		
 		tegra_input_boost(policy, cur_boost_freq, CPUFREQ_RELATION_H);
 	
-        this_smartmax->prev_cpu_idle = get_cpu_idle_time(0,
+        	this_smartmax->prev_cpu_idle = get_cpu_idle_time(0,
 						&this_smartmax->prev_cpu_wall, io_is_busy);
 
-        unlock_policy_rwsem_write(0);
+        	unlock_policy_rwsem_write(0);
 #else		
 		for_each_online_cpu(cpu){
 			this_smartmax = &per_cpu(smartmax_info, cpu);
@@ -1165,7 +1184,7 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 	int rc;
 	struct smartmax_info_s *this_smartmax = &per_cpu(smartmax_info, cpu);
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
-    unsigned int latency;
+	unsigned int latency;
 
 	switch (event) {
 	case CPUFREQ_GOV_START:
@@ -1225,6 +1244,11 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 				mutex_unlock(&dbs_mutex);
 				return rc;
 			}
+#ifdef CONFIG_HAS_EARLYSUSPEND
+			registering_early_suspend = true;
+			register_early_suspend(&smartmax_early_suspend_handler);
+			registering_early_suspend = false;
+#endif
 			/* policy latency is in nS. Convert it to uS first */
 			latency = new_policy->cpuinfo.transition_latency / 1000;
 			if (latency == 0)
