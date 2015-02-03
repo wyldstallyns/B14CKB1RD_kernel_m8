@@ -1552,4 +1552,36 @@ Patch 3.4.23
         modified:   mm/sparse.c
         modified:   scripts/package/buildtar
 
+Patch 3.4.24
+	modified:   Makefile
+	modified:   arch/arm/include/asm/hwcap.h
+	modified:   arch/arm/include/asm/vfpmacros.h
+	modified:   arch/arm/vfp/vfpmodule.c
+	modified:   arch/x86/kernel/hpet.c
+	modified:   drivers/acpi/battery.c
+	modified:   drivers/acpi/sleep.c
+	modified:   drivers/acpi/video.c
+	modified:   drivers/gpu/drm/i915/intel_bios.c
+	modified:   drivers/gpu/drm/i915/intel_display.c
+	modified:   drivers/hwmon/fam15h_power.c
+	modified:   drivers/mmc/host/sh_mmcif.c
+	modified:   drivers/pnp/pnpacpi/core.c
+	modified:   drivers/staging/telephony/ixj.c
+	modified:   drivers/usb/class/cdc-acm.c
+	modified:   drivers/usb/host/ohci-q.c
+	modified:   drivers/usb/host/xhci-pci.c
+	modified:   drivers/usb/serial/cp210x.c
+	modified:   drivers/usb/serial/ftdi_sio.c
+	modified:   drivers/usb/serial/ftdi_sio_ids.h
+	modified:   drivers/usb/serial/option.c
+	modified:   drivers/usb/storage/Kconfig
+	modified:   include/linux/mempolicy.h
+	modified:   kernel/rcutree.c
+	modified:   kernel/trace/ftrace.c
+	modified:   kernel/workqueue.c
+	modified:   mm/mempolicy.c
+	modified:   mm/shmem.c
+	modified:   sound/soc/Makefile
+	modified:   tools/perf/builtin-test.c
+
 
