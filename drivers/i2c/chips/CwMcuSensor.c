@@ -930,6 +930,7 @@ static int get_proximity(struct device *dev, struct device_attribute *attr, char
 }
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_WAKE_GESTURES
+extern int cam_switch;
 
 static int proximity_flag = 0;
 
@@ -937,7 +938,8 @@ static void sensor_enable(int sensors_id, int enabled)
 {
 	u8 i;
 	u8 data;
-	int retry = 0;
+	u8 data8[8] = {0};
+	int retry = 0, rc = 0;
 
 	for (retry = 0; retry < ACTIVE_RETRY_TIMES; retry++) {
 		if (mcu_data->resume_done != 1)
@@ -955,6 +957,21 @@ static void sensor_enable(int sensors_id, int enabled)
 		return;
 	}
 
+	if ((sensors_id == Proximity) && (enabled == 0)) {
+		rc = CWMCU_i2c_read(mcu_data, CW_I2C_REG_SENSORS_CALIBRATOR_DEBUG_PROXIMITY, data8, 8);
+		I("%s: AUtoK: Threshold = %d, SADC = %d, CompensationValue = %d\n", __func__, data8[5], data8[4], data8[6]);
+		I("%s: AutoK: QueueIsEmpty = %d, Queue = %d %d %d %d\n", __func__, data8[7], data8[0], data8[1], data8[2], data8[3]);
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_WAKE_GESTURES
+		proximity_flag = 0;
+#endif
+	}
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_WAKE_GESTURES
+	if ((sensors_id == Proximity) && (enabled == 1)) {
+		proximity_flag = 1;
+	}
+#endif
+
 	if (enabled == 1) {
 		mcu_data->filter_first_zeros[sensors_id] = 1;
 	}
@@ -965,7 +982,7 @@ static void sensor_enable(int sensors_id, int enabled)
 	i = sensors_id /8;
 	data = (u8)(mcu_data->enabled_list>>(i*8));
 
-	D("%s: i= %d data = %d CWSTM32_ENABLE_REG= %d \n", __func__, i, data, CWSTM32_ENABLE_REG+i);
+	D("%s++: sensors_id = %d, enabled = %d\n", __func__, sensors_id, enabled);
 
 	CWMCU_i2c_write(mcu_data, CWSTM32_ENABLE_REG+i, &data,1);
 
@@ -976,12 +993,21 @@ static void sensor_enable(int sensors_id, int enabled)
 
 void proximity_set(int enabled)
 {
-//	if (enabled) {
-//		sensor_enable(Gesture_Motion_HIDI, 0);
-//		sensor_enable(Gesture_Motion, 0);
-//	}
+	if (enabled) {
+		sensor_enable(Proximity, enabled);
+		I("[WG] proximity sensor enabled\n");
+	} else if (!proximity_flag) {
+		sensor_enable(Proximity, enabled);
+		I("[WG] proximity sensor disabled\n");
+	} else {
+		I("[WG] proximity sensor enabled by system\n");
+	}
+}
 
-	sensor_enable(Proximity, enabled);
+void camera_volume_button_disable(void)
+{
+	sensor_enable(Gesture_Motion_HIDI, 0);
+	sensor_enable(Gesture_Motion, 0);
 }
 
 int check_pocket(void)
@@ -990,12 +1016,11 @@ int check_pocket(void)
 	int ret;
 
 	CWMCU_i2c_read(mcu_data, CWSTM32_READ_Proximity, data, 2);
+	I("[WG] check pocket: data0=%d data1=%d\n", data[0], data[1]);
 	ret = data[0];
 
 	return ret;
 }
-
-
 #endif
 
 static int get_proximity_polling(struct device *dev, struct device_attribute *attr, char *buf){
@@ -3038,21 +3063,35 @@ static void cwmcu_irq_work_func(struct work_struct *work)
 		D("[CWMCU]CW_MCU_INT_BIT_HTC_GESTURE_MOTION_HIDI: i2c bus read %d bytes\n", ret);
 		data_event = (s32)((data[0] & 0x1F) | (((data[1] | (data[2] << 8)) & 0x3FF) << 5) | (data[3] << 15) | (data[4] << 23));
 		if (vib_trigger) {
-			/* 15 is the tap to wake gesture */
-			if (data[0] == 15) {
-				if (tap2wake == 1) {
-					D("[CWMCU] Tap to wake - waking device\n");
-					vib_trigger_event(vib_trigger, VIB_TIME);
-					sensor->sensors_time[Gesture_Motion_HIDI] = 0;
-					input_report_rel(sensor->input, HTC_Gesture_Motion_HIDI, data_event);
-					input_sync(sensor->input);
-					power_key_pressed = 0;
-				} else {
-					D("[CWMCU] Tap to wake disabled, ignoring\n");
-				}
+			if (data[0] == 14) {
+				vib_trigger_event(vib_trigger, VIB_TIME);
+				D("Gesture motion HIDI detected, vibrate for %d ms!\n", VIB_TIME);
+			} else if(data[0] == 6 || data[0] == 15 || data[0] == 18 || data[0] == 19 || data[0] == 24 || data[0] == 25 || data[0] == 26 || data[0] == 27) {
+				vib_trigger_event(vib_trigger, VIB_TIME);
+				sensor->sensors_time[Gesture_Motion_HIDI] = 0;
+				input_report_rel(sensor->input, HTC_Gesture_Motion_HIDI, data_event);
+				input_sync(sensor->input);
+				power_key_pressed = 0;
+				D("[CWMCU][vib_trigger] Gesture_Motion_HIDI: df0: %d, d0: %d, d1: %d\n", data_buff[0], data[0], data[1]);
+				D("[CWMCU][vib_trigger] Gesture_Motion_HIDI: data_buff: %d, data_event: %d\n", data_buff[1], data_event);
+				D("[CWMCU][vib_trigger] Gesture_Motion_HIDI input sync\n");
 			} else {
-				D("[CWMCU] Discard gesture wake\n");
+                                sensor->sensors_time[Gesture_Motion_HIDI] = 0;
+                                input_report_rel(sensor->input, HTC_Gesture_Motion_HIDI, data_event);
+                                input_sync(sensor->input);
+                                power_key_pressed = 0;
+                                D("[CWMCU][disable vib_trigger] Gesture_Motion_HIDI: df0: %d, d0: %d, d1: %d\n", data_buff[0], data[0], data[1]);
+                                D("[CWMCU][disable vib_trigger] Gesture_Motion_HIDI: data_buff: %d, data_event: %d\n", data_buff[1], data_event);
+                                D("[CWMCU][disable vib_trigger] Gesture_Motion_HIDI input sync\n");
 			}
+		} else {
+			sensor->sensors_time[Gesture_Motion_HIDI] = 0;
+			input_report_rel(sensor->input, HTC_Gesture_Motion_HIDI, data_event);
+			input_sync(sensor->input);
+			power_key_pressed = 0;
+			D("[CWMCU] Gesture_Motion_HIDI: df0: %d, d0: %d, d1: %d\n", data_buff[0], data[0], data[1]);
+			D("[CWMCU] Gesture_Motion_HIDI: data_buff: %d, data_event: %d\n", data_buff[1], data_event);
+			D("[CWMCU] Gesture_Motion_HIDI input sync\n");
 		}
 		clear_intr = CW_MCU_INT_BIT_HTC_GESTURE_MOTION_HIDI;
 		ret = CWMCU_i2c_write(sensor, CWSTM32_INT_ST4, &clear_intr, 1);
