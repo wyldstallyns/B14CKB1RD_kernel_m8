@@ -1896,4 +1896,29 @@ Patch 3.4.29
         modified:   sound/soc/codecs/wm2200.c
         modified:   sound/usb/mixer.c
 
+Patch 3.4.30
+        modified:   Makefile
+        modified:   arch/x86/ia32/ia32entry.S
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/radeon_combios.c
+        modified:   drivers/gpu/drm/radeon/radeon_display.c
+        modified:   drivers/gpu/drm/radeon/radeon_ring.c
+        modified:   drivers/gpu/drm/radeon/reg_srcs/cayman
+        modified:   drivers/rtc/rtc-isl1208.c
+        modified:   drivers/usb/host/ehci-hub.c
+        modified:   drivers/usb/host/ehci-sched.c
+        modified:   drivers/usb/host/xhci-ring.c
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcserial.c
+        modified:   drivers/usb/storage/initializers.c
+        modified:   drivers/usb/storage/initializers.h
+        modified:   drivers/usb/storage/unusual_devs.h
+        modified:   drivers/usb/storage/usb.c
+        modified:   drivers/usb/storage/usual-tables.c
+        modified:   fs/nilfs2/ioctl.c
+        modified:   include/linux/usb/ch9.h
+        modified:   lib/digsig.c
+
 
