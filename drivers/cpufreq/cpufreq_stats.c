@@ -259,19 +259,6 @@ static void cpufreq_stats_free_table(unsigned int cpu)
 	per_cpu(cpufreq_stats_table, cpu) = NULL;
 }
 
-static void cpufreq_stats_free_sysfs(unsigned int cpu)
-{
-	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
-	
-	if (!cpufreq_frequency_get_table(cpu))
-		return;
-
-	if (policy && policy->cpu == cpu)
-		sysfs_remove_group(&policy->kobj, &stats_attr_group);
-	if (policy)
-		cpufreq_cpu_put(policy);
-}
-
 static void cpufreq_allstats_free(void)
 {
 	int i;
