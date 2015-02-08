@@ -1921,4 +1921,53 @@ Patch 3.4.30
         modified:   include/linux/usb/ch9.h
         modified:   lib/digsig.c
 
+Patch 3.4.31
+        modified:   MAINTAINERS
+        modified:   Makefile
+        modified:   arch/x86/include/asm/efi.h
+        modified:   arch/x86/kernel/reboot.c
+        modified:   arch/x86/kernel/setup.c
+        modified:   arch/x86/platform/efi/efi.c
+        modified:   drivers/acpi/osl.c
+        modified:   drivers/atm/iphase.h
+        modified:   drivers/char/virtio_console.c
+        modified:   drivers/firmware/dmi_scan.c
+        modified:   drivers/firmware/efivars.c
+        modified:   drivers/firmware/iscsi_ibft_find.c
+        modified:   drivers/gpu/drm/radeon/radeon_device.c
+        modified:   drivers/isdn/gigaset/capi.c
+        modified:   drivers/net/ethernet/broadcom/tg3.c
+        modified:   drivers/net/ethernet/calxeda/xgmac.c
+        modified:   drivers/net/ethernet/emulex/benet/be.h
+        modified:   drivers/net/ethernet/emulex/benet/be_main.c
+        modified:   drivers/net/ethernet/mellanox/mlx4/en_tx.c
+        modified:   drivers/net/ethernet/mellanox/mlx4/main.c
+        modified:   drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+        modified:   drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+        modified:   drivers/net/ethernet/realtek/r8169.c
+        modified:   drivers/net/ethernet/via/via-rhine.c
+        modified:   drivers/net/loopback.c
+        modified:   drivers/net/wireless/rtlwifi/base.c
+        modified:   drivers/net/wireless/rtlwifi/usb.c
+        modified:   drivers/net/xen-netback/common.h
+        modified:   drivers/net/xen-netback/interface.c
+        modified:   drivers/net/xen-netback/netback.c
+        modified:   drivers/platform/x86/ibm_rtl.c
+        modified:   drivers/platform/x86/samsung-laptop.c
+        modified:   drivers/scsi/isci/init.c
+        modified:   include/linux/efi.h
+        modified:   init/main.c
+        modified:   kernel/resource.c
+        modified:   net/bridge/br_netfilter.c
+        modified:   net/core/pktgen.c
+        modified:   net/ipv4/ip_sockglue.c
+        modified:   net/ipv4/tcp_input.c
+        modified:   net/ipv6/addrconf.c
+        modified:   net/ipv6/ip6_output.c
+        modified:   net/ipv6/route.c
+        modified:   net/packet/af_packet.c
+        modified:   net/sctp/endpointola.c
+        modified:   net/sctp/outqueue.c
+        modified:   net/sctp/socket.c
+
 
