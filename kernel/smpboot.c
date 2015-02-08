@@ -10,7 +10,6 @@
 #include "smpboot.h"
 
 #ifdef CONFIG_GENERIC_SMP_IDLE_THREAD
-
 /*
  * For the hotplug case we keep the task structs around and reuse
  * them.
