@@ -1850,3 +1850,75 @@ Patch 3.4.27
         modified:   sound/usb/quirks.c
 
 
+Patch 3.4.29
+        modified:   Makefile
+        modified:   arch/arm/mach-at91/setup.c
+        modified:   arch/arm/vfp/entry.S
+        modified:   arch/arm/vfp/vfphw.S
+        modified:   arch/x86/kernel/msr.c
+        modified:   arch/x86/kernel/setup.c
+        modified:   arch/x86/platform/efi/efi.c
+        modified:   arch/x86/platform/efi/efi_64.c
+        modified:   drivers/edac/edac_pci_sysfs.c
+        modified:   drivers/gpu/drm/radeon/radeon_cursor.c
+        modified:   drivers/gpu/drm/radeon/radeon_display.c
+        modified:   drivers/iommu/amd_iommu_init.c
+        modified:   drivers/iommu/intel-iommu.c
+        modified:   drivers/net/can/c_can/c_can.c
+        modified:   drivers/net/can/pch_can.c
+        modified:   drivers/net/can/ti_hecc.c
+        modified:   drivers/net/wireless/ath/ath9k/beacon.c
+        modified:   drivers/net/wireless/ath/ath9k/htc_hst.c
+        modified:   drivers/net/wireless/ath/ath9k/recv.c
+        modified:   drivers/net/wireless/brcm80211/brcmsmac/mac80211_if.c
+        modified:   drivers/net/wireless/iwlegacy/common.c
+        modified:   drivers/net/wireless/mwifiex/pcie.c
+        modified:   drivers/target/target_core_fabric_configfs.c
+        modified:   fs/cifs/cifs_dfs_ref.c
+        modified:   fs/nfs/namespace.c
+        modified:   fs/xfs/xfs_aops.c
+        modified:   initramfs/init
+        modified:   initramfs/init.rc
+        modified:   initramfs/sbin/adbd
+        modified:   initramfs/sbin/healthd
+        modified:   initramfs/sbin/mkfs.f2fs
+        modified:   initramfs/selinux_version
+        modified:   initramfs/service_contexts
+        modified:   kernel/smp.c
+        modified:   net/bluetooth/hci_event.c
+        modified:   net/bluetooth/hidp/core.c
+        modified:   net/mac80211/cfg.c
+        modified:   net/mac80211/ieee80211_i.h
+        modified:   net/mac80211/offchannel.c
+        modified:   net/mac80211/scan.c
+        modified:   net/mac80211/work.c
+        modified:   sound/pci/hda/patch_realtek.c
+        modified:   sound/soc/codecs/wm2200.c
+        modified:   sound/usb/mixer.c
+
+Patch 3.4.30
+        modified:   Makefile
+        modified:   arch/x86/ia32/ia32entry.S
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/radeon_combios.c
+        modified:   drivers/gpu/drm/radeon/radeon_display.c
+        modified:   drivers/gpu/drm/radeon/radeon_ring.c
+        modified:   drivers/gpu/drm/radeon/reg_srcs/cayman
+        modified:   drivers/rtc/rtc-isl1208.c
+        modified:   drivers/usb/host/ehci-hub.c
+        modified:   drivers/usb/host/ehci-sched.c
+        modified:   drivers/usb/host/xhci-ring.c
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcserial.c
+        modified:   drivers/usb/storage/initializers.c
+        modified:   drivers/usb/storage/initializers.h
+        modified:   drivers/usb/storage/unusual_devs.h
+        modified:   drivers/usb/storage/usb.c
+        modified:   drivers/usb/storage/usual-tables.c
+        modified:   fs/nilfs2/ioctl.c
+        modified:   include/linux/usb/ch9.h
+        modified:   lib/digsig.c
+
+
