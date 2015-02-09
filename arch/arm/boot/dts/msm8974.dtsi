@@ -2121,7 +2121,7 @@
 		reg = <0xf9017000 0x1000>;
 		interrupts = <0 3 0>, <0 4 0>;
 		qcom,bark-time = <21000>;
-		qqcom,pet-time = <20000>;
+		qcom,pet-time = <20000>;
 		qcom,ipi-ping;
 		htc,scm-regsave-phys = <0x5bf0000>; /* HTC_DEBUG_INFO_PHYS + HTC_DEBUG_INFO_TZLOG_SIZE */
 		htc,scm-regsave-size = <0x1000>; /* SZ_4K */
