@@ -239,7 +239,7 @@ static void adreno_input_work(struct work_struct *work)
 	struct kgsl_device *device = &adreno_dev->dev;
 
 	if (!_wake_timeout)
-+		return;
+		return;
 
 	kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 
