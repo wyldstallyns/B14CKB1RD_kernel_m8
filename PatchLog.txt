@@ -1982,4 +1982,9 @@ Patch 3.4.32
         modified:   drivers/net/ethernet/intel/igb/igb_main.c
         modified:   drivers/pci/remove.c
 
+Patch 3.4.33
+        modified:   Makefile
+        modified:   include/linux/syslog.h
+        modified:   kernel/printk.c
+
 
