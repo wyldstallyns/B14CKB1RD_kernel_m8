@@ -715,7 +715,6 @@ fail:
 	return ret;
 }
 
-#if 0
 static int vdd_restriction_apply_all(int en)
 {
 	int i = 0;
@@ -752,7 +751,6 @@ static int vdd_restriction_apply_all(int en)
 		return -EFAULT;
 	return ret;
 }
-#endif
 
 static int msm_thermal_get_freq_table(void)
 {
@@ -1042,7 +1040,6 @@ do_ocr_exit:
 	return ret;
 }
 
-#if 0
 static int do_vdd_restriction(void)
 {
 	long temp = 0;
@@ -1089,7 +1086,6 @@ exit:
 	mutex_unlock(&vdd_rstr_mutex);
 	return ret;
 }
-#endif
 
 static int do_psm(void)
 {
@@ -1195,9 +1191,7 @@ static void __ref check_temp(struct work_struct *work)
 	}
 
 	do_core_control(temp);
-#if 0
 	do_vdd_restriction();
-#endif
 	do_psm();
 	do_ocr();
 	do_freq_control(temp);
