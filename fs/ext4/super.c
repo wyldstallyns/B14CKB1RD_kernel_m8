@@ -967,7 +967,15 @@ static struct inode *ext4_nfs_get_inode(struct super_block *sb,
 	if (ino > le32_to_cpu(EXT4_SB(sb)->s_es->s_inodes_count))
 		return ERR_PTR(-ESTALE);
 
-	inode = ext4_iget(sb, ino);
+	/* iget isn't really right if the inode is currently unallocated!!
+	 *
+	 * ext4_read_inode will return a bad_inode if the inode had been
+	 * deleted, so we should be safe.
+	 *
+	 * Currently we don't know the generation for parent directory, so
+	 * a generation of 0 means "accept any"
+	 */
+	inode = ext4_iget_normal(sb, ino);
 	if (IS_ERR(inode))
 		return ERR_CAST(inode);
 	if (generation && inode->i_generation != generation) {
@@ -1554,14 +1562,8 @@ static int parse_options(char *options, struct super_block *sb,
 					"not specified");
 			return 0;
 		}
-	} else {
-		if (sbi->s_jquota_fmt) {
-			ext4_msg(sb, KERN_ERR, "journaled quota format "
-					"specified with no journaling "
-					"enabled");
-			return 0;
-		}
 	}
+
 #endif
 	if (test_opt(sb, DIOREAD_NOLOCK)) {
 		int blocksize =
@@ -1573,6 +1575,7 @@ static int parse_options(char *options, struct super_block *sb,
 			return 0;
 		}
 	}
+
 	return 1;
 }
 

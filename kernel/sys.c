@@ -40,6 +40,7 @@
 #include <linux/syscore_ops.h>
 #include <linux/version.h>
 #include <linux/ctype.h>
+#include <linux/sched.h>
 
 #include <linux/compat.h>
 #include <linux/syscalls.h>
@@ -1599,6 +1600,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 		unsigned long, arg4, unsigned long, arg5)
 {
 	struct task_struct *me = current;
+	struct task_struct *tsk;
 	unsigned char comm[sizeof(me->comm)];
 	long error;
 
@@ -1684,7 +1686,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 			error = prctl_get_seccomp();
 			break;
 		case PR_SET_SECCOMP:
-			error = prctl_set_seccomp(arg2);
+			error = prctl_set_seccomp(arg2, (char __user *)arg3);
 			break;
 		case PR_GET_TSC:
 			error = GET_TSC_CTL(arg2);
@@ -1755,6 +1757,36 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 			error = put_user(me->signal->is_child_subreaper,
 					 (int __user *) arg2);
 			break;
+		case PR_SET_TIMERSLACK_PID:
+		if (current->pid != (pid_t)arg3 &&
+					!capable(CAP_SYS_NICE))
+				return -EPERM;
+			rcu_read_lock();
+			tsk = find_task_by_pid_ns((pid_t)arg3, &init_pid_ns);
+			if (tsk == NULL) {
+				rcu_read_unlock();
+				return -EINVAL;
+			}
+			get_task_struct(tsk);
+			rcu_read_unlock();
+			if (arg2 <= 0)
+				tsk->timer_slack_ns =
+					tsk->default_timer_slack_ns;
+			else
+				tsk->timer_slack_ns = arg2;
+			put_task_struct(tsk);
+			error = 0;
+			break;
+		case PR_SET_NO_NEW_PRIVS:
+			if (arg2 != 1 || arg3 || arg4 || arg5)
+				return -EINVAL;
+
+			task_set_no_new_privs(current);
+			break;
+		case PR_GET_NO_NEW_PRIVS:
+			if (arg2 || arg3 || arg4 || arg5)
+				return -EINVAL;
+			return task_no_new_privs(current) ? 1 : 0;
 		default:
 			error = -EINVAL;
 			break;

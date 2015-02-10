@@ -102,6 +102,9 @@ struct cpufreq_policy {
 #define CPUFREQ_NOTIFY		(2)
 #define CPUFREQ_START		(3)
 
+#define CPUFREQ_CREATE_POLICY	(5)
+#define CPUFREQ_REMOVE_POLICY	(6)
+
 #define CPUFREQ_SHARED_TYPE_NONE (0) 
 #define CPUFREQ_SHARED_TYPE_HW	 (1) 
 #define CPUFREQ_SHARED_TYPE_ALL	 (2) 
@@ -279,7 +282,7 @@ __ATTR(_name, 0444, show_##_name, NULL)
 static struct global_attr _name =		\
 __ATTR(_name, 0644, show_##_name, store_##_name)
 
-
+u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy);
 int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
 int cpufreq_update_policy(unsigned int cpu);
 bool have_governor_per_policy(void);
@@ -337,12 +340,12 @@ extern struct cpufreq_governor cpufreq_gov_optimax;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SMARTMAX)
 extern struct cpufreq_governor cpufreq_gov_smartmax;
 #define CPUFREQ_DEFAULT_GOVERNOR  (&cpufreq_gov_smartmax)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_BACON)
-extern struct cpufreq_governor cpufreq_gov_bacon;
-#define CPUFREQ_DEFAULT_GOVERNOR		(&cpufreq_gov_bacon)
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_WHEATLEY)
 extern struct cpufreq_governor cpufreq_gov_wheatley;
 #define CPUFREQ_DEFAULT_GOVERNOR  (&cpufreq_gov_wheatley)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_IMPULSE)
+extern struct cpufreq_governor cpufreq_gov_impulse;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_impulse)
 #endif
 
 
