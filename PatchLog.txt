@@ -2088,4 +2088,51 @@ Patch 3.4.34
         modified:   sound/soc/codecs/wm2200.c
         modified:   sound/usb/quirks-table.h
 
+Patch 3.4.35
+        modified:   Documentation/kernel-parameters.txt
+        modified:   Makefile
+        modified:   arch/x86/kernel/head.c
+        modified:   arch/x86/platform/efi/efi.c
+        modified:   block/partition-generic.c
+        modified:   drivers/acpi/sleep.c
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/block/xen-blkback/blkback.c
+        modified:   drivers/block/xen-blkback/xenbus.c
+        modified:   drivers/firewire/core-device.c
+        modified:   drivers/hid/hid-core.c
+        modified:   drivers/hid/hid-ids.h
+        modified:   drivers/iommu/amd_iommu_init.c
+        modified:   drivers/media/rc/rc-main.c
+        modified:   drivers/net/wireless/ath/ath9k/ar9003_calib.c
+        modified:   drivers/net/wireless/ath/ath9k/ar9003_phy.c
+        modified:   drivers/net/wireless/ath/ath9k/hw.h
+        modified:   drivers/power/ab8500_btemp.c
+        modified:   drivers/power/abx500_chargalg.c
+        modified:   drivers/staging/comedi/comedi_fops.c
+        modified:   drivers/staging/comedi/drivers/ni_labpc.c
+        modified:   drivers/target/target_core_device.c
+        modified:   drivers/target/target_core_fabric_configfs.c
+        modified:   drivers/target/target_core_internal.h
+        modified:   drivers/target/target_core_tpg.c
+        modified:   drivers/vhost/vhost.c
+        modified:   fs/direct-io.c
+        modified:   fs/ext4/balloc.c
+        modified:   fs/nfsd/nfs4state.c
+        modified:   fs/ocfs2/aops.c
+        modified:   fs/ocfs2/suballoc.c
+        modified:   fs/ocfs2/suballoc.h
+        modified:   fs/ocfs2/xattr.c
+        modified:   fs/pstore/platform.c
+        modified:   include/linux/auto_fs.h
+        modified:   include/linux/pstore.h
+        modified:   include/linux/quota.h
+        modified:   kernel/cpuset.c
+        modified:   kernel/posix-timers.c
+        modified:   kernel/sysctl_binary.c
+        modified:   net/sunrpc/svc_xprt.c
+        modified:   sound/pci/hda/patch_hdmi.c
+        modified:   tools/perf/Makefile
+        modified:   tools/perf/util/parse-events.y
+        modified:   tools/perf/util/pmu.y
+
 
