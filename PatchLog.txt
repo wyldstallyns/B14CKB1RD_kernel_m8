@@ -2135,4 +2135,48 @@ Patch 3.4.35
         modified:   tools/perf/util/parse-events.y
         modified:   tools/perf/util/pmu.y
 
+Patch 3.4.36
+        modified:   Makefile
+        modified:   arch/arm/kernel/perf_event_v7.c
+        modified:   arch/arm/mm/alignment.c
+        modified:   arch/arm/vfp/vfpmodule.c
+        modified:   arch/x86/pci/xen.c
+        modified:   arch/x86/xen/enlighten.c
+        modified:   crypto/ablkcipher.c
+        modified:   crypto/aead.c
+        modified:   crypto/ahash.c
+        modified:   crypto/blkcipher.c
+        modified:   crypto/crypto_user.c
+        modified:   crypto/pcompress.c
+        modified:   crypto/rng.c
+        modified:   crypto/shash.c
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/char/hw_random/core.c
+        modified:   drivers/gpu/drm/radeon/radeon_combios.c
+        modified:   drivers/hid/hid-logitech-dj.c
+        modified:   drivers/hwmon/pmbus/ltc2978.c
+        modified:   drivers/hwmon/sht15.c
+        modified:   drivers/md/md.c
+        modified:   drivers/md/raid0.c
+        modified:   drivers/net/ethernet/intel/e1000e/netdev.c
+        modified:   drivers/net/wireless/ath/ath9k/common.h
+        modified:   drivers/net/wireless/ath/ath9k/hw.c
+        modified:   drivers/net/wireless/mwifiex/pcie.c
+        modified:   drivers/scsi/dc395x.c
+        modified:   drivers/scsi/storvsc_drv.c
+        modified:   drivers/target/target_core_pscsi.c
+        modified:   fs/btrfs/volumes.c
+        modified:   fs/cifs/cifsfs.c
+        modified:   fs/compat.c
+        modified:   fs/nfs/unlink.c
+        modified:   fs/pipe.c
+        modified:   kernel/trace/Kconfig
+        modified:   mm/process_vm_access.c
+        modified:   net/sunrpc/xprt.c
+        modified:   security/keys/compat.c
+        modified:   security/keys/process_keys.c
+        modified:   sound/core/vmaster.c
+        modified:   sound/pci/hda/patch_hdmi.c
+        modified:   sound/pci/ice1712/ice1712.c
+
 
