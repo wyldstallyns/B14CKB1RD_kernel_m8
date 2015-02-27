@@ -144,11 +144,6 @@
 #define XSENS_CONVERTER_6_PID	0xD38E
 #define XSENS_CONVERTER_7_PID	0xD38F
 
-/**
- * Zolix (www.zolix.com.cb) product ids
- */
-#define FTDI_OMNI1509			0xD491	/* Omni1509 embedded USB-serial */
-
 /*
  * NDI (www.ndigital.com) product ids
  */
@@ -206,7 +201,7 @@
 
 /*
  * ELV USB devices submitted by Christian Abt of ELV (www.elv.de).
- * Almost all of these devices use FTDI's vendor ID (0x0403).
+ * All of these devices use FTDI's vendor ID (0x0403).
  * Further IDs taken from ELV Windows .inf file.
  *
  * The previously included PID for the UO 100 module was incorrect.
@@ -214,8 +209,6 @@
  *
  * Armin Laeuger originally sent the PID for the UM 100 module.
  */
-#define FTDI_ELV_VID	0x1B1F	/* ELV AG */
-#define FTDI_ELV_WS300_PID	0xC006	/* eQ3 WS 300 PC II */
 #define FTDI_ELV_USR_PID	0xE000	/* ELV Universal-Sound-Recorder */
 #define FTDI_ELV_MSM1_PID	0xE001	/* ELV Mini-Sound-Modul */
 #define FTDI_ELV_KL100_PID	0xE002	/* ELV Kfz-Leistungsmesser KL 100 */
@@ -521,11 +514,6 @@
  */
 #define FTDI_TAVIR_STK500_PID	0xFA33	/* STK500 AVR programmer */
 
-/*
- * TIAO product ids (FTDI_VID)
- * http://www.tiaowiki.com/w/Main_Page
- */
-#define FTDI_TIAO_UMPA_PID	0x8a98	/* TIAO/DIYGADGET USB Multi-Protocol Adapter */
 
 
 /********************************/
@@ -753,12 +741,6 @@
 #define TTI_VID			0x103E	/* Vendor Id */
 #define TTI_QL355P_PID		0x03E8	/* TTi QL355P power supply */
 
-/*
- * Newport Cooperation (www.newport.com)
- */
-#define NEWPORT_VID			0x104D
-#define NEWPORT_AGILIS_PID		0x3000
-
 /* Interbiometrics USB I/O Board */
 /* Developed for Interbiometrics by Rudolf Gugler */
 #define INTERBIOMETRICS_VID              0x1209
@@ -802,14 +784,6 @@
 #define RTSYSTEMS_VID			0x2100	/* Vendor ID */
 #define RTSYSTEMS_SERIAL_VX7_PID	0x9e52	/* Serial converter for VX-7 Radios using FT232RL */
 #define RTSYSTEMS_CT29B_PID		0x9e54	/* CT29B Radio Cable */
-#define RTSYSTEMS_RTS01_PID		0x9e57	/* USB-RTS01 Radio Cable */
-
-/*
- * Kondo Kagaku Co.Ltd.
- * http://www.kondo-robot.com/EN
- */
-#define KONDO_VID 		0x165c
-#define KONDO_USB_SERIAL_PID	0x0002
 
 /*
  * Bayer Ascensia Contour blood glucose meter USB-converter cable.
@@ -1233,9 +1207,3 @@
  * ATI command output: Cinterion MC55i
  */
 #define FTDI_CINTERION_MC55I_PID	0xA951
-
-/*
- * Product: Comet Caller ID decoder
- * Manufacturer: Crucible Technologies
- */
-#define FTDI_CT_COMET_PID	0x8e08

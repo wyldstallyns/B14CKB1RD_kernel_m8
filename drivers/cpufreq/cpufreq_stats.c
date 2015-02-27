@@ -259,6 +259,15 @@ static void cpufreq_stats_free_table(unsigned int cpu)
 	per_cpu(cpufreq_stats_table, cpu) = NULL;
 }
 
+static void cpufreq_stats_free_sysfs(unsigned int cpu)
+{
+	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
+	if (policy && policy->cpu == cpu)
+		sysfs_remove_group(&policy->kobj, &stats_attr_group);
+	if (policy)
+		cpufreq_cpu_put(policy);
+}
+
 static void cpufreq_allstats_free(void)
 {
 	int i;
@@ -547,6 +556,10 @@ static int __cpuinit cpufreq_stat_cpu_callback(struct notifier_block *nfb,
 	case CPU_ONLINE_FROZEN:
 		cpufreq_update_policy(cpu);
 		break;
+	case CPU_DOWN_PREPARE:
+	case CPU_DOWN_PREPARE_FROZEN:
+		cpufreq_stats_free_sysfs(cpu);
+		break;
 	case CPU_DEAD:
 	case CPU_DEAD_FROZEN:
 		cpufreq_stats_free_table(cpu);
@@ -615,6 +628,7 @@ static void __exit cpufreq_stats_exit(void)
 	unregister_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
 	for_each_online_cpu(cpu) {
 		cpufreq_stats_free_table(cpu);
+		cpufreq_stats_free_sysfs(cpu);
 	}
 	cpufreq_allstats_free();
 }

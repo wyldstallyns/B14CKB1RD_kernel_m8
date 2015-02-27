@@ -50,10 +50,6 @@ static inline void disable_cpufreq(void) { }
 #define CPUFREQ_POLICY_POWERSAVE	(1)
 #define CPUFREQ_POLICY_PERFORMANCE	(2)
 
-/* Minimum frequency cutoff to notify the userspace about cpu utilization
- * changes */
-#define MIN_CPU_UTIL_NOTIFY   40
-
 
 struct cpufreq_governor;
 
@@ -88,8 +84,7 @@ struct cpufreq_policy {
 	unsigned int		policy; 
 	struct cpufreq_governor	*governor; 
 
-	struct work_struct	update;
-	unsigned int            util;  /* CPU utilization at max frequency */
+	struct work_struct	update; 
 
 	struct cpufreq_real_policy	user_policy;
 
@@ -101,9 +96,6 @@ struct cpufreq_policy {
 #define CPUFREQ_INCOMPATIBLE	(1)
 #define CPUFREQ_NOTIFY		(2)
 #define CPUFREQ_START		(3)
-
-#define CPUFREQ_CREATE_POLICY	(5)
-#define CPUFREQ_REMOVE_POLICY	(6)
 
 #define CPUFREQ_SHARED_TYPE_NONE (0) 
 #define CPUFREQ_SHARED_TYPE_HW	 (1) 
@@ -179,7 +171,6 @@ void unlock_policy_rwsem_write(int cpu);
 
 #define CPUFREQ_RELATION_L 0  
 #define CPUFREQ_RELATION_H 1  
-#define CPUFREQ_RELATION_C 2
 
 struct freq_attr;
 
@@ -223,9 +214,6 @@ int cpufreq_unregister_driver(struct cpufreq_driver *driver_data);
 
 void cpufreq_notify_transition(struct cpufreq_freqs *freqs, unsigned int state);
 
-void cpufreq_notify_utilization(struct cpufreq_policy *policy,
-		unsigned int load);
-
 static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy, unsigned int min, unsigned int max)
 {
 	if (policy->min < min)
@@ -239,13 +227,6 @@ static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy, u
 	if (policy->min > policy->max)
 		policy->min = policy->max;
 	return;
-}
-
-static inline void
-cpufreq_verify_within_cpu_limits(struct cpufreq_policy *policy)
-{
-	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
-			policy->cpuinfo.max_freq);
 }
 
 struct freq_attr {
@@ -282,11 +263,9 @@ __ATTR(_name, 0444, show_##_name, NULL)
 static struct global_attr _name =		\
 __ATTR(_name, 0644, show_##_name, store_##_name)
 
-u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy);
+
 int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
 int cpufreq_update_policy(unsigned int cpu);
-bool have_governor_per_policy(void);
-int cpufreq_set_gov(char *target_gov, unsigned int cpu);
 
 #ifdef CONFIG_CPU_FREQ
 unsigned int cpufreq_get(unsigned int cpu);
@@ -322,6 +301,9 @@ extern struct cpufreq_governor cpufreq_gov_performance;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE)
 extern struct cpufreq_governor cpufreq_gov_powersave;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_powersave)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE)
+extern struct cpufreq_governor cpufreq_gov_userspace;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_userspace)
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND)
 extern struct cpufreq_governor cpufreq_gov_ondemand;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_ondemand)
@@ -331,21 +313,6 @@ extern struct cpufreq_governor cpufreq_gov_conservative;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE)
 extern struct cpufreq_governor cpufreq_gov_interactive;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_interactive)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_DANCEDANCE)
-extern struct cpufreq_governor cpufreq_gov_dancedance;
-#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_dancedance)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_OPTIMAX)
-extern struct cpufreq_governor cpufreq_gov_optimax;
-#define CPUFREQ_DEFAULT_GOVERNOR        (&cpufreq_gov_optimax)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SMARTMAX)
-extern struct cpufreq_governor cpufreq_gov_smartmax;
-#define CPUFREQ_DEFAULT_GOVERNOR  (&cpufreq_gov_smartmax)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_WHEATLEY)
-extern struct cpufreq_governor cpufreq_gov_wheatley;
-#define CPUFREQ_DEFAULT_GOVERNOR  (&cpufreq_gov_wheatley)
-#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_IMPULSE)
-extern struct cpufreq_governor cpufreq_gov_impulse;
-#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_impulse)
 #endif
 
 

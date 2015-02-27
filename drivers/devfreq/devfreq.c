@@ -28,7 +28,6 @@
 #include "governor.h"
 
 static struct class *devfreq_class;
-static struct kobject *gpufreq_kobj;
 
 static struct workqueue_struct *devfreq_wq;
 
@@ -77,13 +76,9 @@ static void devfreq_set_freq_limits(struct devfreq *devfreq)
 int devfreq_get_freq_level(struct devfreq *devfreq, unsigned long freq)
 {
 	int lev;
-	unsigned int *freq_table = devfreq->profile->freq_table;
-
-	if (devfreq->state == KGSL_STATE_SLUMBER)
-		return sizeof(freq_table);
 
 	for (lev = 0; lev < devfreq->profile->max_state; lev++)
-		if (freq == freq_table[lev])
+		if (freq == devfreq->profile->freq_table[lev])
 			return lev;
 
 	return -EINVAL;
@@ -92,29 +87,24 @@ EXPORT_SYMBOL(devfreq_get_freq_level);
 
 static int devfreq_update_status(struct devfreq *devfreq, unsigned long freq)
 {
-	int lev, prev_lev, ret = 0;
+	int lev, prev_lev;
 	unsigned long cur_time;
-	
-	cur_time = jiffies;
-	if (devfreq->state == KGSL_STATE_SLUMBER) {
-		devfreq->last_stat_updated = cur_time;
-		return 0;
-	}
-
-	prev_lev = devfreq_get_freq_level(devfreq, devfreq->previous_freq);
-	if (prev_lev < 0) {
-		ret = prev_lev;
-		goto out;
-	}
-
-	devfreq->time_in_state[prev_lev] +=
-			 cur_time - devfreq->last_stat_updated;
 
 	lev = devfreq_get_freq_level(devfreq, freq);
-	if (lev < 0) {
-		ret = lev;
-		goto out;
-	}
+	if (lev < 0)
+		return lev;
+
+	cur_time = jiffies;
+	devfreq->time_in_state[lev] +=
+			 cur_time - devfreq->last_stat_updated;
+	devfreq->last_stat_updated = cur_time;
+
+	if (freq == devfreq->previous_freq)
+		return 0;
+
+	prev_lev = devfreq_get_freq_level(devfreq, devfreq->previous_freq);
+	if (prev_lev < 0)
+		return 0;
 
 	if (lev != prev_lev) {
 		devfreq->trans_table[(prev_lev *
@@ -122,9 +112,7 @@ static int devfreq_update_status(struct devfreq *devfreq, unsigned long freq)
 		devfreq->total_trans++;
 	}
 
-out:
-	devfreq->last_stat_updated = cur_time;
-	return ret;
+	return 0;
 }
 
 static struct devfreq_governor *find_devfreq_governor(const char *name)
@@ -423,10 +411,6 @@ struct devfreq *devfreq_add_device(struct device *dev,
 	mutex_unlock(&devfreq->lock);
 
 	mutex_lock(&devfreq_list_lock);
-	gpufreq_kobj = kobject_create_and_add("gpufreq", &devfreq->dev.kobj);
-	if (!gpufreq_kobj)
-		goto err_dev;
-
 	list_add(&devfreq->node, &devfreq_list);
 
 	governor = find_devfreq_governor(devfreq->governor_name);
@@ -603,26 +587,6 @@ err_out:
 }
 EXPORT_SYMBOL(devfreq_remove_governor);
 
-int devfreq_policy_add_files(struct devfreq *devfreq,
-			     struct attribute_group attr_group)
-{
-	int ret;
-
-	ret = sysfs_create_group(gpufreq_kobj, &attr_group);
-	if (ret)
-		kobject_put(gpufreq_kobj);
-
-	return ret;
-}
-EXPORT_SYMBOL(devfreq_policy_add_files);
-
-void devfreq_policy_remove_files(struct devfreq *devfreq,
-				 struct attribute_group attr_group)
-{
-	sysfs_remove_group(gpufreq_kobj, &attr_group);
-}
-EXPORT_SYMBOL(devfreq_policy_remove_files);
-
 static ssize_t show_governor(struct device *dev,
 			     struct device_attribute *attr, char *buf)
 {
@@ -702,15 +666,9 @@ static ssize_t show_freq(struct device *dev,
 {
 	unsigned long freq;
 	struct devfreq *devfreq = to_devfreq(dev);
-	struct devfreq_dev_profile *profile = devfreq->profile;
 
-	if (devfreq->state == KGSL_STATE_SLUMBER)
-		return sprintf(buf, "%u\n",
-			       profile->
-			       freq_table[sizeof(profile->freq_table)]);
-
-	if (profile->get_cur_freq &&
-		!profile->get_cur_freq(devfreq->dev.parent, &freq))
+	if (devfreq->profile->get_cur_freq &&
+		!devfreq->profile->get_cur_freq(devfreq->dev.parent, &freq))
 			return sprintf(buf, "%lu\n", freq);
 
 	return sprintf(buf, "%lu\n", devfreq->previous_freq);
@@ -850,7 +808,6 @@ static ssize_t show_trans_table(struct device *dev, struct device_attribute *att
 				char *buf)
 {
 	struct devfreq *devfreq = to_devfreq(dev);
-	struct devfreq_dev_profile *profile = devfreq->profile;
 	ssize_t len;
 	int i, j, err;
 	unsigned int max_state = devfreq->profile->max_state;
@@ -863,17 +820,19 @@ static ssize_t show_trans_table(struct device *dev, struct device_attribute *att
 	len += sprintf(buf + len, "         :");
 	for (i = 0; i < max_state; i++)
 		len += sprintf(buf + len, "%8u",
-				profile->freq_table[i]);
+				devfreq->profile->freq_table[i]);
 
 	len += sprintf(buf + len, "   time(ms)\n");
 
 	for (i = 0; i < max_state; i++) {
-		if (profile->freq_table[i] == devfreq->previous_freq
-		    && devfreq->state != KGSL_STATE_SLUMBER)
+		if (devfreq->profile->freq_table[i]
+					== devfreq->previous_freq) {
 			len += sprintf(buf + len, "*");
-		else
+		} else {
 			len += sprintf(buf + len, " ");
-		len += sprintf(buf + len, "%8u:", profile->freq_table[i]);
+		}
+		len += sprintf(buf + len, "%8u:",
+				devfreq->profile->freq_table[i]);
 		for (j = 0; j < max_state; j++)
 			len += sprintf(buf + len, "%8u",
 				devfreq->trans_table[(i * max_state) + j]);
@@ -908,10 +867,7 @@ static int __init devfreq_init(void)
 		return PTR_ERR(devfreq_class);
 	}
 
-	devfreq_wq =
-	    alloc_workqueue("devfreq_wq",
-			    WQ_HIGHPRI | WQ_UNBOUND | WQ_FREEZABLE |
-			    WQ_MEM_RECLAIM, 0);
+	devfreq_wq = create_freezable_workqueue("devfreq_wq");
 	if (IS_ERR(devfreq_wq)) {
 		class_destroy(devfreq_class);
 		pr_err("%s: couldn't create workqueue\n", __FILE__);

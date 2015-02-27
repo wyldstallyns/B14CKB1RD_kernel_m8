@@ -316,11 +316,11 @@ int kgsl_pwrscale_init(struct device *dev, const char *governor)
 	
 	profile->polling_ms = 10;
 
-	/* do not include duplicate freq. levels */
-	for (i = 0; i < pwr->num_pwrlevels; i++)
+	
+	for (i = 0; i < (pwr->num_pwrlevels - 1); i++)
 		pwrscale->freq_table[out++] = pwr->pwrlevels[i].gpu_freq;
 
-	profile->max_state = out - 1;
+	profile->max_state = out;
 	
 	profile->freq_table = pwrscale->freq_table;
 

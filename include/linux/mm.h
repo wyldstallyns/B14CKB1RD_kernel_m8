@@ -221,8 +221,6 @@ static inline int is_vmalloc_or_module_addr(const void *x)
 }
 #endif
 
-extern void kvfree(const void *addr);
-
 static inline void compound_lock(struct page *page)
 {
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
@@ -1153,10 +1151,8 @@ extern int filemap_fault(struct vm_area_struct *, struct vm_fault *);
 int write_one_page(struct page *page, int wait);
 void task_dirty_inc(struct task_struct *tsk);
 
-#define VM_MAX_READAHEAD   2048 /* kbytes */
-#define VM_MIN_READAHEAD     16 /* kbytes (includes current page) */
-
-extern unsigned long max_readahead_pages;	
+#define VM_MAX_READAHEAD	128	
+#define VM_MIN_READAHEAD	16	
 
 int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
 			pgoff_t offset, unsigned long nr_to_read);
@@ -1348,7 +1344,6 @@ void vmemmap_populate_print_last(void);
 enum mf_flags {
 	MF_COUNT_INCREASED = 1 << 0,
 	MF_ACTION_REQUIRED = 1 << 1,
-	MF_MUST_KILL = 1 << 2,
 };
 extern int memory_failure(unsigned long pfn, int trapno, int flags);
 extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);

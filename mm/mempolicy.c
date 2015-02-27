@@ -1602,7 +1602,18 @@ struct mempolicy *__mpol_dup(struct mempolicy *old)
 	return new;
 }
 
-/* Slow path of a mempolicy comparison */
+struct mempolicy *__mpol_cond_copy(struct mempolicy *tompol,
+						struct mempolicy *frompol)
+{
+	if (!mpol_needs_cond_ref(frompol))
+		return frompol;
+
+	*tompol = *frompol;
+	tompol->flags &= ~MPOL_F_SHARED;	
+	__mpol_put(frompol);
+	return tompol;
+}
+
 bool __mpol_equal(struct mempolicy *a, struct mempolicy *b)
 {
 	if (!a || !b)
@@ -2049,7 +2060,7 @@ int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol, int no_context)
 		break;
 
 	default:
-		return -EINVAL;
+		BUG();
 	}
 
 	l = strlen(policy_modes[mode]);

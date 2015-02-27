@@ -39,7 +39,6 @@
 #include <linux/percpu.h>
 #include <linux/slab.h>
 #include <linux/syscore_ops.h>
-#include <linux/wakeup_reason.h>
 
 #include <asm/irq.h>
 #include <asm/exception.h>
@@ -260,7 +259,8 @@ static void gic_show_resume_irq(struct gic_chip_data *gic)
 	for (i = find_first_bit(pending, gic->max_irq);
 	     i < gic->max_irq;
 	     i = find_next_bit(pending, gic->max_irq, i+1)) {
-		log_wakeup_reason(i + gic->irq_offset);
+		pr_warning("%s: %d triggered", __func__,
+					i + gic->irq_offset);
 #ifdef CONFIG_HTC_POWER_DEBUG
                 if (EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ != i + gic->irq_offset)
                         if (TLMM_MSM_SUMMARY_IRQ != i + gic->irq_offset)

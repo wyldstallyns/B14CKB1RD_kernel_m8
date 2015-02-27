@@ -369,7 +369,8 @@ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
 	if (q->id < 0)
 		goto fail_q;
 
-	q->backing_dev_info.ra_pages = max_readahead_pages;
+	q->backing_dev_info.ra_pages =
+			(VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE;
 	q->backing_dev_info.state = 0;
 	q->backing_dev_info.capabilities = BDI_CAP_MAP_COPY;
 	q->backing_dev_info.name = "block";
@@ -446,7 +447,7 @@ blk_init_allocated_queue(struct request_queue *q, request_fn_proc *rfn,
 	q->request_fn		= rfn;
 	q->prep_rq_fn		= NULL;
 	q->unprep_rq_fn		= NULL;
-	q->queue_flags		|= QUEUE_FLAG_DEFAULT;
+	q->queue_flags		= QUEUE_FLAG_DEFAULT;
 
 	
 	if (lock)
@@ -1174,7 +1175,7 @@ generic_make_request_checks(struct bio *bio)
 	might_sleep();
 
 #ifdef CONFIG_MMC_MUST_PREVENT_WP_VIOLATION
-	sprintf(wp_ptn, "mmcblk0p%d", get_partition_num_by_name("xxxxxx"));
+	sprintf(wp_ptn, "mmcblk0p%d", get_partition_num_by_name("system"));
 	if (!strcmp(bdevname(bio->bi_bdev, b), wp_ptn) && !board_mfg_mode() &&
 			(get_tamper_sf() == 1) && (get_atsdebug() != 1) && (bio->bi_rw & WRITE)) {
 		pr_info("blk-core: Attempt to write protected partition %s block %Lu \n",
@@ -2142,8 +2143,7 @@ int __init blk_dev_init(void)
 
 	
 	kblockd_workqueue = alloc_workqueue("kblockd",
-					    WQ_MEM_RECLAIM | WQ_HIGHPRI |
-					    WQ_POWER_EFFICIENT, 0);
+					    WQ_MEM_RECLAIM | WQ_HIGHPRI, 0);
 	if (!kblockd_workqueue)
 		panic("Failed to create kblockd\n");
 

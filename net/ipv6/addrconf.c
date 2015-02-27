@@ -461,7 +461,8 @@ static void addrconf_forward_change(struct net *net, __s32 newf)
 	struct net_device *dev;
 	struct inet6_dev *idev;
 
-	for_each_netdev(net, dev) {
+	rcu_read_lock();
+	for_each_netdev_rcu(net, dev) {
 		idev = __in6_dev_get(dev);
 		if (idev) {
 			int changed = (!idev->cnf.forwarding) ^ (!newf);
@@ -470,6 +471,7 @@ static void addrconf_forward_change(struct net *net, __s32 newf)
 				dev_forward_change(idev);
 		}
 	}
+	rcu_read_unlock();
 }
 
 static int addrconf_fixup_forwarding(struct ctl_table *table, int *p, int newf)
@@ -730,16 +732,10 @@ static void ipv6_del_addr(struct inet6_ifaddr *ifp)
 		struct in6_addr prefix;
 		struct rt6_info *rt;
 		struct net *net = dev_net(ifp->idev->dev);
-		struct flowi6 fl6 = {};
-
 		ipv6_addr_prefix(&prefix, &ifp->addr, ifp->prefix_len);
-		fl6.flowi6_oif = ifp->idev->dev->ifindex;
-		fl6.daddr = prefix;
-		rt = (struct rt6_info *)ip6_route_lookup(net, &fl6,
-							 RT6_LOOKUP_F_IFACE);
+		rt = rt6_lookup(net, &prefix, NULL, ifp->idev->dev->ifindex, 1);
 
-		if (rt != net->ipv6.ip6_null_entry &&
-		    addrconf_is_prefix_route(rt)) {
+		if (rt && addrconf_is_prefix_route(rt)) {
 			if (onlink == 0) {
 				ip6_del_rt(rt);
 				rt = NULL;
@@ -1600,7 +1596,7 @@ static struct rt6_info *addrconf_get_prefix_route(const struct in6_addr *pfx,
 			continue;
 		if ((rt->rt6i_flags & flags) != flags)
 			continue;
-		if ((rt->rt6i_flags & noflags) != 0)
+		if ((noflags != 0) && ((rt->rt6i_flags & flags) != 0))
 			continue;
 		dst_hold(&rt->dst);
 		break;

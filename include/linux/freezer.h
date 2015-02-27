@@ -78,62 +78,28 @@ static inline bool cgroup_freezing(struct task_struct *task)
  */
 
 
-/**
- * freezer_do_not_count - tell freezer to ignore %current
- *
- * Tell freezers to ignore the current task when determining whether the
- * target frozen state is reached.  IOW, the current task will be
- * considered frozen enough by freezers.
- *
- * The caller shouldn't do anything which isn't allowed for a frozen task
- * until freezer_cont() is called.  Usually, freezer[_do_not]_count() pair
- * wrap a scheduling operation and nothing much else.
- */
+/* Tell the freezer not to count the current task as freezable. */
 static inline void freezer_do_not_count(void)
 {
 	current->flags |= PF_FREEZER_SKIP;
 }
 
-/**
- * freezer_count - tell freezer to stop ignoring %current
- *
- * Undo freezer_do_not_count().  It tells freezers that %current should be
- * considered again and tries to freeze if freezing condition is already in
- * effect.
+/*
+ * Tell the freezer to count the current task as freezable again and try to
+ * freeze it.
  */
 static inline void freezer_count(void)
 {
 	current->flags &= ~PF_FREEZER_SKIP;
-	/*
-	 * If freezing is in progress, the following paired with smp_mb()
-	 * in freezer_should_skip() ensures that either we see %true
-	 * freezing() or freezer_should_skip() sees !PF_FREEZER_SKIP.
-	 */
-	smp_mb();
 	try_to_freeze();
 }
 
-/**
- * freezer_should_skip - whether to skip a task when determining frozen
- *			 state is reached
- * @p: task in quesion
- *
- * This function is used by freezers after establishing %true freezing() to
- * test whether a task should be skipped when determining the target frozen
- * state is reached.  IOW, if this function returns %true, @p is considered
- * frozen enough.
+/*
+ * Check if the task should be counted as freezable by the freezer
  */
-static inline bool freezer_should_skip(struct task_struct *p)
+static inline int freezer_should_skip(struct task_struct *p)
 {
-	/*
-	 * The following smp_mb() paired with the one in freezer_count()
-	 * ensures that either freezer_count() sees %true freezing() or we
-	 * see cleared %PF_FREEZER_SKIP and return %false.  This makes it
-	 * impossible for a task to slip frozen state testing after
-	 * clearing %PF_FREEZER_SKIP.
-	 */
-	smp_mb();
-	return p->flags & PF_FREEZER_SKIP;
+	return !!(p->flags & PF_FREEZER_SKIP);
 }
 
 /*
@@ -151,42 +117,12 @@ static inline bool freezer_should_skip(struct task_struct *p)
 	freezer_count();						\
 })
 
-/* Like schedule_timeout(), but should not block the freezer. */
-#define freezable_schedule_timeout(timeout)				\
-({									\
-	long __retval;							\
-	freezer_do_not_count();						\
-	__retval = schedule_timeout(timeout);				\
-	freezer_count();						\
-	__retval;							\
-})
-
-/* Like schedule_timeout_interruptible(), but should not block the freezer. */
-#define freezable_schedule_timeout_interruptible(timeout)		\
-({									\
-	long __retval;							\
-	freezer_do_not_count();						\
-	__retval = schedule_timeout_interruptible(timeout);		\
-	freezer_count();						\
-	__retval;							\
-})
-
 /* Like schedule_timeout_killable(), but should not block the freezer. */
 #define freezable_schedule_timeout_killable(timeout)			\
 ({									\
 	long __retval;							\
 	freezer_do_not_count();						\
 	__retval = schedule_timeout_killable(timeout);			\
-	freezer_count();						\
-	__retval;							\
-})
-
-/* Like schedule_hrtimeout_range(), but should not block the freezer. */
-#define freezable_schedule_hrtimeout_range(expires, delta, mode)	\
-({									\
-	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = schedule_hrtimeout_range(expires, delta, mode);	\
 	freezer_count();						\
 	__retval;							\
 })
@@ -209,28 +145,27 @@ static inline bool freezer_should_skip(struct task_struct *p)
 #define wait_event_freezable(wq, condition)				\
 ({									\
 	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible(wq, (condition));		\
-	freezer_count();						\
+	for (;;) {							\
+		__retval = wait_event_interruptible(wq, 		\
+				(condition) || freezing(current));	\
+		if (__retval || (condition))				\
+			break;						\
+		try_to_freeze();					\
+	}								\
 	__retval;							\
 })
 
 #define wait_event_freezable_timeout(wq, condition, timeout)		\
 ({									\
 	long __retval = timeout;					\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible_timeout(wq,	(condition),	\
-				__retval);				\
-	freezer_count();						\
-	__retval;							\
-})
-
-#define wait_event_freezable_exclusive(wq, condition)		\
-({									\
-	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible_exclusive(wq, condition);	\
-	freezer_count();						\
+	for (;;) {							\
+		__retval = wait_event_interruptible_timeout(wq,		\
+				(condition) || freezing(current),	\
+				__retval); 				\
+		if (__retval <= 0 || (condition))			\
+			break;						\
+		try_to_freeze();					\
+	}								\
 	__retval;							\
 })
 
@@ -254,26 +189,14 @@ static inline void set_freezable(void) {}
 
 #define freezable_schedule()  schedule()
 
-#define freezable_schedule_timeout(timeout)  schedule_timeout(timeout)
-
-#define freezable_schedule_timeout_interruptible(timeout)		\
-	schedule_timeout_interruptible(timeout)
-
-/* Like schedule_timeout_killable(), but should not block the freezer. */
 #define freezable_schedule_timeout_killable(timeout)			\
 	schedule_timeout_killable(timeout)
-
-#define freezable_schedule_hrtimeout_range(expires, delta, mode)	\
-	schedule_hrtimeout_range(expires, delta, mode)
 
 #define wait_event_freezable(wq, condition)				\
 		wait_event_interruptible(wq, condition)
 
 #define wait_event_freezable_timeout(wq, condition, timeout)		\
 		wait_event_interruptible_timeout(wq, condition, timeout)
-
-#define wait_event_freezable_exclusive(wq, condition)			\
-		wait_event_interruptible_exclusive(wq, condition)
 
 #define wait_event_freezekillable(wq, condition)		\
 		wait_event_killable(wq, condition)

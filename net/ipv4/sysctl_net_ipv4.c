@@ -176,7 +176,7 @@ static int proc_allowed_congestion_control(ctl_table *ctl,
 	if (!tbl.data)
 		return -ENOMEM;
 
-	tcp_get_available_congestion_control(tbl.data, tbl.maxlen);
+	tcp_get_allowed_congestion_control(tbl.data, tbl.maxlen);
 	ret = proc_dostring(&tbl, write, buffer, lenp, ppos);
 	if (write && ret == 0)
 		ret = tcp_set_allowed_congestion_control(tbl.data);
@@ -594,13 +594,6 @@ static struct ctl_table ipv4_table[] = {
 	{
 		.procname	= "tcp_workaround_signed_windows",
 		.data		= &sysctl_tcp_workaround_signed_windows,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec
-	},
-	{
-		.procname	= "tcp_challenge_ack_limit",
-		.data		= &sysctl_tcp_challenge_ack_limit,
 		.maxlen		= sizeof(int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec

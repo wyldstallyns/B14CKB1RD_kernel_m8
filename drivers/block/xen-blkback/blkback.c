@@ -337,7 +337,7 @@ static void xen_blkbk_unmap(struct pending_req *req)
 		invcount++;
 	}
 
-	ret = gnttab_unmap_refs(unmap, NULL, pages, invcount);
+	ret = gnttab_unmap_refs(unmap, pages, invcount, false);
 	BUG_ON(ret);
 }
 
@@ -623,6 +623,7 @@ static int dispatch_rw_block_io(struct xen_blkif *blkif,
 		goto fail_response;
 	}
 
+	preq.dev           = req->u.rw.handle;
 	preq.sector_number = req->u.rw.sector_number;
 	preq.nr_sects      = 0;
 

@@ -36,9 +36,6 @@
 
 #define DRIVER_NAME "HL"
 
-bool disable_cover = 0;
-module_param(disable_cover, bool, 0644);
-
 struct ak_hall_data {
 	struct input_dev *input_dev;
 	uint32_t gpio_att:16;
@@ -241,9 +238,6 @@ static int hall_input_register(struct ak_hall_data *hl)
 static void report_cover_event(int pole, int irq, struct ak_hall_data *hl)
 {
 	uint8_t val_n = 0, val_s = 0;
-	
-	if (disable_cover)
-		return;
 
 	if(pole == 0) 
 	{

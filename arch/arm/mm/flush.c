@@ -234,6 +234,8 @@ void __sync_icache_dcache(pte_t pteval)
 	struct page *page;
 	struct address_space *mapping;
 
+	if (!pte_present_user(pteval))
+		return;
 	if (cache_is_vipt_nonaliasing() && !pte_exec(pteval))
 		/* only flush non-aliasing VIPT caches for exec mappings */
 		return;
@@ -285,15 +287,7 @@ void flush_dcache_page(struct page *page)
 	if (page == ZERO_PAGE(0))
 		return;
 
-	/*
-	 * A page struct obtained via virt_to_page from a slab object may be
-	 * passed to this function. However, slab allocation can only be done
-	 * in the kernel and slab objects are never mapped into user space.
-	 * However, slab allocators may use the mapping field for their own
-	 * purposes and as a result mapping may be != NULL here although the
-	 * page is not mapped. So using NULL for this special case.
-	 */
-	mapping = PageSlab(page) ? NULL : page_mapping(page);
+	mapping = page_mapping(page);
 
 	if (!cache_ops_need_broadcast() &&
 	    mapping && !mapping_mapped(mapping))

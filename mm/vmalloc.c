@@ -27,7 +27,6 @@
 #include <linux/pfn.h>
 #include <linux/kmemleak.h>
 #include <linux/atomic.h>
-#include <linux/llist.h>
 #include <asm/uaccess.h>
 #include <asm/tlbflush.h>
 #include <asm/shmparam.h>
@@ -35,26 +34,6 @@
 
 #include <htc_debug/stability/htc_report_meminfo.h>
 
-struct vfree_deferred {
-	struct llist_head list;
-	struct work_struct wq;
-};
-static DEFINE_PER_CPU(struct vfree_deferred, vfree_deferred);
-
-static void __vunmap(const void *, int);
-
-static void free_work(struct work_struct *w)
-{
-	struct vfree_deferred *p = container_of(w, struct vfree_deferred, wq);
-	struct llist_node *llnode = llist_del_all(&p->list);
-	while (llnode) {
-		void *p = llnode;
-		llnode = llist_next(llnode);
-		__vunmap(p, 1);
-	}
-}
-
-/*** Page table manipulation functions ***/
 
 static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
 {
@@ -695,6 +674,7 @@ struct vmap_block_queue {
 struct vmap_block {
 	spinlock_t lock;
 	struct vmap_area *va;
+	struct vmap_block_queue *vbq;
 	unsigned long free, dirty;
 	DECLARE_BITMAP(alloc_map, VMAP_BBMAP_BITS);
 	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
@@ -762,6 +742,7 @@ static struct vmap_block *new_vmap_block(gfp_t gfp_mask)
 	radix_tree_preload_end();
 
 	vbq = &get_cpu_var(vmap_block_queue);
+	vb->vbq = vbq;
 	spin_lock(&vbq->lock);
 	list_add_rcu(&vb->free_list, &vbq->free);
 	spin_unlock(&vbq->lock);
@@ -948,16 +929,15 @@ void vm_unmap_aliases(void)
 
 		rcu_read_lock();
 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
-			int i, j;
+			int i;
 
 			spin_lock(&vb->lock);
 			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
-			if (i < VMAP_BBMAP_BITS) {
+			while (i < VMAP_BBMAP_BITS) {
 				unsigned long s, e;
-				
-				j = find_last_bit(vb->dirty_map,
-							VMAP_BBMAP_BITS);
-				j = j + 1; /* need exclusive index */
+				int j;
+				j = find_next_zero_bit(vb->dirty_map,
+					VMAP_BBMAP_BITS, i);
 
 				s = vb->va->va_start + (i << PAGE_SHIFT);
 				e = vb->va->va_start + (j << PAGE_SHIFT);
@@ -967,6 +947,10 @@ void vm_unmap_aliases(void)
 					start = s;
 				if (e > end)
 					end = e;
+
+				i = j;
+				i = find_next_bit(vb->dirty_map,
+							VMAP_BBMAP_BITS, i);
 			}
 			spin_unlock(&vb->lock);
 		}
@@ -1078,14 +1062,10 @@ void __init vmalloc_init(void)
 
 	for_each_possible_cpu(i) {
 		struct vmap_block_queue *vbq;
-		struct vfree_deferred *p;
 
 		vbq = &per_cpu(vmap_block_queue, i);
 		spin_lock_init(&vbq->lock);
 		INIT_LIST_HEAD(&vbq->free);
-		p = &per_cpu(vfree_deferred, i);
-		init_llist_head(&p->list);
-		INIT_WORK(&p->wq, free_work);
 	}
 
 	
@@ -1339,35 +1319,14 @@ static void __vunmap(const void *addr, int deallocate_pages)
 	kfree(area);
 	return;
 }
- 
-/**
- *	vfree  -  release memory allocated by vmalloc()
- *	@addr:		memory base address
- *
- *	Free the virtually continuous memory area starting at @addr, as
- *	obtained from vmalloc(), vmalloc_32() or __vmalloc(). If @addr is
- *	NULL, no operation is performed.
- *
- *	Must not be called in NMI context (strictly speaking, only if we don't
- *	have CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG, but making the calling
- *	conventions for vfree() arch-depenedent would be a really bad idea)
- *	
- */
 
 void vfree(const void *addr)
 {
-	BUG_ON(in_nmi());
+	BUG_ON(in_interrupt());
 
 	kmemleak_free(addr);
 
-	if (!addr)
-		return;
-	if (unlikely(in_interrupt())) {
-		struct vfree_deferred *p = &__get_cpu_var(vfree_deferred);
-		llist_add((struct llist_node *)addr, &p->list);
-		schedule_work(&p->wq);
-	} else
-		__vunmap(addr, 1);
+	__vunmap(addr, 1);
 }
 EXPORT_SYMBOL(vfree);
 
@@ -1375,8 +1334,7 @@ void vunmap(const void *addr)
 {
 	BUG_ON(in_interrupt());
 	might_sleep();
-	if (addr)
-		__vunmap(addr, 0);
+	__vunmap(addr, 0);
 }
 EXPORT_SYMBOL(vunmap);
 
