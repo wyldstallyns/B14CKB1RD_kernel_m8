@@ -2179,4 +2179,53 @@ Patch 3.4.36
         modified:   sound/pci/hda/patch_hdmi.c
         modified:   sound/pci/ice1712/ice1712.c
 
+Patch 3.4.37
+        modified:   Makefile
+        modified:   arch/powerpc/kernel/cputable.c
+        modified:   arch/powerpc/mm/hash_utils_64.c
+        modified:   arch/s390/include/asm/tlbflush.h
+        modified:   arch/s390/kernel/entry.S
+        modified:   arch/s390/kernel/entry64.S
+        modified:   arch/x86/kernel/cpu/perf_event_intel_ds.c
+        modified:   arch/x86/power/cpu.c
+        modified:   drivers/block/loop.c
+        modified:   drivers/char/hw_random/virtio-rng.c
+        modified:   drivers/gpu/drm/i915/i915_gem.c
+        modified:   drivers/gpu/drm/i915/intel_display.c
+        modified:   drivers/hwmon/lineage-pem.c
+        modified:   drivers/hwmon/pmbus/ltc2978.c
+        modified:   drivers/hwmon/sht15.c
+        modified:   drivers/net/macvlan.c
+        modified:   drivers/net/tun.c
+        modified:   drivers/staging/vt6656/main_usb.c
+        modified:   drivers/tty/pty.c
+        modified:   drivers/tty/serial/8250/8250_pci.c
+        modified:   drivers/tty/serial/Kconfig
+        modified:   drivers/usb/class/cdc-wdm.c
+        modified:   drivers/usb/host/ehci-q.c
+        modified:   drivers/usb/serial/cp210x.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcaux.c
+        modified:   drivers/usb/storage/initializers.c
+        modified:   drivers/usb/storage/initializers.h
+        modified:   drivers/usb/storage/unusual_devs.h
+        modified:   drivers/video/atmel_lcdfb.c
+        modified:   drivers/w1/w1.c
+        modified:   drivers/xen/xen-pciback/pciback_ops.c
+        modified:   fs/block_dev.c
+        modified:   fs/btrfs/volumes.c
+        modified:   fs/ext3/super.c
+        modified:   include/linux/perf_event.h
+        modified:   include/video/atmel_lcdc.h
+        modified:   net/core/dev.c
+        modified:   net/core/rtnetlink.c
+        modified:   net/dcb/dcbnl.c
+        modified:   net/ieee802154/6lowpan.h
+        modified:   net/ipv4/tcp_input.c
+        modified:   net/ipv6/ip6_input.c
+        modified:   net/l2tp/l2tp_ppp.c
+        modified:   net/netlabel/netlabel_unlabeled.c
+        modified:   net/rds/message.c
+        modified:   sound/core/seq/seq_timer.c
+
 
