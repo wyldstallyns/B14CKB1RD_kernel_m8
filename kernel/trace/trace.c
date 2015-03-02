@@ -43,12 +43,27 @@
 #include "trace.h"
 #include "trace_output.h"
 
+/*
+* On boot up, the ring buffer is set to the minimum size, so that
+* we do not waste memory on systems that are not using tracing.
+*/
 int ring_buffer_expanded;
 
+/*
+* We need to change this state when a selftest is running.
+* A selftest will lurk into the ring-buffer to count the
+* entries inserted during the selftest although some concurrent
+* insertions into the ring-buffer such as trace_printk could occurred
+* at the same time, giving false positive or negative results.
+*/
 static bool __read_mostly tracing_selftest_running;
 
+/*
+* If a tracer is running, we do not want to run SELFTEST.
+*/
 bool __read_mostly tracing_selftest_disabled;
 
+/* For tracers that don't implement custom flags */
 static struct tracer_opt dummy_tracer_opt[] = {
 	{ }
 };
@@ -63,6 +78,12 @@ static int dummy_set_flag(u32 old_flags, u32 bit, int set)
 	return 0;
 }
 
+/*
+* Kill all tracing for good (never come back).
+* It is initialized to 1 but will turn to zero if the initialization
+* of the tracer is successful. But that is the only place that sets
+* this back to zero.
+*/
 static int tracing_disabled = 1;
 
 DEFINE_PER_CPU(int, ftrace_cpu_disabled);
@@ -2425,11 +2446,25 @@ static int set_tracer_option(struct tracer *trace, char *cmp, int neg)
 	return -EINVAL;
 }
 
-static void set_tracer_flags(unsigned int mask, int enabled)
+/* Some tracers require overwrite to stay enabled */
+int trace_keep_overwrite(struct tracer *tracer, u32 mask, int set)
 {
-	
+	if (tracer->enabled && (mask & TRACE_ITER_OVERWRITE) && !set)
+		return -1;
+
+	return 0;
+}
+
+int set_tracer_flag(unsigned int mask, int enabled)
+ {
+ 	/* do nothing if flag is already set */
 	if (!!(trace_flags & mask) == !!enabled)
-		return;
+		return 0;
+
+	/* Give the tracer a chance to approve the change */
+	if (current_trace->flag_changed)
+		if (current_trace->flag_changed(current_trace, mask, !!enabled))
+			return -EINVAL;
 
 	if (enabled)
 		trace_flags |= mask;
@@ -2441,6 +2476,8 @@ static void set_tracer_flags(unsigned int mask, int enabled)
 
 	if (mask == TRACE_ITER_OVERWRITE)
 		ring_buffer_change_overwrite(global_trace.buffer, enabled);
+
+	return 0;
 }
 
 static ssize_t
@@ -2450,7 +2487,7 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
 	char buf[64];
 	char *cmp;
 	int neg = 0;
-	int ret;
+	int ret = -ENODEV;
 	int i;
 
 	if (cnt >= sizeof(buf))
@@ -2467,21 +2504,23 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
 		cmp += 2;
 	}
 
+	mutex_lock(&trace_types_lock);
+
 	for (i = 0; trace_options[i]; i++) {
 		if (strcmp(cmp, trace_options[i]) == 0) {
-			set_tracer_flags(1 << i, !neg);
+			ret = set_tracer_flag(1 << i, !neg);
 			break;
 		}
 	}
 
-	
-	if (!trace_options[i]) {
-		mutex_lock(&trace_types_lock);
+	/* If no option could be set, test the specific tracer options */
+	if (!trace_options[i])
 		ret = set_tracer_option(current_trace, cmp, neg);
-		mutex_unlock(&trace_types_lock);
-		if (ret)
-			return ret;
-	}
+
+	mutex_unlock(&trace_types_lock);
+
+	if (ret < 0)
+		return ret;
 
 	*ppos += cnt;
 
@@ -2776,6 +2815,9 @@ static int tracing_set_tracer(const char *buf)
 		goto out;
 
 	trace_branch_disable();
+
+	current_trace->enabled = false;
+
 	if (current_trace && current_trace->reset)
 		current_trace->reset(tr);
 	if (current_trace && current_trace->use_max_tr) {
@@ -2800,6 +2842,7 @@ static int tracing_set_tracer(const char *buf)
 			goto out;
 	}
 
+	current_trace->enabled = true;
 	trace_branch_enable(tr);
  out:
 	mutex_unlock(&trace_types_lock);
@@ -4090,7 +4133,13 @@ trace_options_core_write(struct file *filp, const char __user *ubuf, size_t cnt,
 
 	if (val != 0 && val != 1)
 		return -EINVAL;
-	set_tracer_flags(1 << index, val);
+
+	mutex_lock(&trace_types_lock);
+	ret = set_tracer_flag(1 << index, val);
+	mutex_unlock(&trace_types_lock);
+
+	if (ret < 0)
+		return ret;
 
 	*ppos += cnt;
 
