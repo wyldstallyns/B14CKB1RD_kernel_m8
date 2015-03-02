@@ -2228,4 +2228,94 @@ Patch 3.4.37
         modified:   net/rds/message.c
         modified:   sound/core/seq/seq_timer.c
 
+Patch 3.4.38 - Skipped due to freezing. :(
+
+Patch 3.4.39
+        modified:   Makefile
+        modified:   arch/arm/include/asm/signal.h
+        modified:   arch/arm/mach-cns3xxx/core.c
+        modified:   arch/arm/mach-cns3xxx/include/mach/cns3xxx.h
+        modified:   arch/avr32/include/asm/signal.h
+        modified:   arch/cris/include/asm/signal.h
+        modified:   arch/h8300/include/asm/signal.h
+        modified:   arch/m32r/include/asm/signal.h
+        modified:   arch/m68k/include/asm/signal.h
+        modified:   arch/mn10300/include/asm/signal.h
+        modified:   arch/powerpc/include/asm/signal.h
+        modified:   arch/s390/include/asm/signal.h
+        modified:   arch/sparc/include/asm/signal.h
+        modified:   arch/tile/kernel/setup.c
+        modified:   arch/x86/include/asm/signal.h
+        modified:   arch/xtensa/include/asm/signal.h
+        modified:   drivers/block/aoe/aoecmd.c
+        modified:   drivers/block/loop.c
+        modified:   drivers/block/xen-blkback/blkback.c
+        modified:   drivers/block/xen-blkback/common.h
+        modified:   drivers/firmware/efivars.c
+        modified:   drivers/gpu/drm/i915/intel_display.c
+        modified:   drivers/hid/hid-ids.h
+        modified:   drivers/hid/usbhid/hid-quirks.c
+        modified:   drivers/iommu/amd_iommu.c
+        modified:   drivers/net/bonding/bond_main.c
+        modified:   drivers/net/bonding/bond_sysfs.c
+        modified:   drivers/net/can/sja1000/plx_pci.c
+        modified:   drivers/net/can/sja1000/sja1000.c
+        modified:   drivers/net/can/sja1000/sja1000.h
+        modified:   drivers/net/ethernet/atheros/atl1e/atl1e.h
+        modified:   drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+        modified:   drivers/net/ethernet/broadcom/tg3.c
+        modified:   drivers/net/ethernet/davicom/dm9000.c
+        modified:   drivers/net/ethernet/davicom/dm9000.h
+        modified:   drivers/net/ethernet/marvell/sky2.c
+        modified:   drivers/net/ethernet/marvell/sky2.h
+        modified:   drivers/net/ethernet/micrel/ks8851.c
+        modified:   drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+        modified:   drivers/net/ethernet/ti/cpsw.c
+        modified:   drivers/net/ethernet/ti/davinci_emac.c
+        modified:   drivers/net/usb/smsc75xx.c
+        modified:   drivers/net/wireless/ath/ath9k/ar9003_calib.c
+        modified:   drivers/net/wireless/b43/dma.c
+        modified:   drivers/net/wireless/b43/phy_n.c
+        modified:   drivers/net/wireless/mwifiex/init.c
+        modified:   drivers/net/wireless/rtlwifi/usb.c
+        modified:   drivers/staging/comedi/drivers/s626.c
+        modified:   drivers/tty/serial/atmel_serial.c
+        modified:   drivers/tty/vt/vc_screen.c
+        modified:   drivers/usb/gadget/udc-core.c
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   fs/block_dev.c
+        modified:   fs/btrfs/extent-tree.c
+        modified:   fs/btrfs/extent_io.c
+        modified:   fs/btrfs/extent_io.h
+        modified:   fs/btrfs/inode.c
+        modified:   fs/btrfs/scrub.c
+        modified:   fs/ext4/balloc.c
+        modified:   fs/ext4/ext4.h
+        modified:   fs/ext4/ialloc.c
+        modified:   fs/ext4/mballoc.c
+        modified:   fs/ext4/resize.c
+        modified:   fs/ext4/super.c
+        modified:   fs/nfs/blocklayout/blocklayoutdm.c
+        modified:   fs/nfsd/nfs4xdr.c
+        modified:   fs/sysfs/dir.c
+        modified:   include/asm-generic/signal.h
+        modified:   include/linux/thermal.h
+        modified:   include/linux/unix_diag.h
+        modified:   include/xen/interface/io/blkif.h
+        modified:   kernel/signal.c
+        modified:   kernel/trace/trace.c
+        modified:   kernel/trace/trace.h
+        modified:   kernel/trace/trace_irqsoff.c
+        modified:   kernel/trace/trace_sched_wakeup.c
+        modified:   net/8021q/vlan.c
+        modified:   net/bluetooth/sco.c
+        modified:   net/core/dev.c
+        modified:   net/ipv4/tcp_input.c
+        modified:   net/ipv4/tcp_output.c
+        modified:   net/ipv6/ip6_input.c
+        modified:   net/irda/af_irda.c
+        modified:   net/netlink/genetlink.c
+        modified:   net/sunrpc/sched.c
+
 
