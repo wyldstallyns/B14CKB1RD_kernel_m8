@@ -3201,8 +3201,19 @@ config HTC_MONITOR_SUBSYS_SLEEP_TIME
     help
         Support to monitor the sleep time of sub-system
 
+config PERFLOCK
+	depends on CPU_FREQ
+	depends on HTC_PNPMGR
+	default n
+	bool "HTC Performance Lock"
+
 config HAS_MACH_MEMUTILS
 	default y
 	bool "Motorola MSM memcpy enhancements"
 	help
 	Faster memcpy performance for Krait
+
+config HTC_DEBUG_RBCPR_8226
+	depends on ARCH_MSM8226
+	default n
+	bool "HTC RBCPR debug"
