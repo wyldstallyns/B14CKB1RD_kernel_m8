@@ -2318,4 +2318,37 @@ Patch 3.4.39
         modified:   net/netlink/genetlink.c
         modified:   net/sunrpc/sched.c
 
+Patch 3.4.40
+        modified:   Makefile
+        modified:   arch/alpha/kernel/sys_nautilus.c
+        modified:   arch/powerpc/platforms/pseries/lpar.c
+        modified:   arch/x86/boot/compressed/Makefile
+        modified:   arch/x86/include/asm/syscall.h
+        modified:   block/blk-sysfs.c
+        modified:   crypto/gcm.c
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/ata/libata-core.c
+        modified:   drivers/base/regmap/regcache-rbtree.c
+        modified:   drivers/eisa/pci_eisa.c
+        modified:   drivers/hwspinlock/hwspinlock_core.c
+        modified:   drivers/net/wireless/mwifiex/init.c
+        modified:   drivers/net/wireless/rt2x00/rt2x00pci.c
+        modified:   drivers/spi/spi-mpc512x-psc.c
+        modified:   drivers/spi/spi-s3c64xx.c
+        modified:   drivers/thermal/thermal_sys.c
+        modified:   fs/reiserfs/xattr.c
+        modified:   fs/ubifs/super.c
+        modified:   include/linux/ata.h
+        modified:   include/linux/libata.h
+        modified:   include/linux/preempt.h
+        modified:   include/linux/spinlock_up.h
+        modified:   kernel/panic.c
+        modified:   kernel/trace/ftrace.c
+        modified:   mm/nommu.c
+        modified:   net/can/gw.c
+        modified:   sound/pci/hda/hda_codec.c
+        modified:   sound/pci/hda/hda_eld.c
+        modified:   sound/pci/hda/patch_realtek.c
+        modified:   sound/soc/sh/dma-sh7760.c
+
 
