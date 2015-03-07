@@ -180,6 +180,10 @@ config CRYPTO_TEST
 
 comment "Authenticated Encryption with Associated Data"
 
+config CRYPTO_ABLK_HELPER
+	tristate
+	select CRYPTO_CRYPTD
+
 config CRYPTO_CCM
 	tristate "CCM support"
 	select CRYPTO_CTR
