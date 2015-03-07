@@ -2374,4 +2374,40 @@ Patch 3.4.41
         modified:   sound/usb/mixer_quirks.c
         modified:   sound/usb/quirks.c
 
+Patch 3.4.42
+	modified:   Makefile
+	modified:   arch/arm/kernel/perf_event.c
+	modified:   arch/arm/mm/cache-feroceon-l2.c
+	modified:   arch/arm/mm/proc-arm920.S
+	modified:   arch/arm/mm/proc-arm926.S
+	modified:   arch/arm/mm/proc-sa1100.S
+	modified:   arch/arm/mm/proc-v6.S
+	modified:   arch/arm/mm/proc-xsc3.S
+	modified:   arch/arm/mm/proc-xscale.S
+	modified:   arch/x86/include/asm/kvm_host.h
+	modified:   arch/x86/kernel/cpu/perf_event_intel.c
+	modified:   arch/x86/kvm/x86.c
+	modified:   crypto/algif_hash.c
+	modified:   crypto/algif_skcipher.c
+	modified:   drivers/char/hpet.c
+	modified:   drivers/gpu/vga/vga_switcheroo.c
+	modified:   drivers/net/can/sja1000/sja1000_of_platform.c
+	modified:   drivers/net/wireless/ath/ath9k/ar9580_1p0_initvals.h
+	modified:   drivers/net/wireless/ath/ath9k/htc_drv_init.c
+	modified:   drivers/net/wireless/b43/phy_n.c
+	modified:   drivers/ssb/driver_chipcommon_pmu.c
+	modified:   drivers/video/console/fbcon.c
+	modified:   fs/btrfs/tree-log.c
+	modified:   fs/hfsplus/extents.c
+	modified:   include/linux/kvm_host.h
+	modified:   include/linux/kvm_types.h
+	modified:   include/linux/mm.h
+	modified:   include/linux/ssb/ssb_driver_chipcommon.h
+	modified:   kernel/signal.c
+	modified:   mm/hugetlb.c
+	modified:   mm/memory.c
+	modified:   sound/core/pcm_native.c
+	modified:   virt/kvm/ioapic.c
+	modified:   virt/kvm/kvm_main.c
+
 
