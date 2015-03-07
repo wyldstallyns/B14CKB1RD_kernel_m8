@@ -2351,4 +2351,27 @@ Patch 3.4.40
         modified:   sound/pci/hda/patch_realtek.c
         modified:   sound/soc/sh/dma-sh7760.c
 
+Patch 3.4.41
+        modified:   Makefile
+        modified:   arch/x86/include/asm/paravirt.h
+        modified:   arch/x86/include/asm/paravirt_types.h
+        modified:   arch/x86/kernel/paravirt.c
+        modified:   arch/x86/lguest/boot.c
+        modified:   arch/x86/mm/fault.c
+        modified:   arch/x86/xen/mmu.c
+        modified:   drivers/gpu/drm/i915/i915_gem_gtt.c
+        modified:   drivers/gpu/drm/udl/udl_connector.c
+        modified:   drivers/net/ethernet/realtek/r8169.c
+        modified:   drivers/scsi/libsas/sas_expander.c
+        modified:   drivers/target/target_core_alua.c
+        modified:   fs/cifs/connect.c
+        modified:   fs/inode.c
+        modified:   kernel/sched/clock.c
+        modified:   kernel/sys.c
+        modified:   kernel/trace/ftrace.c
+        modified:   lib/kobject.c
+        modified:   sound/soc/codecs/wm8903.c
+        modified:   sound/usb/mixer_quirks.c
+        modified:   sound/usb/quirks.c
+
 
