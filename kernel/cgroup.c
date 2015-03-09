@@ -360,12 +360,12 @@ static DEFINE_HASHTABLE(css_set_table, CSS_SET_HASH_BITS);
 static unsigned long css_set_hash(struct cgroup_subsys_state *css[])
 {
 	int i;
-	unsigned long key = OUL;
+	unsigned long key = 0UL;
 
 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++)
 		key += (unsigned long)css[i];
 	key = (key >> 16) ^ key;
-	
+
 	return key;
 }
 
@@ -530,7 +530,7 @@ static struct css_set *find_existing_css_set(
 	struct cgroupfs_root *root = cgrp->root;
 	struct hlist_node *node;
 	struct css_set *cg;
-	
+	unsigned long key;
 
 	/*
 	 * Build the set of subsystem state objects that we want to see in the
@@ -4262,6 +4262,7 @@ void cgroup_unload_subsys(struct cgroup_subsys *ss)
 	write_lock(&css_set_lock);
 	list_for_each_entry(link, &dummytop->css_sets, cgrp_link_list) {
 		struct css_set *cg = link->cg;
+		unsigned long key;
 
 		hash_del(&cg->hlist);
 		BUG_ON(!cg->subsys[ss->subsys_id]);
