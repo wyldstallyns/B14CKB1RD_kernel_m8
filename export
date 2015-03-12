@@ -6,11 +6,11 @@
 if [ "$1" == "local" ]; then
 	echo "Local Build"
 	build=/home/giro/m8/output/
-	export PATH=/home/giro/toolchain/linaro-arm-eabi-4.10/bin:$PATH
+	export PATH=/home/giro/toolchain/4.9-linaro/bin:$PATH
 else
 	echo "Remote Build"
 	build=/home/giro/m8/output/
-	export PATH=/home/giro/toolchain/linaro-arm-eabi-4.10/bin:$PATH
+	export PATH=/home/giro/toolchain/4.9-linaro/bin:$PATH
 fi
 kernel="B14CKB1RD"
 version="1.0"
