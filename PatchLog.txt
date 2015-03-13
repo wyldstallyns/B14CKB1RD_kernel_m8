@@ -2410,4 +2410,70 @@ Patch 3.4.42
 	modified:   virt/kvm/ioapic.c
 	modified:   virt/kvm/kvm_main.c
 
+Patch 3.4.44
+	modified:   Makefile
+	modified:   arch/arm/include/asm/pgtable.h
+	modified:   arch/arm/mach-at91/setup.c
+	modified:   arch/avr32/configs/favr-32_defconfig
+	modified:   arch/avr32/configs/merisc_defconfig
+	modified:   arch/ia64/include/asm/futex.h
+	modified:   arch/ia64/include/asm/mca.h
+	modified:   arch/ia64/kernel/irq.c
+	modified:   arch/ia64/kernel/mca.c
+	modified:   arch/ia64/kvm/vtlb.c
+	modified:   arch/powerpc/kernel/head_64.S
+	modified:   arch/powerpc/platforms/cell/spufs/inode.c
+	modified:   arch/x86/kernel/irq.c
+	modified:   arch/x86/kvm/emulate.c
+	modified:   arch/x86/xen/enlighten.c
+	modified:   arch/x86/xen/time.c
+	modified:   build-config
+	modified:   drivers/acpi/pci_root.c
+	modified:   drivers/i2c/busses/i2c-xiic.c
+	modified:   drivers/md/md.c
+	modified:   drivers/mfd/adp5520.c
+	modified:   drivers/mmc/host/Kconfig
+	modified:   drivers/mmc/host/atmel-mci.c
+	modified:   drivers/net/ethernet/freescale/gianfar_ptp.c
+	modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+	modified:   drivers/net/wireless/mwifiex/pcie.c
+	modified:   drivers/pci/pci.c
+	modified:   drivers/rtc/rtc-cmos.c
+	modified:   drivers/s390/char/sclp_cmd.c
+	modified:   drivers/tty/pty.c
+	modified:   drivers/tty/serial/serial_core.c
+	modified:   drivers/tty/tty_io.c
+	modified:   drivers/usb/core/devio.c
+	modified:   drivers/usb/misc/appledisplay.c
+	modified:   drivers/usb/serial/ftdi_sio.c
+	modified:   drivers/usb/serial/ftdi_sio_ids.h
+	modified:   drivers/usb/serial/option.c
+	modified:   drivers/usb/storage/cypress_atacb.c
+	modified:   drivers/video/console/fbcon.c
+	modified:   fs/dcache.c
+	modified:   fs/exec.c
+	modified:   fs/ext4/resize.c
+	modified:   fs/fscache/stats.c
+	modified:   fs/lockd/clntlock.c
+	modified:   fs/lockd/clntproc.c
+	modified:   fs/nfs/nfs4proc.c
+	modified:   fs/nfsd/nfs4state.c
+	modified:   fs/nfsd/nfs4xdr.c
+	modified:   fs/sysfs/dir.c
+	modified:   include/asm-generic/pgtable.h
+	modified:   include/linux/ipc_namespace.h
+	modified:   ipc/shm.c
+	modified:   kernel/cgroup.c
+	modified:   kernel/hrtimer.c
+	modified:   kernel/time/tick-common.c
+	modified:   kernel/trace/ftrace.c
+	modified:   kernel/trace/trace.c
+	modified:   kernel/trace/trace_stack.c
+	modified:   kernel/trace/trace_stat.c
+	modified:   mm/mmap.c
+	modified:   sound/soc/codecs/max98088.c
+	modified:   sound/usb/card.c
+	modified:   sound/usb/midi.c
+	modified:   sound/usb/stream.c
+
 
