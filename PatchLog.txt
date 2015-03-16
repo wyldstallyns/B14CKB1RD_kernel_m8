@@ -2476,4 +2476,32 @@ Patch 3.4.44
 	modified:   sound/usb/midi.c
 	modified:   sound/usb/stream.c
 
+Patch 3.4.45
+	modified:   Makefile
+	modified:   arch/powerpc/include/asm/ppc-opcode.h
+	modified:   arch/powerpc/kernel/traps.c
+	modified:   arch/powerpc/mm/numa.c
+	modified:   arch/x86/kernel/cpu/perf_event_intel_lbr.c
+	modified:   arch/x86/mm/init.c
+	modified:   build-config
+	modified:   drivers/cpufreq/longhaul.c
+	modified:   drivers/gpu/drm/i915/intel_dvo.c
+	modified:   drivers/gpu/drm/i915/intel_lvds.c
+	modified:   drivers/gpu/drm/radeon/atom.c
+	modified:   drivers/gpu/drm/radeon/evergreen.c
+	modified:   drivers/gpu/drm/radeon/evergreen_reg.h
+	modified:   drivers/gpu/drm/radeon/nid.h
+	modified:   drivers/gpu/drm/radeon/radeon_atombios.c
+	modified:   drivers/gpu/drm/radeon/radeon_pm.c
+	modified:   drivers/gpu/drm/radeon/si.c
+	modified:   drivers/gpu/drm/radeon/sid.h
+	modified:   drivers/net/ethernet/ibm/ibmveth.c
+	modified:   drivers/net/ethernet/realtek/r8169.c
+	modified:   drivers/usb/host/xhci-ring.c
+	modified:   fs/autofs4/expire.c
+	modified:   fs/ext4/resize.c
+	modified:   kernel/audit_tree.c
+	modified:   kernel/trace/trace_selftest.c
+	modified:   net/netfilter/ipvs/ip_vs_pe_sip.c
+
 
