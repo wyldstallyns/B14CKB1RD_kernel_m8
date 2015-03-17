@@ -2504,4 +2504,67 @@ Patch 3.4.45
 	modified:   kernel/trace/trace_selftest.c
 	modified:   net/netfilter/ipvs/ip_vs_pe_sip.c
 
+Patch 3.4.46
+	modified:   Makefile
+	modified:   arch/arm/mach-omap2/board-rx51-peripherals.c
+	modified:   arch/powerpc/include/asm/rtas.h
+	modified:   arch/powerpc/kernel/rtas.c
+	modified:   arch/powerpc/platforms/pseries/suspend.c
+	modified:   arch/x86/kvm/vmx.c
+	modified:   arch/x86/xen/enlighten.c
+	modified:   drivers/acpi/acpica/exfldio.c
+	modified:   drivers/acpi/ec.c
+	modified:   drivers/block/drbd/drbd_receiver.c
+	modified:   drivers/char/ipmi/ipmi_bt_sm.c
+	modified:   drivers/char/ipmi/ipmi_devintf.c
+	modified:   drivers/dma/pch_dma.c
+	modified:   drivers/gpu/drm/drm_mm.c
+	modified:   drivers/gpu/drm/radeon/r300_cmdbuf.c
+	modified:   drivers/md/dm-snap.c
+	modified:   drivers/md/dm-thin.c
+	modified:   drivers/net/ethernet/3com/3c509.c
+	modified:   drivers/net/ethernet/3com/3c59x.c
+	modified:   drivers/net/ethernet/realtek/r8169.c
+	modified:   drivers/net/macvlan.c
+	modified:   drivers/net/usb/qmi_wwan.c
+	modified:   drivers/net/wireless/ath/ath9k/main.c
+	modified:   drivers/net/wireless/b43/dma.c
+	modified:   drivers/net/wireless/b43/dma.h
+	modified:   drivers/net/wireless/b43/main.c
+	modified:   drivers/net/wireless/mwifiex/cmdevt.c
+	modified:   drivers/net/wireless/mwifiex/sta_ioctl.c
+	modified:   drivers/platform/x86/hp_accel.c
+	modified:   drivers/rtc/rtc-pcf2123.c
+	modified:   drivers/scsi/sd.c
+	modified:   drivers/scsi/sd.h
+	modified:   drivers/target/iscsi/iscsi_target_erl1.c
+	modified:   fs/ext4/mballoc.c
+	modified:   fs/hugetlbfs/inode.c
+	modified:   fs/nfsd/nfs4proc.c
+	modified:   include/linux/audit.h
+	modified:   include/linux/hugetlb.h
+	modified:   include/linux/if_cablemodem.h
+	modified:   include/linux/rculist.h
+	modified:   include/net/sock.h
+	modified:   include/net/tcp.h
+	modified:   ipc/shm.c
+	modified:   kernel/kmod.c
+	modified:   kernel/time/tick-sched.c
+	modified:   kernel/trace/trace_events_filter.c
+	modified:   mm/mmap.c
+	modified:   net/8021q/vlan_dev.c
+	modified:   net/bridge/br_stp_timer.c
+	modified:   net/core/dev.c
+	modified:   net/core/ethtool.c
+	modified:   net/core/sock.c
+	modified:   net/ipv6/tcp_ipv6.c
+	modified:   net/ipv6/udp.c
+	modified:   net/ipv6/udp_impl.h
+	modified:   net/ipv6/udplite.c
+	modified:   net/ipv6/xfrm6_policy.c
+	modified:   net/packet/af_packet.c
+	modified:   net/sched/act_ipt.c
+	modified:   sound/pci/hda/hda_codec.c
+	modified:   sound/soc/codecs/wm8994.c
+
 
