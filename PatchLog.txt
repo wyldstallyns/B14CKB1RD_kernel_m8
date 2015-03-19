@@ -2567,4 +2567,14 @@ Patch 3.4.46
 	modified:   sound/pci/hda/hda_codec.c
 	modified:   sound/soc/codecs/wm8994.c
 
+Patch 3.4.47
+        modified:   Makefile
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/radeon_ttm.c
+        modified:   drivers/gpu/drm/radeon/si.c
+        modified:   drivers/hwmon/abituguru.c
+        modified:   drivers/i2c/busses/i2c-designware-core.c
+        modified:   drivers/media/dvb/mantis/mantis_dvb.c
+        modified:   fs/btrfs/ioctl.c
+
 
