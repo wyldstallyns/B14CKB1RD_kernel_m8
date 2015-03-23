@@ -2577,4 +2577,49 @@ Patch 3.4.47
         modified:   drivers/media/dvb/mantis/mantis_dvb.c
         modified:   fs/btrfs/ioctl.c
 
+Patch 3.4.48
+        modified:   Makefile
+        modified:   arch/arm/mach-kirkwood/ts219-setup.c
+        modified:   arch/arm/plat-orion/common.c
+        modified:   arch/avr32/kernel/module.c
+        modified:   arch/m68k/kernel/head.S
+        modified:   arch/x86/um/sys_call_table_32.c
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/ata/libata-core.c
+        modified:   drivers/block/brd.c
+        modified:   drivers/gpu/drm/radeon/radeon_device.c
+        modified:   drivers/iommu/amd_iommu.c
+        modified:   drivers/iommu/amd_iommu_types.h
+        modified:   drivers/leds/leds-ot200.c
+        modified:   drivers/net/xen-netback/netback.c
+        modified:   drivers/platform/x86/thinkpad_acpi.c
+        modified:   drivers/staging/vt6656/hostap.c
+        modified:   drivers/target/iscsi/iscsi_target_parameters.c
+        modified:   drivers/target/iscsi/iscsi_target_parameters.h
+        modified:   drivers/usb/atm/cxacru.c
+        modified:   drivers/usb/core/quirks.c
+        modified:   drivers/usb/host/uhci-hub.c
+        modified:   drivers/usb/host/xhci-mem.c
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ftdi_sio_ids.h
+        modified:   drivers/usb/serial/io_ti.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/xen/events.c
+        modified:   fs/cifs/cifs_dfs_ref.c
+        modified:   fs/cifs/inode.c
+        modified:   fs/jfs/inode.c
+        modified:   fs/jfs/jfs_logmgr.c
+        modified:   fs/nfs/nfs4proc.c
+        modified:   fs/nilfs2/inode.c
+        modified:   fs/ocfs2/extent_map.c
+        modified:   fs/xfs/xfs_iops.c
+        modified:   include/linux/wait.h
+        modified:   mm/huge_memory.c
+        modified:   mm/migrate.c
+        modified:   mm/mmu_notifier.c
+        modified:   mm/pagewalk.c
+        modified:   net/mac80211/iface.c
+        modified:   tools/perf/scripts/python/net_dropmonitor.py
+
+
 
