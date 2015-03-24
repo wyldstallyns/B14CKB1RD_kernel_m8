@@ -2621,5 +2621,46 @@ Patch 3.4.48
         modified:   net/mac80211/iface.c
         modified:   tools/perf/scripts/python/net_dropmonitor.py
 
+Patch 3.4.49
+        modified:   Makefile
+        modified:   arch/powerpc/platforms/pseries/eeh_pseries.c
+        modified:   drivers/acpi/video.c
+        modified:   drivers/gpu/drm/drm_irq.c
+        modified:   drivers/gpu/drm/gma500/framebuffer.c
+        modified:   drivers/gpu/drm/i915/intel_lvds.c
+        modified:   drivers/gpu/drm/i915/intel_sdvo.c
+        modified:   drivers/gpu/drm/radeon/atombios_encoders.c
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/ni.c
+        modified:   drivers/gpu/drm/radeon/r100.c
+        modified:   drivers/gpu/drm/radeon/r300.c
+        modified:   drivers/gpu/drm/radeon/r420.c
+        modified:   drivers/gpu/drm/radeon/r520.c
+        modified:   drivers/gpu/drm/radeon/r600.c
+        modified:   drivers/gpu/drm/radeon/rs400.c
+        modified:   drivers/gpu/drm/radeon/rs600.c
+        modified:   drivers/gpu/drm/radeon/rs690.c
+        modified:   drivers/gpu/drm/radeon/rv515.c
+        modified:   drivers/gpu/drm/radeon/rv770.c
+        modified:   drivers/gpu/drm/radeon/si.c
+        modified:   drivers/hwmon/adm1021.c
+        modified:   drivers/usb/host/ehci-sched.c
+        modified:   drivers/usb/serial/ark3116.c
+        modified:   drivers/usb/serial/cypress_m8.c
+        modified:   drivers/usb/serial/cypress_m8.h
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/iuu_phoenix.c
+        modified:   drivers/usb/serial/keyspan.c
+        modified:   drivers/usb/serial/mos7720.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/visor.c
+        modified:   drivers/usb/serial/whiteheat.c
+        modified:   drivers/xen/xen-pciback/pciback_ops.c
+        modified:   include/linux/ftrace.h
+        modified:   kernel/trace/ftrace.c
+        modified:   kernel/trace/trace_stack.c
+        modified:   sound/usb/mixer.c
+        modified:   sound/usb/quirks-table.h
+
 
 
