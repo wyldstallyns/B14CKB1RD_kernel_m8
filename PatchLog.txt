@@ -2662,5 +2662,38 @@ Patch 3.4.49
         modified:   sound/usb/mixer.c
         modified:   sound/usb/quirks-table.h
 
+Patch 3.4.50
+        modified:   Makefile
+        modified:   arch/powerpc/include/asm/exception-64s.h
+        modified:   arch/powerpc/kernel/irq.c
+        modified:   arch/powerpc/kernel/process.c
+        modified:   arch/x86/kernel/relocate_kernel_64.S
+        modified:   drivers/block/cciss.c
+        modified:   drivers/gpu/drm/gma500/cdv_intel_display.c
+        modified:   drivers/gpu/drm/gma500/psb_intel_display.c
+        modified:   drivers/gpu/drm/i915/intel_sdvo.c
+        modified:   drivers/md/raid1.c
+        modified:   drivers/md/raid10.c
+        modified:   drivers/net/wireless/ath/ath9k/Kconfig
+        modified:   drivers/net/wireless/ath/ath9k/Makefile
+        modified:   drivers/net/wireless/ath/ath9k/init.c
+        modified:   drivers/net/wireless/ath/ath9k/rc.h
+        modified:   drivers/net/wireless/b43/main.c
+        modified:   drivers/rtc/rtc-twl.c
+        modified:   fs/ceph/locks.c
+        modified:   fs/ceph/mds_client.c
+        modified:   fs/ceph/super.c
+        modified:   fs/ceph/super.h
+        modified:   include/linux/ceph/auth.h
+        modified:   include/linux/cpu.h
+        modified:   include/linux/swapops.h
+        modified:   kernel/cpu.c
+        modified:   mm/hugetlb.c
+        modified:   net/ceph/auth.c
+        modified:   net/ceph/auth_x.c
+        modified:   net/ceph/auth_x.h
+        modified:   net/ceph/messenger.c
+        modified:   net/ceph/mon_client.c
+        modified:   net/ceph/osd_client.c
 
 
