@@ -2696,4 +2696,34 @@ Patch 3.4.50
         modified:   net/ceph/mon_client.c
         modified:   net/ceph/osd_client.c
 
+Patch 3.4.51
+        modified:   Makefile
+        modified:   arch/tile/lib/exports.c
+        modified:   arch/x86/kvm/x86.c
+        modified:   drivers/clk/clk.c
+        modified:   drivers/input/touchscreen/cyttsp_core.c
+        modified:   drivers/net/bonding/bond_alb.c
+        modified:   drivers/net/bonding/bonding.h
+        modified:   drivers/net/ethernet/freescale/gianfar_ptp.c
+        modified:   drivers/net/ethernet/realtek/8139cp.c
+        modified:   drivers/net/ethernet/realtek/r8169.c
+        modified:   drivers/net/team/team_mode_roundrobin.c
+        modified:   drivers/target/iscsi/iscsi_target_erl0.c
+        modified:   drivers/usb/serial/ti_usb_3410_5052.h
+        modified:   fs/notify/inotify/inotify_user.c
+        modified:   include/linux/rculist_nulls.h
+        modified:   include/linux/socket.h
+        modified:   net/compat.c
+        modified:   net/ipv4/ip_gre.c
+        modified:   net/ipv4/ipip.c
+        modified:   net/ipv4/tcp.c
+        modified:   net/ipv4/tcp_output.c
+        modified:   net/ipv6/addrconf.c
+        modified:   net/ipv6/ip6_output.c
+        modified:   net/netlabel/netlabel_domainhash.c
+        modified:   net/sctp/socket.c
+        modified:   net/socket.c
+        modified:   sound/usb/card.c
+        modified:   sound/usb/mixer.c
+
 
