@@ -2726,4 +2726,18 @@ Patch 3.4.51
         modified:   sound/usb/card.c
         modified:   sound/usb/mixer.c
 
+Patch 3.4.52
+        modified:   Makefile
+        modified:   arch/arm/include/asm/cacheflush.h
+        modified:   arch/arm/mm/flush.c
+        modified:   arch/arm/mm/nommu.c
+        modified:   drivers/net/wan/dlci.c
+        modified:   drivers/tty/serial/pch_uart.c
+        modified:   fs/ubifs/dir.c
+        modified:   include/linux/perf_event.h
+        modified:   kernel/events/core.c
+        modified:   kernel/events/hw_breakpoint.c
+        modified:   kernel/events/internal.h
+        modified:   net/bluetooth/l2cap_core.c
+
 
