@@ -2740,4 +2740,21 @@ Patch 3.4.52
         modified:   kernel/events/internal.h
         modified:   net/bluetooth/l2cap_core.c
 
+Patch 3.4.53
+        modified:   MAINTAINERS
+        modified:   Makefile
+        modified:   block/genhd.c
+        modified:   crypto/algapi.c
+        modified:   drivers/block/nbd.c
+        modified:   drivers/cdrom/cdrom.c
+        modified:   drivers/power/charger-manager.c
+        modified:   drivers/scsi/osd/osd_uld.c
+        modified:   drivers/scsi/sd.c
+        modified:   drivers/tty/serial/8250/8250_pci.c
+        modified:   fs/hpfs/map.c
+        modified:   fs/hpfs/super.c
+        modified:   fs/nfsd/nfs4xdr.c
+        modified:   kernel/time/tick-sched.c
+        modified:   net/ceph/auth_none.c
+
 
