@@ -2757,4 +2757,30 @@ Patch 3.4.53
         modified:   kernel/time/tick-sched.c
         modified:   net/ceph/auth_none.c
 
+Patch 3.4.54
+        modified:   Makefile
+        modified:   arch/arm/kernel/perf_event.c
+        modified:   arch/x86/xen/time.c
+        modified:   drivers/acpi/ec.c
+        modified:   drivers/ata/ahci.c
+        modified:   drivers/ata/libahci.c
+        modified:   drivers/dma/pl330.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192cu/rf.c
+        modified:   drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
+        modified:   drivers/pci/quirks.c
+        modified:   drivers/pcmcia/at91_cf.c
+        modified:   drivers/rtc/rtc-rv3029c2.c
+        modified:   drivers/usb/host/xhci-mem.c
+        modified:   drivers/usb/serial/option.c
+        modified:   drivers/usb/serial/qcserial.c
+        modified:   fs/cifs/cifs_unicode.h
+        modified:   fs/cifs/cifsencrypt.c
+        modified:   fs/cifs/inode.c
+        modified:   fs/ext3/namei.c
+        modified:   fs/ext4/inode.c
+        modified:   fs/ext4/namei.c
+        modified:   fs/ocfs2/xattr.c
+        modified:   kernel/irq/manage.c                                                    
+        modified:   kernel/timer.c         
+
 
