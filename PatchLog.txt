@@ -2783,4 +2783,59 @@ Patch 3.4.54
         modified:   kernel/irq/manage.c                                                    
         modified:   kernel/timer.c         
 
+Patch 3.4.55
+        modified:   Makefile                                                                                 
+        modified:   arch/sparc/kernel/asm-offsets.c                                                          
+        modified:   arch/sparc/mm/hypersparc.S                                                               
+        modified:   arch/sparc/mm/init_64.c                                                                  
+        modified:   arch/sparc/mm/swift.S                                                                    
+        modified:   arch/sparc/mm/tlb.c                                                                      
+        modified:   arch/sparc/mm/tsunami.S
+        modified:   arch/sparc/mm/viking.S
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/ata/libata-pmp.c
+        modified:   drivers/iommu/amd_iommu.c
+        modified:   drivers/net/dummy.c
+        modified:   drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+        modified:   drivers/net/ethernet/renesas/sh_eth.c
+        modified:   drivers/net/ethernet/renesas/sh_eth.h
+        modified:   drivers/net/ethernet/sun/sunvnet.c
+        modified:   drivers/net/ifb.c
+        modified:   drivers/net/macvtap.c
+        modified:   drivers/net/wireless/ath/ath9k/calib.c
+        modified:   drivers/net/wireless/rt2x00/rt2800lib.c
+        modified:   drivers/net/wireless/rt2x00/rt61pci.c
+        modified:   drivers/net/wireless/rt2x00/rt73usb.c
+        modified:   drivers/s390/scsi/zfcp_fsf.c
+        modified:   drivers/s390/scsi/zfcp_scsi.c
+        modified:   drivers/scsi/bnx2fc/bnx2fc_io.c
+        modified:   drivers/scsi/megaraid/megaraid_sas_base.c
+        modified:   drivers/scsi/mpt2sas/mpt2sas_scsih.c
+        modified:   drivers/usb/serial/cp210x.c
+        modified:   drivers/usb/serial/option.c
+        modified:   fs/ext3/inode.c
+        modified:   fs/lockd/svclock.c
+        modified:   include/linux/if_pppox.h
+        modified:   include/net/addrconf.h
+        modified:   include/net/udp.h
+        modified:   kernel/events/core.c
+        modified:   kernel/hrtimer.c
+        modified:   kernel/time/tick-broadcast.c
+        modified:   kernel/trace/trace.c
+        modified:   kernel/trace/trace_syscalls.c
+        modified:   net/8021q/vlan_dev.c
+        modified:   net/9p/trans_common.c
+        modified:   net/bridge/br_multicast.c
+        modified:   net/core/neighbour.c
+        modified:   net/ipv4/tcp_ipv4.c
+        modified:   net/ipv6/addrconf.c
+        modified:   net/ipv6/ip6_output.c
+        modified:   net/ipv6/mcast.c
+        modified:   net/ipv6/route.c
+        modified:   net/key/af_key.c
+        modified:   net/l2tp/l2tp_ppp.c
+        modified:   net/x25/af_x25.c
+        modified:   sound/soc/codecs/sgtl5000.h
+        modified:   sound/usb/6fire/pcm.c
+
 
