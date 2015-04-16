@@ -2838,4 +2838,50 @@ Patch 3.4.55
         modified:   sound/soc/codecs/sgtl5000.h
         modified:   sound/usb/6fire/pcm.c
 
+Patch 3.4.56
+        modified:   Makefile
+        modified:   arch/powerpc/include/asm/module.h
+        modified:   arch/powerpc/kernel/vmlinux.lds.S
+        modified:   arch/s390/include/asm/pgtable.h
+        modified:   drivers/acpi/acpi_memhotplug.c
+        modified:   drivers/ata/Kconfig
+        modified:   drivers/ata/ata_piix.c
+        modified:   drivers/ata/sata_inic162x.c
+        modified:   drivers/block/xen-blkback/blkback.c
+        modified:   drivers/firewire/core-cdev.c
+        modified:   drivers/firewire/ohci.c
+        modified:   drivers/gpu/drm/radeon/atom.c
+        modified:   drivers/gpu/drm/radeon/atombios_dp.c
+        modified:   drivers/gpu/drm/radeon/radeon_combios.c
+        modified:   drivers/md/dm-verity.c
+        modified:   drivers/md/raid10.c
+        modified:   drivers/md/raid5.c
+        modified:   drivers/md/raid5.h
+        modified:   drivers/net/virtio_net.c
+        modified:   drivers/s390/scsi/zfcp_aux.c
+        modified:   drivers/s390/scsi/zfcp_fsf.c
+        modified:   drivers/scsi/qla2xxx/qla_iocb.c
+        modified:   drivers/scsi/sd.c
+        modified:   drivers/staging/comedi/comedi_fops.c
+        modified:   drivers/target/iscsi/iscsi_target_configfs.c
+        modified:   drivers/usb/core/hub.c
+        modified:   drivers/usb/dwc3/core.h
+        modified:   drivers/usb/dwc3/gadget.c
+        modified:   drivers/usb/host/xhci-pci.c
+        modified:   drivers/usb/host/xhci-ring.c
+        modified:   drivers/usb/misc/sisusbvga/sisusb.c
+        modified:   drivers/usb/serial/ftdi_sio.c
+        modified:   drivers/usb/serial/ti_usb_3410_5052.c
+        modified:   drivers/usb/storage/unusual_devs.h
+        modified:   drivers/virtio/virtio_ring.c
+        modified:   drivers/xen/evtchn.c
+        modified:   fs/btrfs/extent-tree.c
+        modified:   fs/super.c
+        modified:   include/linux/firewire-cdev.h
+        modified:   include/linux/firewire.h
+        modified:   kernel/trace/trace_syscalls.c
+        modified:   mm/page_alloc.c
+        modified:   sound/soc/codecs/max98088.c
+        modified:   sound/soc/codecs/wm8962.c
+
 
