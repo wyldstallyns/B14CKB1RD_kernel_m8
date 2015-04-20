@@ -2884,4 +2884,30 @@ Patch 3.4.56
         modified:   sound/soc/codecs/max98088.c
         modified:   sound/soc/codecs/wm8962.c
 
+Patch 3.4.57
+        modified:   Makefile
+        modified:   arch/x86/kernel/i387.c
+        modified:   drivers/acpi/battery.c
+        modified:   drivers/gpu/drm/i915/i915_drv.h
+        modified:   drivers/gpu/drm/i915/intel_display.c
+        modified:   drivers/gpu/drm/i915/intel_lvds.c
+        modified:   drivers/net/arcnet/arcnet.c
+        modified:   drivers/net/ethernet/intel/ixgbe/ixgbe_dcb_82598.c
+        modified:   drivers/net/ethernet/realtek/8139cp.c
+        modified:   drivers/net/usb/smsc75xx.c
+        modified:   drivers/net/wireless/ath/ath9k/htc_drv_init.c
+        modified:   drivers/net/wireless/mwifiex/sdio.c
+        modified:   drivers/net/wireless/rt2x00/rt2x00queue.c
+        modified:   drivers/tty/serial/mxs-auart.c
+        modified:   fs/notify/fanotify/fanotify_user.c
+        modified:   kernel/events/core.c
+        modified:   kernel/sched/fair.c
+        modified:   net/ipv4/sysctl_net_ipv4.c
+        modified:   net/ipv6/ip6mr.c
+        modified:   net/key/af_key.c
+        modified:   net/mac80211/rx.c
+        modified:   net/sched/sch_atm.c
+        modified:   net/sched/sch_cbq.c
+        modified:   net/sctp/outqueue.c
+
 
