@@ -2910,4 +2910,45 @@ Patch 3.4.57
         modified:   net/sched/sch_cbq.c
         modified:   net/sctp/outqueue.c
 
+(I forgot to document the other patches!! I'm sorry!!)
+Patch 3.4.63
+	modified:   Makefile
+	modified:   arch/arm/mach-versatile/pci.c
+	modified:   arch/mips/ath79/clock.c
+	modified:   arch/powerpc/kernel/align.c
+	modified:   crypto/api.c
+	modified:   drivers/gpu/drm/drm_edid.c
+	modified:   drivers/hid/hid-core.c
+	modified:   drivers/hid/hid-ids.h
+	modified:   drivers/hid/hid-input.c
+	modified:   drivers/hid/hid-ntrig.c
+	modified:   drivers/hid/hid-pl.c
+	modified:   drivers/hid/hid-speedlink.c
+	modified:   drivers/hid/usbhid/hid-quirks.c
+	modified:   drivers/iommu/intel-iommu.c
+	modified:   drivers/mmc/host/tmio_mmc_dma.c
+	modified:   drivers/net/wireless/ath/ath9k/ar9003_phy.c
+	modified:   drivers/net/wireless/ath/ath9k/ath9k.h
+	modified:   drivers/net/wireless/ath/ath9k/recv.c
+	modified:   drivers/net/wireless/ath/ath9k/xmit.c
+	modified:   drivers/net/wireless/brcm80211/brcmsmac/dma.c
+	modified:   drivers/of/base.c
+	modified:   drivers/scsi/sd.c
+	modified:   drivers/staging/comedi/drivers/dt282x.c
+	modified:   drivers/usb/class/cdc-wdm.c
+	modified:   drivers/usb/core/config.c
+	modified:   drivers/usb/host/ehci-mxc.c
+	modified:   drivers/usb/serial/mos7720.c
+	modified:   drivers/xen/grant-table.c
+	modified:   fs/cifs/connect.c
+	modified:   fs/isofs/inode.c
+	modified:   fs/ocfs2/extent_map.c
+	modified:   include/linux/hid.h
+	modified:   include/linux/rculist.h
+	modified:   include/media/v4l2-ctrls.h
+	modified:   mm/huge_memory.c
+	modified:   mm/memcontrol.c
+	modified:   sound/pci/hda/hda_intel.c
+	modified:   sound/soc/codecs/wm8960.c
+
 
