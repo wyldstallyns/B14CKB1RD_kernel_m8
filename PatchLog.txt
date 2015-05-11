@@ -2951,4 +2951,32 @@ Patch 3.4.63
 	modified:   sound/pci/hda/hda_intel.c
 	modified:   sound/soc/codecs/wm8960.c
 
+Patch 3.4.64
+        modified:   Makefile
+        modified:   drivers/gpu/drm/radeon/atombios_dp.c
+        modified:   drivers/gpu/drm/radeon/atombios_encoders.c
+        modified:   drivers/gpu/drm/radeon/atombios_i2c.c
+        modified:   drivers/gpu/drm/radeon/evergreen.c
+        modified:   drivers/gpu/drm/radeon/evergreend.h
+        modified:   drivers/gpu/drm/radeon/radeon_atombios.c
+        modified:   drivers/gpu/drm/radeon/rs400.c
+        modified:   drivers/gpu/drm/radeon/si.c
+        modified:   drivers/gpu/drm/radeon/sid.h
+        modified:   drivers/gpu/drm/ttm/ttm_tt.c
+        modified:   drivers/hid/hid-core.c
+        modified:   drivers/hid/hid-logitech-dj.c
+        modified:   drivers/hid/hid-zpff.c
+        modified:   drivers/net/ethernet/sfc/rx.c
+        modified:   drivers/net/usb/cdc_ether.c
+        modified:   drivers/net/wireless/rt2x00/rt2800lib.c
+        modified:   fs/notify/fanotify/fanotify.c
+        modified:   include/linux/hid.h
+        modified:   include/linux/perf_event.h
+        modified:   kernel/cgroup.c
+        modified:   kernel/events/core.c
+        modified:   kernel/sched/fair.c
+        modified:   net/sctp/sm_sideeffect.c
+        modified:   scripts/kernel-doc
+        modified:   tools/perf/util/map.c
+
 
