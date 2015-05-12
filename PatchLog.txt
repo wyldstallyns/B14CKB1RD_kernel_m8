@@ -2979,4 +2979,26 @@ Patch 3.4.64
         modified:   scripts/kernel-doc
         modified:   tools/perf/util/map.c
 
+Patch 3.4.65
+        modified:   Makefile
+        modified:   arch/x86/kernel/reboot.c
+        modified:   arch/x86/platform/efi/efi.c
+        modified:   drivers/gpu/drm/i915/intel_dp.c
+        modified:   drivers/gpu/drm/radeon/radeon_device.c
+        modified:   drivers/hid/hid-lg2ff.c
+        modified:   drivers/hid/hid-lg3ff.c
+        modified:   drivers/hid/hid-lg4ff.c
+        modified:   drivers/hid/hid-lgff.c
+        modified:   drivers/hwmon/applesmc.c
+        modified:   drivers/md/dm-snap-persistent.c
+        modified:   drivers/md/dm-snap.c
+        modified:   drivers/staging/vt6656/main_usb.c
+        modified:   drivers/usb/core/devio.c
+        modified:   drivers/usb/host/xhci-hub.c
+        modified:   drivers/usb/host/xhci-ring.c
+        modified:   drivers/usb/host/xhci.c
+        modified:   drivers/usb/host/xhci.h
+        modified:   mm/oom_kill.c
+        modified:   sound/core/compress_offload.c
+
 
