@@ -332,7 +332,9 @@ static int pppol2tp_xmit(struct ppp_channel *chan, struct sk_buff *skb)
 	skb->data[0] = ppph[0];
 	skb->data[1] = ppph[1];
 
+	local_bh_disable();
 	l2tp_xmit_skb(session, skb, session->hdr_len);
+	local_bh_enable();
 
 	sock_put(sk_tun);
 	sock_put(sk);
