@@ -1339,8 +1339,14 @@ static unsigned interleave_nodes(struct mempolicy *policy)
 	return nid;
 }
 
-unsigned slab_node(struct mempolicy *policy)
+unsigned slab_node(void)
 {
+	struct mempolicy *policy;
+
+	if (in_interrupt())
+		return numa_node_id();
+
+	policy = current->mempolicy;
 	if (!policy || policy->flags & MPOL_F_LOCAL)
 		return numa_node_id();
 
