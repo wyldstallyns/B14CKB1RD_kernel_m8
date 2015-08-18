@@ -60,3 +60,4 @@ void __devinit acpuclk_register(struct acpuclk_data *data)
 {
 	acpuclk_data = data;
 }
+

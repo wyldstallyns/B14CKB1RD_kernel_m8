@@ -640,3 +640,4 @@ static int __init msm_cpufreq_register(void)
 }
 
 device_initcall(msm_cpufreq_register);
+

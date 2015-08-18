@@ -91,3 +91,4 @@ unsigned long acpuclk_wait_for_irq(void);
 void acpuclk_register(struct acpuclk_data *data);
 
 #endif /*__ARCH_ARM_MACH_MSM_ACPUCLOCK_H*/
+
