@@ -1,0 +1,55 @@
+TOOLCHAINDIR=~/toolchain
+
+TOOLCHAIN=linaro-arm-eabi-4.10
+
+CROSS_COMPILE=$TOOLCHAINDIR/$TOOLCHAIN/bin/arm-eabi-
+
+LOCAL_BUILD_DIR=~/m8/kernels
+
+TARGET_DIR=~/m8/kernels/updates
+
+FTPTARGETDIR="/kernels/m8"
+
+SYSTEM_PARTITION="/dev/block/platform/msm_sdcc.1/by-name/system"
+
+DEFCONFIG=cm_m8_defconfig
+
+FLASH_BOOT='/dev/block/platform/msm_sdcc.1/by-name/boot'
+
+PHONE='HTC M8'
+
+DATE=$(date +%Y-%m-%d)
+# ----
+
+N_CORES=8
+VERSION=B14CKB1RD-Kernel-M8-
+
+# ----
+
+BANNER=`cat <<EOF
+ui_print("$PHONE");
+ui_print("$VERSION");
+ui_print("MMMMMMMMXKWMMMMMMMMN0NMMMMMMMM");
+ui_print("MMMMMMO,xMMMMMMMMMMMMl;KMMMMMM");
+ui_print("MMMMX' xMMMMMMMMMMMMMM: :NMMMM");
+ui_print("MMMN. .MMMMMMMMMMMMMMMN  ,NMMM");
+ui_print("MW,,. ;MMMMMMMMMMMMMMMM. ,.lMM");
+ui_print("M'    lWMMMMMMMMMMMMMMN,    lM");
+ui_print("Mc   clXMMMMMMMMMMMMMMxO'   xM");
+ui_print("X:;  Xc:MMMMMMOXMMMMMW.xx  c:M");
+ui_print("Mc   oO ,XMMMK .WMMMO. N;   kM");
+ui_print("MW:   l;  KMN.  ,MMk  l,  .oMM");
+ui_print("MMMN:.     :.    ;'     .lWMMM");
+ui_print("MMMMXc  oc.        .l: .oWMMMM");
+ui_print("MMMMMMM0dKMO     .XW0dKMMMMMMM");
+ui_print("MMMMMMMMMO'        ;KMMMMMMMMM");
+ui_print("MMMMMMMO.  :.    ,,  ,KMMMMMMM");
+ui_print("MMMMMMMMWdO'      lxkWMMMMMMMM");
+ui_print("MMMMMMMMMM;  . .   oMMMMMMMMMM");
+ui_print("MMMMMMMMMM0l c.c'.oXMMMMMMMMMM");
+ui_print("MMMMMMMMMMMMWXdKKMMMMMMMMMMMMM");
+ui_print("For $PHONE");
+ui_print("Version $VERSION");
+EOF`
+
+
