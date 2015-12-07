@@ -393,13 +393,12 @@ find_vma_prepare(struct mm_struct *mm, unsigned long addr,
 	return vma;
 }
 
-static unsigned long count_vma_pages_range(struct mm_struct *mm,
+/* static unsigned long count_vma_pages_range(struct mm_struct *mm,
 		unsigned long addr, unsigned long end)
 {
 	unsigned long nr_pages = 0;
 	struct vm_area_struct *vma;
 
-	/* Find first overlaping mapping */
 	vma = find_vma_intersection(mm, addr, end);
 	if (!vma)
 		return 0;
@@ -407,7 +406,6 @@ static unsigned long count_vma_pages_range(struct mm_struct *mm,
 	nr_pages = (min(end, vma->vm_end) -
 		max(addr, vma->vm_start)) >> PAGE_SHIFT;
 
-	/* Iterate over the rest of the overlaps */
 	for (vma = vma->vm_next; vma; vma = vma->vm_next) {
 		unsigned long overlap_len;
 
@@ -419,7 +417,7 @@ static unsigned long count_vma_pages_range(struct mm_struct *mm,
 	}
 
 	return nr_pages;
-}
+} */
 
 void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
 		struct rb_node **rb_link, struct rb_node *rb_parent)
