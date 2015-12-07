@@ -1238,7 +1238,7 @@ static int crypt_decode_key(u8 *key, char *hex, unsigned int size)
 
 /*
  * Encode key into its hex representation
- */
+ *
 static void crypt_encode_key(char *hex, u8 *key, unsigned int size)
 {
 	unsigned int i;
@@ -1249,6 +1249,7 @@ static void crypt_encode_key(char *hex, u8 *key, unsigned int size)
 		key++;
 	}
 }
+*/
 
 static void crypt_free_tfms(struct crypt_config *cc)
 {
