@@ -63,7 +63,7 @@ static inline void disable_cpufreq(void) { }
  * cent / per mille means.
  * Maximum transition latency is in nanoseconds - if it's unknown,
  * CPUFREQ_ETERNAL shall be used.
-/* Minimum frequency cutoff to notify the userspace about cpu utilization
+ * Minimum frequency cutoff to notify the userspace about cpu utilization
  * changes */
 #define MIN_CPU_UTIL_NOTIFY   40
 

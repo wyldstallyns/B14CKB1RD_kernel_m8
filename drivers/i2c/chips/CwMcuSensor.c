@@ -1358,11 +1358,6 @@ static int active_set(struct device *dev,struct device_attribute *attr,const cha
 		I("%s: Any_Motion && power_key_pressed\n", __func__);
 		return count;
 	}
-
-	if ((sensors_id == Proximity) && (enabled == 0) && proximity_flag) {
-		enabled = 1;
-	}
-
 	if ((sensors_id == Proximity) && (enabled == 0)) {
 		if (mcu_data->proximity_debu_info == 1) {
 			uint8_t mcu_data_p[4];
@@ -3822,3 +3817,4 @@ module_exit(CWMCU_i2c_exit);
 MODULE_DESCRIPTION("CWMCU I2C Bus Driver V1.6");
 MODULE_AUTHOR("CyWee Group Ltd.");
 MODULE_LICENSE("GPL");
+
